@@ -1,0 +1,17 @@
+.starButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: transform 0.2s, color 0.2s;
+  color: #ccc;
+}
+
+.starButton:hover {
+  transform: scale(1.2);
+}
+
+.starButton.starred {
+  color: #ffc107;
+}
