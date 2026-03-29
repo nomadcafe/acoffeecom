@@ -22,6 +22,16 @@ export interface CoffeeShop {
   googleMapsUri?: string;
 }
 
+/** Persisted when user stars a shop so the sidebar can list favorites without a new search. */
+export interface StarredShopSnapshot {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  googleMapsUri?: string;
+}
+
 export interface AppState {
   locationA: Location | null;
   locationB: Location | null;
@@ -29,7 +39,7 @@ export interface AppState {
   coffeeShops: CoffeeShop[];
   /** Highlights a shop on the map and list; null when nothing is selected. */
   selectedCoffeeShopId: string | null;
-  starredShopIds: string[];
+  starredShops: StarredShopSnapshot[];
   isLoading: boolean;
   error: string | null;
   /** Minimum star rating filter (typical Google scale ~1–5). */

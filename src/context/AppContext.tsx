@@ -13,7 +13,7 @@ interface AppContextType extends AppState {
   addressA: string;
   addressB: string;
   findMeetupSpot: () => Promise<void>;
-  toggleStar: (shopId: string) => void;
+  toggleStar: (shop: CoffeeShop) => void;
   isStarred: (shopId: string) => boolean;
   setMapRef: (map: google.maps.Map | null) => void;
   setSelectedCoffeeShopId: (id: string | null) => void;
@@ -53,7 +53,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
-  const { starredShopIds, toggleStar, isStarred } = useStarredShops();
+  const { starredShops, starredShopIds, toggleStar, isStarred } = useStarredShops();
 
   const setMapRef = useCallback((map: google.maps.Map | null) => {
     mapRef.current = map;
@@ -127,7 +127,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         midpoint,
         coffeeShops,
         selectedCoffeeShopId,
-        starredShopIds,
+        starredShops,
         isLoading,
         error,
         searchMinRating,

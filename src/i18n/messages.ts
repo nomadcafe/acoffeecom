@@ -72,6 +72,14 @@ export const en: MessageDict = {
   'star.add': 'Add to favorites',
   'star.remove': 'Remove from favorites',
 
+  'saved.title': 'Saved cafés',
+  'saved.count': '{{count}} saved',
+  'saved.empty':
+    'Star a café in the search results below — it will show up here for quick access and maps links.',
+  'saved.focusMap': 'Show on map',
+  'saved.focusHint':
+    'If a saved café is in your current search results, tap its row to focus it on the map and list.',
+
   'errors.bothAddresses': 'Please enter both addresses',
   'errors.mapNotLoaded': 'Map not loaded yet',
   'errors.generic': 'An error occurred',
@@ -141,6 +149,12 @@ export const ja: MessageDict = {
 
   'star.add': 'お気に入りに追加',
   'star.remove': 'お気に入りから外す',
+
+  'saved.title': '保存したカフェ',
+  'saved.count': '{{count}} 件',
+  'saved.empty': '下の検索結果で星をタップすると、ここに保存され、すぐに地図へ飛べます。',
+  'saved.focusMap': '地図で表示',
+  'saved.focusHint': '保存した店が今の検索結果に含まれるとき、行をタップすると地図と一覧で強調表示されます。',
 
   'errors.bothAddresses': '両方の住所を入力してください',
   'errors.mapNotLoaded': '地図の読み込みがまだ終わっていません',

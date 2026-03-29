@@ -3,6 +3,7 @@ import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
 import { SearchFilters } from './components/SearchFilters';
 import { Map } from './components/Map';
+import { SavedPlacesSection } from './components/SavedPlacesSection';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import './App.css';
@@ -32,6 +33,7 @@ function AppShell() {
       <main className="main">
         <aside className="sidebar">
           <LocationInput />
+          <SavedPlacesSection />
           <SearchFilters />
           <CoffeeShopList />
         </aside>

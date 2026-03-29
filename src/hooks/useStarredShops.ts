@@ -1,35 +1,97 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { CoffeeShop, StarredShopSnapshot } from '../types';
 
 const STORAGE_KEY = 'ACoffee-meetup-starred-shops';
 
+function isSnapshot(x: unknown): x is StarredShopSnapshot {
+  return (
+    typeof x === 'object' &&
+    x !== null &&
+    typeof (x as StarredShopSnapshot).id === 'string' &&
+    typeof (x as StarredShopSnapshot).name === 'string'
+  );
+}
+
+function normalizeStored(raw: unknown): StarredShopSnapshot[] {
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+  const first = raw[0];
+  if (typeof first === 'string') {
+    return (raw as string[]).map((id) => ({
+      id,
+      name: 'Saved café',
+      address: '',
+      lat: 0,
+      lng: 0,
+    }));
+  }
+  return (raw as unknown[])
+    .filter(isSnapshot)
+    .map((s) => ({
+      id: s.id,
+      name: s.name || 'Saved café',
+      address: s.address ?? '',
+      lat: typeof s.lat === 'number' ? s.lat : 0,
+      lng: typeof s.lng === 'number' ? s.lng : 0,
+      googleMapsUri: s.googleMapsUri,
+    }));
+}
+
+function loadStarredShops(): StarredShopSnapshot[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return [];
+    return normalizeStored(JSON.parse(stored));
+  } catch {
+    return [];
+  }
+}
+
+export function snapshotToCoffeeShop(s: StarredShopSnapshot): CoffeeShop {
+  return {
+    id: s.id,
+    name: s.name,
+    address: s.address,
+    lat: s.lat,
+    lng: s.lng,
+    rating: 0,
+    userRatingsTotal: 0,
+    googleMapsUri: s.googleMapsUri,
+  };
+}
+
 export function useStarredShops(): {
+  starredShops: StarredShopSnapshot[];
   starredShopIds: string[];
-  toggleStar: (shopId: string) => void;
+  toggleStar: (shop: CoffeeShop) => void;
   isStarred: (shopId: string) => boolean;
 } {
-  const [starredShopIds, setStarredShopIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [starredShops, setStarredShops] = useState<StarredShopSnapshot[]>(loadStarredShops);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(starredShopIds));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(starredShops));
     } catch (e) {
       console.error('Failed to save starred shops:', e);
     }
-  }, [starredShopIds]);
+  }, [starredShops]);
 
-  const toggleStar = useCallback((shopId: string) => {
-    setStarredShopIds((prev) => {
-      if (prev.includes(shopId)) {
-        return prev.filter((id) => id !== shopId);
+  const starredShopIds = useMemo(() => starredShops.map((s) => s.id), [starredShops]);
+
+  const toggleStar = useCallback((shop: CoffeeShop) => {
+    setStarredShops((prev) => {
+      const exists = prev.some((s) => s.id === shop.id);
+      if (exists) {
+        return prev.filter((s) => s.id !== shop.id);
       }
-      return [...prev, shopId];
+      const snap: StarredShopSnapshot = {
+        id: shop.id,
+        name: shop.name,
+        address: shop.address,
+        lat: shop.lat,
+        lng: shop.lng,
+        googleMapsUri: shop.googleMapsUri,
+      };
+      return [snap, ...prev.filter((s) => s.id !== shop.id)];
     });
   }, []);
 
@@ -38,5 +100,5 @@ export function useStarredShops(): {
     [starredShopIds]
   );
 
-  return { starredShopIds, toggleStar, isStarred };
+  return { starredShops, starredShopIds, toggleStar, isStarred };
 }

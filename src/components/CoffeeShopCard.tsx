@@ -47,7 +47,7 @@ export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
             {t('card.openMaps')}
           </a>
         </div>
-        <StarButton shopId={shop.id} />
+        <StarButton shop={shop} />
       </div>
 
       <div className={styles.details}>
