@@ -1,5 +1,7 @@
 /**
- * GA4 (gtag.js). Loads only when VITE_GA_MEASUREMENT_ID is set at build time.
+ * GA4 (gtag.js). Loads only when VITE_GA_MEASUREMENT_ID is set at **build time**
+ * (Vite inlines `import.meta.env`). For Cloudflare Pages, add the variable under
+ * Project → Settings → Environment variables and trigger a new deployment.
  */
 export function initGoogleAnalytics(measurementId: string): void {
   const id = measurementId.trim();
@@ -15,11 +17,12 @@ export function initGoogleAnalytics(measurementId: string): void {
     w.dataLayer!.push(args);
   };
 
-  w.gtag('js', new Date());
-  w.gtag('config', id);
-
+  // Match Google’s snippet order: load gtag.js first, then queue commands.
   const script = document.createElement('script');
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`;
   document.head.appendChild(script);
+
+  w.gtag('js', new Date());
+  w.gtag('config', id, { send_page_view: true });
 }
