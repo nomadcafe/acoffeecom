@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import {
   SEARCH_RADIUS_MAX_M,
   SEARCH_RADIUS_MIN_M,
@@ -15,6 +16,7 @@ function formatRadius(m: number): string {
 }
 
 export function SearchFilters() {
+  const { t } = useI18n();
   const filtersHeadingId = useId();
   const filtersPanelId = useId();
   const widenHintId = useId();
@@ -45,7 +47,7 @@ export function SearchFilters() {
           onClick={() => setFiltersExpanded((v) => !v)}
         >
           <span className={styles.disclosureSpacer} aria-hidden />
-          <span className={styles.titleText}>Optional filters</span>
+          <span className={styles.titleText}>{t('filters.title')}</span>
           <span className={styles.disclosureChevron} aria-hidden>
             {filtersExpanded ? '▾' : '▸'}
           </span>
@@ -59,15 +61,14 @@ export function SearchFilters() {
         hidden={!filtersExpanded}
         className={styles.filtersPanel}
       >
-        <p className={styles.lead}>
-          These settings apply the <strong>next</strong> time you tap <strong>Find Meetup Spot</strong> above.
-          Nothing here runs a search by itself.
-        </p>
+        <p className={styles.lead} dangerouslySetInnerHTML={{ __html: t('filters.lead') }} />
 
         <div className={styles.field}>
           <div className={styles.fieldHeader}>
-            <label htmlFor="searchMinRating">Minimum rating</label>
-            <span className={styles.value}>{searchMinRating.toFixed(1)} stars</span>
+            <label htmlFor="searchMinRating">{t('filters.minRating')}</label>
+            <span className={styles.value}>
+              {t('filters.ratingDisplay', { value: searchMinRating.toFixed(1) })}
+            </span>
           </div>
           <input
             id="searchMinRating"
@@ -88,7 +89,7 @@ export function SearchFilters() {
 
         <div className={styles.field}>
           <div className={styles.fieldHeader}>
-            <label htmlFor="searchRadius">Search radius from midpoint</label>
+            <label htmlFor="searchRadius">{t('filters.radius')}</label>
             <span className={styles.value}>{formatRadius(searchRadiusMeters)}</span>
           </div>
           <input
@@ -106,31 +107,27 @@ export function SearchFilters() {
             <span>{formatRadius(SEARCH_RADIUS_MIN_M)}</span>
             <span>{formatRadius(SEARCH_RADIUS_MAX_M)}</span>
           </div>
-          <p className={styles.fieldHelp}>
-            Google searches in a circle around the <strong>midpoint between A and B</strong>, not around each
-            address. The A and B distances on each card are from each person, so they are often larger than this
-            radius when A and B are far apart.
-          </p>
+          <p className={styles.fieldHelp} dangerouslySetInnerHTML={{ __html: t('filters.radiusHelp') }} />
         </div>
 
         <div className={styles.field}>
           <label htmlFor="searchKeyword" className={styles.keywordLabel}>
-            Keyword
+            {t('filters.keyword')}
           </label>
           <input
             id="searchKeyword"
             type="text"
             className={styles.keywordInput}
-            placeholder="e.g. coffee, espresso, brunch"
+            placeholder={t('filters.keywordPlaceholder')}
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             disabled={isLoading}
           />
-          <p className={styles.hint}>Passed to Google Places. Leave empty to use &quot;coffee&quot;.</p>
+          <p className={styles.hint}>{t('filters.keywordHint')}</p>
         </div>
 
         <div className={styles.widenBlock}>
-          <p className={styles.widenIntro}>Too few results after searching?</p>
+          <p className={styles.widenIntro}>{t('filters.widenIntro')}</p>
           <button
             type="button"
             className={styles.widenButton}
@@ -138,12 +135,15 @@ export function SearchFilters() {
             disabled={widenDisabled}
             aria-describedby={widenHintId}
           >
-            Loosen filters only
+            {t('filters.loosen')}
           </button>
-          <p id={widenHintId} className={styles.widenHint}>
-            Moves radius +1 km and minimum rating -0.5 (not below {SEARCH_RATING_MIN} stars). Then tap{' '}
-            <strong>Find Meetup Spot</strong> again - this button does not search.
-          </p>
+          <p
+            id={widenHintId}
+            className={styles.widenHint}
+            dangerouslySetInnerHTML={{
+              __html: t('filters.widenHint', { min: SEARCH_RATING_MIN }),
+            }}
+          />
         </div>
       </div>
     </section>

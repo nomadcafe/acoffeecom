@@ -1,4 +1,5 @@
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import styles from './StarButton.module.css';
 
 interface StarButtonProps {
@@ -6,6 +7,7 @@ interface StarButtonProps {
 }
 
 export function StarButton({ shopId }: StarButtonProps) {
+  const { t } = useI18n();
   const { toggleStar, isStarred } = useApp();
   const starred = isStarred(shopId);
 
@@ -16,8 +18,8 @@ export function StarButton({ shopId }: StarButtonProps) {
         e.stopPropagation();
         toggleStar(shopId);
       }}
-      aria-label={starred ? 'Remove from favorites' : 'Add to favorites'}
-      title={starred ? 'Remove from favorites' : 'Add to favorites'}
+      aria-label={starred ? t('star.remove') : t('star.add')}
+      title={starred ? t('star.remove') : t('star.add')}
     >
       {starred ? '★' : '☆'}
     </button>

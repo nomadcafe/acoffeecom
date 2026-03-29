@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import styles from './Map.module.css';
 
@@ -24,6 +25,7 @@ const mapOptions: google.maps.MapOptions = {
 };
 
 export function Map() {
+  const { t } = useI18n();
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
@@ -71,9 +73,7 @@ export function Map() {
   if (loadError) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>
-          Failed to load Google Maps. Please check your API key.
-        </div>
+        <div className={styles.error}>{t('map.loadError')}</div>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export function Map() {
   if (!isLoaded) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading map...</div>
+        <div className={styles.loading}>{t('map.loading')}</div>
       </div>
     );
   }
@@ -151,7 +151,7 @@ export function Map() {
               strokeColor: 'white',
               strokeWeight: 2,
             }}
-            title="Midpoint"
+            title={t('map.midpoint')}
           />
         )}
 
@@ -185,7 +185,10 @@ export function Map() {
               <p>{selectedShop.address}</p>
               <p>
                 {isStarred(selectedShop.id) ? '★ ' : ''}
-                {selectedShop.rating.toFixed(1)} stars ({selectedShop.userRatingsTotal} reviews)
+                {t('map.infoRating', {
+                  rating: selectedShop.rating.toFixed(1),
+                  reviews: selectedShop.userRatingsTotal,
+                })}
               </p>
               <p className={styles.infoWindowMaps}>
                 <a
@@ -193,7 +196,7 @@ export function Map() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Open in Google Maps
+                  {t('map.openMaps')}
                 </a>
               </p>
             </div>

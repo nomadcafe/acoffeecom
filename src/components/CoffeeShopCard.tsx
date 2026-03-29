@@ -2,6 +2,7 @@ import type { CoffeeShop } from '../types';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import styles from './CoffeeShopCard.module.css';
 
 interface CoffeeShopCardProps {
@@ -24,12 +25,13 @@ function renderStars(rating: number): string {
 }
 
 export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
+  const { t } = useI18n();
   const { isStarred } = useApp();
   const starred = isStarred(shop.id);
 
   return (
     <div className={`${styles.card} ${starred ? styles.starred : ''}`}>
-      {starred && <div className={styles.favoriteBadge}>Your Favorite!</div>}
+      {starred && <div className={styles.favoriteBadge}>{t('card.favorite')}</div>}
 
       <div className={styles.header}>
         <div className={styles.info}>
@@ -42,7 +44,7 @@ export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
           >
-            Open in Google Maps
+            {t('card.openMaps')}
           </a>
         </div>
         <StarButton shopId={shop.id} />
@@ -52,42 +54,39 @@ export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
         <div className={styles.rating}>
           <span className={styles.stars}>{renderStars(shop.rating)}</span>
           <span className={styles.ratingValue}>{shop.rating.toFixed(1)}</span>
-          <span className={styles.reviews}>({shop.userRatingsTotal} reviews)</span>
+          <span className={styles.reviews}>({t('card.reviews', { count: shop.userRatingsTotal })})</span>
         </div>
 
         <div className={styles.distanceGroup}>
           <div className={styles.distances}>
             <span
               className={styles.distance}
-              title="Straight-line distance from location A"
+              title={t('card.distanceA')}
             >
               <span className={styles.distanceMarker} style={{ backgroundColor: '#4285f4' }}>A</span>
               {shop.distanceFromA != null ? formatDistance(shop.distanceFromA) : '—'}
             </span>
             <span
               className={styles.distance}
-              title="Straight-line distance from location B"
+              title={t('card.distanceB')}
             >
               <span className={styles.distanceMarker} style={{ backgroundColor: '#34a853' }}>B</span>
               {shop.distanceFromB != null ? formatDistance(shop.distanceFromB) : '—'}
             </span>
             <span
               className={styles.distance}
-              title="Distance from the meetup midpoint (search radius is measured from here)"
+              title={t('card.distanceM')}
             >
               <span className={styles.distanceMarker} style={{ backgroundColor: '#ff9800' }}>M</span>
               {shop.distanceFromMidpoint != null ? formatDistance(shop.distanceFromMidpoint) : '—'}
             </span>
           </div>
-          <p className={styles.distanceHint}>
-            M = meetup midpoint (search center). A/B can be farther than your radius when the two addresses are
-            far apart.
-          </p>
+          <p className={styles.distanceHint}>{t('card.distanceHint')}</p>
         </div>
 
         {shop.isOpen !== undefined && (
           <span className={`${styles.openStatus} ${shop.isOpen ? styles.open : styles.closed}`}>
-            {shop.isOpen ? 'Open Now' : 'Closed'}
+            {shop.isOpen ? t('card.openNow') : t('card.closed')}
           </span>
         )}
       </div>

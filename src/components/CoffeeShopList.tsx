@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { CoffeeShopCard } from './CoffeeShopCard';
 import styles from './CoffeeShopList.module.css';
 
 export function CoffeeShopList() {
+  const { locale, t } = useI18n();
   const { coffeeShops, isLoading, error, midpoint, selectedCoffeeShopId, setSelectedCoffeeShopId } =
     useApp();
 
@@ -31,7 +33,7 @@ export function CoffeeShopList() {
       <div className={styles.container}>
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
-          <p>Finding the best coffee spots...</p>
+          <p>{t('list.loading')}</p>
         </div>
       </div>
     );
@@ -41,7 +43,7 @@ export function CoffeeShopList() {
     return (
       <div className={styles.container}>
         <div className={styles.placeholder}>
-          <p>Enter two locations above to find coffee shops at your meetup point.</p>
+          <p>{t('list.placeholder')}</p>
         </div>
       </div>
     );
@@ -51,18 +53,24 @@ export function CoffeeShopList() {
     return (
       <div className={styles.container}>
         <div className={styles.empty}>
-          <p>No highly-rated coffee shops found nearby.</p>
-          <p className={styles.hint}>Try locations that are closer together.</p>
+          <p>{t('list.empty')}</p>
+          <p className={styles.hint}>{t('list.emptyHint')}</p>
         </div>
       </div>
     );
   }
 
+  const n = coffeeShops.length;
+  const listTitle =
+    locale === 'ja'
+      ? t('list.foundMany', { count: n })
+      : n === 1
+        ? t('list.foundOne', { count: n })
+        : t('list.foundMany', { count: n });
+
   return (
     <div className={styles.container}>
-      <h3 className={styles.title}>
-        {coffeeShops.length} Coffee Shop{coffeeShops.length !== 1 ? 's' : ''} Found
-      </h3>
+      <h3 className={styles.title}>{listTitle}</h3>
       <div className={styles.list}>
         {coffeeShops.map((shop) => (
           <div
@@ -78,7 +86,7 @@ export function CoffeeShopList() {
           </div>
         ))}
       </div>
-      <p className={styles.resultNote}>Places API (New) returns up to 20 cafes per search.</p>
+      <p className={styles.resultNote}>{t('list.resultNote')}</p>
     </div>
   );
 }

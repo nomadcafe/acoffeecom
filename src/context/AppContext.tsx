@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Location, CoffeeShop, AppState } from '../types';
+import { useI18n } from './I18nContext';
 import { useStarredShops } from '../hooks/useStarredShops';
 import { geocodeAddress } from '../utils/geocoding';
 import { calculateMidpoint } from '../utils/midpoint';
@@ -35,6 +36,7 @@ function sortShopsByStarAndRating(shops: CoffeeShop[], starredShopIds: string[])
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   const [addressA, setAddressA] = useState('');
   const [addressB, setAddressB] = useState('');
   const [locationA, setLocationA] = useState<Location | null>(null);
@@ -62,12 +64,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const findMeetupSpot = useCallback(async () => {
     if (!addressA.trim() || !addressB.trim()) {
-      setError('Please enter both addresses');
+      setError(t('errors.bothAddresses'));
       return;
     }
 
     if (!mapRef.current || !geocoderRef.current) {
-      setError('Map not loaded yet');
+      setError(t('errors.mapNotLoaded'));
       return;
     }
 
@@ -104,11 +106,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
       setCoffeeShops(sortShopsByStarAndRating(shops, starredShopIds));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'An error occurred');
+      setError(e instanceof Error ? e.message : t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
-  }, [addressA, addressB, starredShopIds, searchMinRating, searchRadiusMeters, searchKeyword]);
+  }, [addressA, addressB, starredShopIds, searchMinRating, searchRadiusMeters, searchKeyword, t]);
 
   const widenSearchParams = useCallback(() => {
     setSearchRadiusMeters((r) => Math.min(SEARCH_RADIUS_MAX_M, r + 1000));
