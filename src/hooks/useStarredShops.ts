@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = 'coffee-meetup-starred-shops';
+const STORAGE_KEY = 'ACoffee-meetup-starred-shops';
 
 export function useStarredShops(): {
   starredShopIds: string[];
