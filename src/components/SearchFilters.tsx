@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import type { SearchSortMode } from '../types';
 import {
   SEARCH_RADIUS_MAX_M,
   SEARCH_RADIUS_MIN_M,
@@ -29,6 +30,8 @@ export function SearchFilters() {
     setSearchRadiusMeters,
     searchKeyword,
     setSearchKeyword,
+    searchSortMode,
+    setSearchSortMode,
     widenSearchParams,
     isLoading,
   } = useApp();
@@ -108,6 +111,23 @@ export function SearchFilters() {
             <span>{formatRadius(SEARCH_RADIUS_MAX_M)}</span>
           </div>
           <p className={styles.fieldHelp} dangerouslySetInnerHTML={{ __html: t('filters.radiusHelp') }} />
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="searchSortMode" className={styles.keywordLabel}>
+            {t('filters.sortMode')}
+          </label>
+          <select
+            id="searchSortMode"
+            className={styles.keywordInput}
+            value={searchSortMode}
+            onChange={(e) => setSearchSortMode(e.target.value as SearchSortMode)}
+            disabled={isLoading}
+          >
+            <option value="rating">{t('filters.sortRating')}</option>
+            <option value="fairness">{t('filters.sortFairness')}</option>
+          </select>
+          <p className={styles.hint}>{t('filters.sortHint')}</p>
         </div>
 
         <div className={styles.field}>

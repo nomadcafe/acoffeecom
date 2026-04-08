@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { Location, CoffeeShop, AppState } from '../types';
+import type { Location, CoffeeShop, AppState, SearchSortMode } from '../types';
 import { useI18n } from './I18nContext';
 import { useStarredShops } from '../hooks/useStarredShops';
 import { geocodeAddress } from '../utils/geocoding';
@@ -20,17 +20,30 @@ interface AppContextType extends AppState {
   setSearchMinRating: (value: number) => void;
   setSearchRadiusMeters: (value: number) => void;
   setSearchKeyword: (value: string) => void;
+  setSearchSortMode: (value: SearchSortMode) => void;
   widenSearchParams: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
-function sortShopsByStarAndRating(shops: CoffeeShop[], starredShopIds: string[]): CoffeeShop[] {
+function sortShops(
+  shops: CoffeeShop[],
+  starredShopIds: string[],
+  mode: SearchSortMode
+): CoffeeShop[] {
   return [...shops].sort((a, b) => {
     const aStarred = starredShopIds.includes(a.id);
     const bStarred = starredShopIds.includes(b.id);
     if (aStarred && !bStarred) return -1;
     if (!aStarred && bStarred) return 1;
+    if (mode === 'fairness') {
+      const aDelta = Math.abs((a.distanceFromA ?? 0) - (a.distanceFromB ?? 0));
+      const bDelta = Math.abs((b.distanceFromA ?? 0) - (b.distanceFromB ?? 0));
+      if (aDelta !== bDelta) return aDelta - bDelta;
+      const aTotal = (a.distanceFromA ?? 0) + (a.distanceFromB ?? 0);
+      const bTotal = (b.distanceFromA ?? 0) + (b.distanceFromB ?? 0);
+      if (aTotal !== bTotal) return aTotal - bTotal;
+    }
     return b.rating - a.rating;
   });
 }
@@ -49,6 +62,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchMinRating, setSearchMinRating] = useState(4);
   const [searchRadiusMeters, setSearchRadiusMeters] = useState(1200);
   const [searchKeyword, setSearchKeyword] = useState('coffee');
+  const [searchSortMode, setSearchSortMode] = useState<SearchSortMode>('rating');
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
@@ -104,13 +118,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         searchRadiusMeters,
         searchKeyword
       );
-      setCoffeeShops(sortShopsByStarAndRating(shops, starredShopIds));
+      setCoffeeShops(sortShops(shops, starredShopIds, searchSortMode));
     } catch (e) {
       setError(e instanceof Error ? e.message : t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
-  }, [addressA, addressB, starredShopIds, searchMinRating, searchRadiusMeters, searchKeyword, t]);
+  }, [
+    addressA,
+    addressB,
+    starredShopIds,
+    searchMinRating,
+    searchRadiusMeters,
+    searchKeyword,
+    searchSortMode,
+    t,
+  ]);
 
   const widenSearchParams = useCallback(() => {
     setSearchRadiusMeters((r) => Math.min(SEARCH_RADIUS_MAX_M, r + 1000));
@@ -133,6 +156,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         searchMinRating,
         searchRadiusMeters,
         searchKeyword,
+        searchSortMode,
         addressA,
         addressB,
         setAddressA,
@@ -140,6 +164,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSearchMinRating,
         setSearchRadiusMeters,
         setSearchKeyword,
+        setSearchSortMode,
         widenSearchParams,
         findMeetupSpot,
         toggleStar,

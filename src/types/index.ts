@@ -32,6 +32,8 @@ export interface StarredShopSnapshot {
   googleMapsUri?: string;
 }
 
+export type SearchSortMode = 'rating' | 'fairness';
+
 export interface AppState {
   locationA: Location | null;
   locationB: Location | null;
@@ -48,4 +50,6 @@ export interface AppState {
   searchRadiusMeters: number;
   /** Places `keyword`; empty string falls back to `coffee` in the API layer. */
   searchKeyword: string;
+  /** Sort strategy for result cards. */
+  searchSortMode: SearchSortMode;
 }

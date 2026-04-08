@@ -56,6 +56,10 @@ export const en: MessageDict = {
   'filters.radiusHelp':
     'Google searches in a circle around the <strong>midpoint between A and B</strong>, not around each address. The A and B distances on each card are from each person, so they are often larger than this radius when A and B are far apart.',
   'filters.keyword': 'Keyword',
+  'filters.sortMode': 'Sort results by',
+  'filters.sortRating': 'Rating (default)',
+  'filters.sortFairness': 'Fairness between A and B',
+  'filters.sortHint': 'Fairness prioritizes places with a smaller distance gap between both people.',
   'filters.keywordPlaceholder': 'e.g. coffee, espresso, brunch',
   'filters.keywordHint': 'Passed to Google Places. Leave empty to use "coffee".',
   'filters.widenIntro': 'Too few results after searching?',
@@ -79,6 +83,11 @@ export const en: MessageDict = {
   'saved.focusMap': 'Show on map',
   'saved.focusHint':
     'If a saved café is in your current search results, tap its row to focus it on the map and list.',
+
+  'share.title': 'Coffee meetup suggestions',
+  'share.button': 'Share',
+  'share.from': 'From',
+  'share.to': 'To',
 
   'errors.bothAddresses': 'Please enter both addresses',
   'errors.mapNotLoaded': 'Map not loaded yet',
@@ -134,6 +143,10 @@ export const ja: MessageDict = {
   'filters.radiusHelp':
     'Googleの検索は<strong>AとBの中間地点</strong>を中心とした円の内側です。カード上のA/Bの距離はそれぞれの住所からの距離なので、二人が離れていると半径より大きく見えることがあります。',
   'filters.keyword': 'キーワード',
+  'filters.sortMode': '並び順',
+  'filters.sortRating': '評価（デフォルト）',
+  'filters.sortFairness': 'A/B の公平さ',
+  'filters.sortHint': '公平さは、二人の距離差が小さい店を優先します。',
   'filters.keywordPlaceholder': '例：コーヒー、エスプレッソ、ブランチ',
   'filters.keywordHint': 'Google Places に渡します。空欄のときは「coffee」として扱います。',
   'filters.widenIntro': '結果が少なすぎる場合',
@@ -155,6 +168,11 @@ export const ja: MessageDict = {
   'saved.empty': '下の検索結果で星をタップすると、ここに保存され、すぐに地図へ飛べます。',
   'saved.focusMap': '地図で表示',
   'saved.focusHint': '保存した店が今の検索結果に含まれるとき、行をタップすると地図と一覧で強調表示されます。',
+
+  'share.title': 'カフェ候補を共有',
+  'share.button': '共有',
+  'share.from': '出発地A',
+  'share.to': '出発地B',
 
   'errors.bothAddresses': '両方の住所を入力してください',
   'errors.mapNotLoaded': '地図の読み込みがまだ終わっていません',

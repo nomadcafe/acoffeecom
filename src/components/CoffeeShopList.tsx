@@ -1,13 +1,22 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { CoffeeShopCard } from './CoffeeShopCard';
 import styles from './CoffeeShopList.module.css';
 
 export function CoffeeShopList() {
   const { locale, t } = useI18n();
-  const { coffeeShops, isLoading, error, midpoint, selectedCoffeeShopId, setSelectedCoffeeShopId } =
-    useApp();
+  const {
+    coffeeShops,
+    isLoading,
+    error,
+    midpoint,
+    selectedCoffeeShopId,
+    setSelectedCoffeeShopId,
+    addressA,
+    addressB,
+  } = useApp();
 
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -68,9 +77,41 @@ export function CoffeeShopList() {
         ? t('list.foundOne', { count: n })
         : t('list.foundMany', { count: n });
 
+  const buildShareText = () => {
+    const top = coffeeShops.slice(0, 3);
+    const lines = top.map((shop, idx) => `${idx + 1}. ${shop.name} (${getOpenInGoogleMapsUrl(shop)})`);
+    return [
+      t('share.title'),
+      `${t('share.from')}: ${addressA || '-'}`,
+      `${t('share.to')}: ${addressB || '-'}`,
+      '',
+      ...lines,
+      '',
+      window.location.href,
+    ].join('\n');
+  };
+
+  const handleShare = async () => {
+    const text = buildShareText();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t('share.title'), text, url: window.location.href });
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+    } catch {
+      // Ignore cancellation and clipboard errors.
+    }
+  };
+
   return (
     <div className={styles.container}>
-      <h3 className={styles.title}>{listTitle}</h3>
+      <div className={styles.headerRow}>
+        <h3 className={styles.title}>{listTitle}</h3>
+        <button type="button" className={styles.shareButton} onClick={handleShare}>
+          {t('share.button')}
+        </button>
+      </div>
       <div className={styles.list}>
         {coffeeShops.map((shop) => (
           <div
