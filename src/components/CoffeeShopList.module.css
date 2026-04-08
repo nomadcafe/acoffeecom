@@ -33,6 +33,13 @@
   background: #f8f3ef;
 }
 
+.sortExplain {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.72rem;
+  color: #8c7d72;
+  text-align: left;
+}
+
 .resultNote {
   margin: 0.75rem 0 0 0;
   font-size: 0.72rem;

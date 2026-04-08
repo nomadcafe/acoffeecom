@@ -26,8 +26,12 @@ function renderStars(rating: number): string {
 
 export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
   const { t } = useI18n();
-  const { isStarred } = useApp();
+  const { isStarred, searchSortMode } = useApp();
   const starred = isStarred(shop.id);
+  const fairnessGap =
+    shop.distanceFromA != null && shop.distanceFromB != null
+      ? Math.abs(shop.distanceFromA - shop.distanceFromB)
+      : null;
 
   return (
     <div className={`${styles.card} ${starred ? styles.starred : ''}`}>
@@ -82,6 +86,9 @@ export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
             </span>
           </div>
           <p className={styles.distanceHint}>{t('card.distanceHint')}</p>
+          {searchSortMode === 'fairness' && fairnessGap != null ? (
+            <p className={styles.distanceHint}>{t('card.fairnessGap', { gap: formatDistance(fairnessGap) })}</p>
+          ) : null}
         </div>
 
         {shop.isOpen !== undefined && (

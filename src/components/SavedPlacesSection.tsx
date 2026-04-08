@@ -12,7 +12,7 @@ export function SavedPlacesSection() {
   const panelId = useId();
   const [expanded, setExpanded] = useState(true);
 
-  const { starredShops, coffeeShops, setSelectedCoffeeShopId } = useApp();
+  const { starredShops, coffeeShops, setSelectedCoffeeShopId, updateStarredNote } = useApp();
 
   const idsInResults = useMemo(
     () => new Set(coffeeShops.map((s) => s.id)),
@@ -69,40 +69,51 @@ export function SavedPlacesSection() {
                 };
 
                 return (
-                  <div key={snap.id} className={styles.row}>
-                    <div
-                      className={`${styles.rowMain} ${inResults ? styles.rowMainClickable : ''}`}
-                      onClick={inResults ? onActivateRow : undefined}
-                      onKeyDown={
-                        inResults
-                          ? (e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                onActivateRow();
+                  <div key={snap.id} className={styles.rowGroup}>
+                    <div className={styles.row}>
+                      <div
+                        className={`${styles.rowMain} ${inResults ? styles.rowMainClickable : ''}`}
+                        onClick={inResults ? onActivateRow : undefined}
+                        onKeyDown={
+                          inResults
+                            ? (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  onActivateRow();
+                                }
                               }
-                            }
-                          : undefined
-                      }
-                      role={inResults ? 'button' : undefined}
-                      tabIndex={inResults ? 0 : undefined}
-                      aria-label={inResults ? `${snap.name}. ${t('saved.focusMap')}` : undefined}
-                    >
-                      <div className={styles.rowName}>{snap.name}</div>
-                      {snap.address ? <div className={styles.rowAddress}>{snap.address}</div> : null}
-                    </div>
-                    <div className={styles.rowActions}>
-                      <a
-                        className={styles.mapsLink}
-                        href={mapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                            : undefined
+                        }
+                        role={inResults ? 'button' : undefined}
+                        tabIndex={inResults ? 0 : undefined}
+                        aria-label={inResults ? `${snap.name}. ${t('saved.focusMap')}` : undefined}
                       >
-                        {t('card.openMaps')}
-                      </a>
-                      <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-                        <StarButton shop={shop} />
+                        <div className={styles.rowName}>{snap.name}</div>
+                        {snap.address ? <div className={styles.rowAddress}>{snap.address}</div> : null}
                       </div>
+                      <div className={styles.rowActions}>
+                        <a
+                          className={styles.mapsLink}
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {t('card.openMaps')}
+                        </a>
+                        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                          <StarButton shop={shop} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.noteRow}>
+                      <input
+                        className={styles.noteInput}
+                        type="text"
+                        placeholder={t('saved.notePlaceholder')}
+                        value={snap.note ?? ''}
+                        onChange={(e) => updateStarredNote(snap.id, e.target.value)}
+                      />
                     </div>
                   </div>
                 );

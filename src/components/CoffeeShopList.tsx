@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
@@ -16,7 +16,10 @@ export function CoffeeShopList() {
     setSelectedCoffeeShopId,
     addressA,
     addressB,
+    searchSortMode,
   } = useApp();
+  const [shareFeedback, setShareFeedback] = useState<'idle' | 'copied' | 'shared'>('idle');
+  const feedbackTimerRef = useRef<number | null>(null);
 
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -28,6 +31,10 @@ export function CoffeeShopList() {
     });
     return () => cancelAnimationFrame(id);
   }, [selectedCoffeeShopId]);
+
+  useEffect(() => () => {
+    if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
+  }, []);
 
   if (error) {
     return (
@@ -96,9 +103,13 @@ export function CoffeeShopList() {
     try {
       if (navigator.share) {
         await navigator.share({ title: t('share.title'), text, url: window.location.href });
+        setShareFeedback('shared');
       } else {
         await navigator.clipboard.writeText(text);
+        setShareFeedback('copied');
       }
+      if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = window.setTimeout(() => setShareFeedback('idle'), 1600);
     } catch {
       // Ignore cancellation and clipboard errors.
     }
@@ -109,9 +120,16 @@ export function CoffeeShopList() {
       <div className={styles.headerRow}>
         <h3 className={styles.title}>{listTitle}</h3>
         <button type="button" className={styles.shareButton} onClick={handleShare}>
-          {t('share.button')}
+          {shareFeedback === 'copied'
+            ? t('share.copied')
+            : shareFeedback === 'shared'
+              ? t('share.shared')
+              : t('share.button')}
         </button>
       </div>
+      {searchSortMode === 'fairness' ? (
+        <p className={styles.sortExplain}>{t('list.fairnessExplain')}</p>
+      ) : null}
       <div className={styles.list}>
         {coffeeShops.map((shop) => (
           <div

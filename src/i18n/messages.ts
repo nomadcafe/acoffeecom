@@ -9,6 +9,20 @@ export type MessageDict = Record<string, string>;
 
 export const en: MessageDict = {
   'meta.title': 'A Coffee Meetup Finder',
+  'seo.description':
+    'Enter two addresses, see the midpoint on a map, and discover highly rated coffee shops nearby. Plan an easy meetup at a café that works for both of you.',
+  'seo.keywords':
+    'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, coffee shop near me, two addresses, Google Maps, meetup planner, brunch spot',
+  'seo.ogTitle': 'A Coffee Meetup Finder | Cafés halfway between two places',
+  'seo.ogDescription':
+    'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+  'seo.ogLocale': 'en_US',
+  'seo.twitterTitle': 'A Coffee Meetup Finder | Cafés halfway between two places',
+  'seo.twitterDescription':
+    'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+  'seo.schemaName': 'A Coffee Meetup Finder',
+  'seo.schemaDescription':
+    'Find highly rated coffee shops near the geographic midpoint between two addresses using an interactive map.',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'A Coffee Meetup Finder',
@@ -36,6 +50,8 @@ export const en: MessageDict = {
   'list.foundOne': '{{count}} coffee shop found',
   'list.foundMany': '{{count}} coffee shops found',
   'list.resultNote': 'Places API (New) returns up to 20 cafes per search.',
+  'list.fairnessExplain':
+    'Fairness mode prioritizes places where A and B travel distances are closer to each other.',
 
   'card.favorite': 'Your Favorite!',
   'card.openMaps': 'Open in Google Maps',
@@ -45,6 +61,7 @@ export const en: MessageDict = {
   'card.distanceM': 'Distance from the meetup midpoint (search radius is measured from here)',
   'card.distanceHint':
     'M = meetup midpoint (search center). A/B can be farther than your radius when the two addresses are far apart.',
+  'card.fairnessGap': 'Fairness gap (|A-B|): {{gap}}',
   'card.openNow': 'Open Now',
   'card.closed': 'Closed',
 
@@ -84,9 +101,12 @@ export const en: MessageDict = {
   'saved.focusMap': 'Show on map',
   'saved.focusHint':
     'If a saved café is in your current search results, tap its row to focus it on the map and list.',
+  'saved.notePlaceholder': 'Add a private note (quiet, outlets, etc.)',
 
   'share.title': 'Coffee meetup suggestions',
   'share.button': 'Share',
+  'share.copied': 'Copied',
+  'share.shared': 'Shared',
   'share.from': 'From',
   'share.to': 'To',
 
@@ -97,6 +117,20 @@ export const en: MessageDict = {
 
 export const ja: MessageDict = {
   'meta.title': 'A Coffee Meetup Finder（カフェ合流）',
+  'seo.description':
+    '2つの住所を入力すると中間地点を地図で表示し、その周辺の高評価カフェを見つけられます。待ち合わせ場所を簡単に決められます。',
+  'seo.keywords':
+    'カフェ 待ち合わせ, 中間地点, コーヒーショップ, 地図, 2地点, meet in the middle, Google Maps',
+  'seo.ogTitle': 'A Coffee Meetup Finder | 2地点の中間カフェ検索',
+  'seo.ogDescription':
+    '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+  'seo.ogLocale': 'ja_JP',
+  'seo.twitterTitle': 'A Coffee Meetup Finder | 2地点の中間カフェ検索',
+  'seo.twitterDescription':
+    '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+  'seo.schemaName': 'A Coffee Meetup Finder',
+  'seo.schemaDescription':
+    '2つの住所の中間地点近くで、高評価のカフェを地図から探せるWebアプリです。',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'A Coffee Meetup Finder',
@@ -124,6 +158,7 @@ export const ja: MessageDict = {
   'list.foundOne': '{{count}}件のカフェが見つかりました',
   'list.foundMany': '{{count}}件のカフェが見つかりました',
   'list.resultNote': 'Places API（新）では1回の検索で最大20件まで返ります。',
+  'list.fairnessExplain': '公平モードは、A と B の移動距離差が小さい店を優先します。',
 
   'card.favorite': 'お気に入り！',
   'card.openMaps': 'Google マップで開く',
@@ -133,6 +168,7 @@ export const ja: MessageDict = {
   'card.distanceM': '待ち合わせ中間地点からの距離（検索の基準はここです）',
   'card.distanceHint':
     'M＝待ち合わせの中間地点（検索の中心）。A/Bは人それぞれの距離のため、二人が離れていると検索半径より大きく表示されることがあります。',
+  'card.fairnessGap': '公平差（|A-B|）: {{gap}}',
   'card.openNow': '営業中',
   'card.closed': '閉店',
 
@@ -170,9 +206,12 @@ export const ja: MessageDict = {
   'saved.empty': '下の検索結果で星をタップすると、ここに保存され、すぐに地図へ飛べます。',
   'saved.focusMap': '地図で表示',
   'saved.focusHint': '保存した店が今の検索結果に含まれるとき、行をタップすると地図と一覧で強調表示されます。',
+  'saved.notePlaceholder': 'メモを追加（静か、電源あり など）',
 
   'share.title': 'カフェ候補を共有',
   'share.button': '共有',
+  'share.copied': 'コピー済み',
+  'share.shared': '共有しました',
   'share.from': '出発地A',
   'share.to': '出発地B',
 
@@ -183,6 +222,17 @@ export const ja: MessageDict = {
 
 export const zh: MessageDict = {
   'meta.title': 'A Coffee Meetup Finder（咖啡见面）',
+  'seo.description':
+    '输入两个地址，在地图上查看中点并找到附近高评分咖啡店，快速决定双方都方便的会面地点。',
+  'seo.keywords':
+    '咖啡 见面, 中间点, 咖啡店, 地图, 两个地址, meet in the middle, Google Maps',
+  'seo.ogTitle': 'A Coffee Meetup Finder | 两地中点咖啡店',
+  'seo.ogDescription': '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+  'seo.ogLocale': 'zh_CN',
+  'seo.twitterTitle': 'A Coffee Meetup Finder | 两地中点咖啡店',
+  'seo.twitterDescription': '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+  'seo.schemaName': 'A Coffee Meetup Finder',
+  'seo.schemaDescription': '帮助两个人根据中间地点快速找到合适咖啡店的 Web 应用。',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'A Coffee Meetup Finder',
@@ -210,6 +260,7 @@ export const zh: MessageDict = {
   'list.foundOne': '找到 {{count}} 家咖啡店',
   'list.foundMany': '找到 {{count}} 家咖啡店',
   'list.resultNote': 'Places API（新版）每次搜索最多返回 20 家咖啡店。',
+  'list.fairnessExplain': '公平模式会优先展示 A 与 B 距离差更小的店。',
 
   'card.favorite': '已收藏！',
   'card.openMaps': '在 Google 地图中打开',
@@ -218,6 +269,7 @@ export const zh: MessageDict = {
   'card.distanceB': '距 B 点的直线距离',
   'card.distanceM': '距会面中点的距离（搜索半径以此为准）',
   'card.distanceHint': 'M = 会面中点（搜索中心）。当两人距离较远时，A/B 距离可能大于搜索半径。',
+  'card.fairnessGap': '公平差（|A-B|）：{{gap}}',
   'card.openNow': '营业中',
   'card.closed': '已打烊',
 
@@ -255,9 +307,12 @@ export const zh: MessageDict = {
   'saved.empty': '在下方搜索结果中点星标后，这里会保存该店，方便快速打开地图。',
   'saved.focusMap': '在地图中定位',
   'saved.focusHint': '若已保存店铺在当前搜索结果中，点击该行可在地图和列表中高亮。',
+  'saved.notePlaceholder': '添加私人备注（安静、有插座等）',
 
   'share.title': '咖啡会面推荐',
   'share.button': '分享',
+  'share.copied': '已复制',
+  'share.shared': '已分享',
   'share.from': '出发地 A',
   'share.to': '出发地 B',
 

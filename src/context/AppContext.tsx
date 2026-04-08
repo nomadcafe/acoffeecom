@@ -21,6 +21,7 @@ interface AppContextType extends AppState {
   setSearchRadiusMeters: (value: number) => void;
   setSearchKeyword: (value: string) => void;
   setSearchSortMode: (value: SearchSortMode) => void;
+  updateStarredNote: (shopId: string, note: string) => void;
   widenSearchParams: () => void;
 }
 
@@ -67,7 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
-  const { starredShops, starredShopIds, toggleStar, isStarred } = useStarredShops();
+  const { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred } = useStarredShops();
 
   const setMapRef = useCallback((map: google.maps.Map | null) => {
     mapRef.current = map;
@@ -168,6 +169,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         widenSearchParams,
         findMeetupSpot,
         toggleStar,
+        updateStarredNote,
         isStarred,
         setMapRef,
         setSelectedCoffeeShopId,

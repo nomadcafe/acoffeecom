@@ -83,6 +83,12 @@
   gap: 0.65rem;
 }
 
+.rowGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .row {
   display: flex;
   align-items: flex-start;
@@ -163,4 +169,24 @@
   color: #aaa;
   text-align: center;
   line-height: 1.35;
+}
+
+.noteRow {
+  padding: 0 0.15rem;
+}
+
+.noteInput {
+  width: 100%;
+  border: 1px solid #e2ddd8;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.74rem;
+  color: #555;
+  padding: 0.38rem 0.55rem;
+}
+
+.noteInput:focus {
+  outline: none;
+  border-color: #b9a89a;
+  box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
 }

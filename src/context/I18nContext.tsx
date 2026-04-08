@@ -16,6 +16,26 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+function upsertMetaByName(name: string, content: string) {
+  let el = document.head.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+  if (!el) {
+    el = document.createElement('meta');
+    el.name = name;
+    document.head.appendChild(el);
+  }
+  el.content = content;
+}
+
+function upsertMetaByProperty(property: string, content: string) {
+  let el = document.head.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute('property', property);
+    document.head.appendChild(el);
+  }
+  el.content = content;
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => getInitialLocale());
 
@@ -41,6 +61,27 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale === 'ja' ? 'ja' : 'en';
     document.title = t('meta.title');
+    upsertMetaByName('description', t('seo.description'));
+    upsertMetaByName('keywords', t('seo.keywords'));
+    upsertMetaByProperty('og:title', t('seo.ogTitle'));
+    upsertMetaByProperty('og:description', t('seo.ogDescription'));
+    upsertMetaByProperty('og:locale', t('seo.ogLocale'));
+    upsertMetaByName('twitter:title', t('seo.twitterTitle'));
+    upsertMetaByName('twitter:description', t('seo.twitterDescription'));
+
+    const schemaScript = document.head.querySelector(
+      'script[type="application/ld+json"]'
+    ) as HTMLScriptElement | null;
+    if (schemaScript) {
+      try {
+        const parsed = JSON.parse(schemaScript.textContent || '{}') as Record<string, unknown>;
+        parsed.name = t('seo.schemaName');
+        parsed.description = t('seo.schemaDescription');
+        schemaScript.textContent = JSON.stringify(parsed);
+      } catch {
+        // Ignore malformed existing schema markup.
+      }
+    }
   }, [locale, t]);
 
   const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);

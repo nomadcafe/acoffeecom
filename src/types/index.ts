@@ -30,6 +30,7 @@ export interface StarredShopSnapshot {
   lat: number;
   lng: number;
   googleMapsUri?: string;
+  note?: string;
 }
 
 export type SearchSortMode = 'rating' | 'fairness';

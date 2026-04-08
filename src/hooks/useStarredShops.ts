@@ -33,6 +33,7 @@ function normalizeStored(raw: unknown): StarredShopSnapshot[] {
       lat: typeof s.lat === 'number' ? s.lat : 0,
       lng: typeof s.lng === 'number' ? s.lng : 0,
       googleMapsUri: s.googleMapsUri,
+      note: typeof s.note === 'string' ? s.note : undefined,
     }));
 }
 
@@ -63,6 +64,7 @@ export function useStarredShops(): {
   starredShops: StarredShopSnapshot[];
   starredShopIds: string[];
   toggleStar: (shop: CoffeeShop) => void;
+  updateStarredNote: (shopId: string, note: string) => void;
   isStarred: (shopId: string) => boolean;
 } {
   const [starredShops, setStarredShops] = useState<StarredShopSnapshot[]>(loadStarredShops);
@@ -90,9 +92,16 @@ export function useStarredShops(): {
         lat: shop.lat,
         lng: shop.lng,
         googleMapsUri: shop.googleMapsUri,
+        note: prev.find((s) => s.id === shop.id)?.note,
       };
       return [snap, ...prev.filter((s) => s.id !== shop.id)];
     });
+  }, []);
+
+  const updateStarredNote = useCallback((shopId: string, note: string) => {
+    setStarredShops((prev) =>
+      prev.map((s) => (s.id === shopId ? { ...s, note: note.trim() ? note : undefined } : s))
+    );
   }, []);
 
   const isStarred = useCallback(
@@ -100,5 +109,5 @@ export function useStarredShops(): {
     [starredShopIds]
   );
 
-  return { starredShops, starredShopIds, toggleStar, isStarred };
+  return { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred };
 }
