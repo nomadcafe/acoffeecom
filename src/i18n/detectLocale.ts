@@ -5,7 +5,7 @@ function isLocale(value: string | null): value is Locale {
   return value !== null && (SUPPORTED_LOCALES as string[]).includes(value);
 }
 
-/** Reads saved preference, otherwise maps navigator.language to en | ja. */
+/** Reads saved preference, otherwise maps navigator.language to en | ja | zh. */
 export function getInitialLocale(): Locale {
   try {
     const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
@@ -16,6 +16,7 @@ export function getInitialLocale(): Locale {
 
   if (typeof navigator !== 'undefined') {
     const lang = navigator.language?.toLowerCase() ?? 'en';
+    if (lang === 'zh' || lang.startsWith('zh-')) return 'zh';
     if (lang === 'ja' || lang.startsWith('ja-')) return 'ja';
   }
 

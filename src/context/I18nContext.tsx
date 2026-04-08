@@ -39,7 +39,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    document.documentElement.lang = locale === 'ja' ? 'ja' : 'en';
+    document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale === 'ja' ? 'ja' : 'en';
     document.title = t('meta.title');
   }, [locale, t]);
 

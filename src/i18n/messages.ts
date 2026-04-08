@@ -1,8 +1,8 @@
-export type Locale = 'en' | 'ja';
+export type Locale = 'en' | 'ja' | 'zh';
 
 export const LOCALE_STORAGE_KEY = 'ACoffee-meetup-locale';
 
-export const SUPPORTED_LOCALES: Locale[] = ['en', 'ja'];
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'ja', 'zh'];
 
 /** Flat message keys → string. Use {{name}} for interpolation. */
 export type MessageDict = Record<string, string>;
@@ -17,6 +17,7 @@ export const en: MessageDict = {
   'lang.selectAria': 'Language',
   'lang.en': 'English',
   'lang.ja': '日本語',
+  'lang.zh': '中文',
 
   'location.title': 'Find Your Coffee Meetup Spot',
   'location.subtitle':
@@ -104,6 +105,7 @@ export const ja: MessageDict = {
   'lang.selectAria': '言語',
   'lang.en': 'English',
   'lang.ja': '日本語',
+  'lang.zh': '中文',
 
   'location.title': 'カフェの待ち合わせ場所を探す',
   'location.subtitle':
@@ -179,9 +181,95 @@ export const ja: MessageDict = {
   'errors.generic': 'エラーが発生しました',
 };
 
+export const zh: MessageDict = {
+  'meta.title': 'A Coffee Meetup Finder（咖啡见面）',
+
+  'app.logoAlt': 'A Coffee',
+  'app.title': 'A Coffee Meetup Finder',
+  'app.tagline': '在你和朋友之间找到最合适的咖啡地点',
+
+  'lang.selectAria': '语言',
+  'lang.en': 'English',
+  'lang.ja': '日本語',
+  'lang.zh': '中文',
+
+  'location.title': '查找你们的咖啡会面点',
+  'location.subtitle':
+    '输入双方地址，然后点击<strong>查找会面点</strong>即可开始搜索。',
+  'location.yourLocation': '你的位置',
+  'location.friendLocation': '朋友的位置',
+  'location.placeholderA': '例如：东京站',
+  'location.placeholderB': '例如：新宿站',
+  'location.findButton': '查找会面点',
+  'location.searching': '搜索中…',
+
+  'list.loading': '正在查找优质咖啡店…',
+  'list.placeholder': '请先输入两个地点，以显示会面中点附近的咖啡店。',
+  'list.empty': '附近没有找到高评分咖啡店。',
+  'list.emptyHint': '可以尝试把两个地点设得更接近一些。',
+  'list.foundOne': '找到 {{count}} 家咖啡店',
+  'list.foundMany': '找到 {{count}} 家咖啡店',
+  'list.resultNote': 'Places API（新版）每次搜索最多返回 20 家咖啡店。',
+
+  'card.favorite': '已收藏！',
+  'card.openMaps': '在 Google 地图中打开',
+  'card.reviews': '{{count}} 条评价',
+  'card.distanceA': '距 A 点的直线距离',
+  'card.distanceB': '距 B 点的直线距离',
+  'card.distanceM': '距会面中点的距离（搜索半径以此为准）',
+  'card.distanceHint': 'M = 会面中点（搜索中心）。当两人距离较远时，A/B 距离可能大于搜索半径。',
+  'card.openNow': '营业中',
+  'card.closed': '已打烊',
+
+  'filters.title': '可选筛选',
+  'filters.lead':
+    '这些设置会在你<strong>下一次</strong>点击<strong>查找会面点</strong>时生效；仅修改设置不会自动搜索。',
+  'filters.minRating': '最低评分',
+  'filters.ratingDisplay': '{{value}} 星',
+  'filters.radius': '以中点为中心的搜索半径',
+  'filters.radiusHelp':
+    'Google 会以<strong>A 与 B 的中点</strong>为中心进行圆形搜索，而不是分别以两地为中心。卡片中的 A/B 距离是从各自地址计算，因此两人相距较远时，可能会大于该半径。',
+  'filters.keyword': '关键词',
+  'filters.sortMode': '结果排序方式',
+  'filters.sortRating': '评分（默认）',
+  'filters.sortFairness': 'A/B 公平度',
+  'filters.sortHint': '公平度会优先显示两人距离差更小的店。',
+  'filters.keywordPlaceholder': '例如：coffee、espresso、brunch',
+  'filters.keywordHint': '会传给 Google Places；留空则默认使用 “coffee”。',
+  'filters.widenIntro': '搜索结果太少？',
+  'filters.loosen': '仅放宽筛选条件',
+  'filters.widenHint':
+    '搜索半径 +1 km，最低评分 -0.5（不低于 {{min}} 星）。之后请再次点击<strong>查找会面点</strong>；此按钮本身不会触发搜索。',
+
+  'map.loadError': 'Google 地图加载失败，请检查 API Key。',
+  'map.loading': '地图加载中…',
+  'map.midpoint': '中点',
+  'map.infoRating': '{{rating}} 星（{{reviews}} 条评价）',
+  'map.openMaps': '在 Google 地图中打开',
+
+  'star.add': '加入收藏',
+  'star.remove': '取消收藏',
+
+  'saved.title': '已保存咖啡店',
+  'saved.count': '{{count}} 家',
+  'saved.empty': '在下方搜索结果中点星标后，这里会保存该店，方便快速打开地图。',
+  'saved.focusMap': '在地图中定位',
+  'saved.focusHint': '若已保存店铺在当前搜索结果中，点击该行可在地图和列表中高亮。',
+
+  'share.title': '咖啡会面推荐',
+  'share.button': '分享',
+  'share.from': '出发地 A',
+  'share.to': '出发地 B',
+
+  'errors.bothAddresses': '请同时输入两个地址',
+  'errors.mapNotLoaded': '地图尚未加载完成',
+  'errors.generic': '发生错误',
+};
+
 export const messagesByLocale: Record<Locale, MessageDict> = {
   en,
   ja,
+  zh,
 };
 
 export function interpolate(template: string, vars?: Record<string, string | number>): string {
