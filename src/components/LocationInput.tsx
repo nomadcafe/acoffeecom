@@ -6,7 +6,19 @@ import styles from './LocationInput.module.css';
 
 export function LocationInput() {
   const { t } = useI18n();
-  const { addressA, addressB, setAddressA, setAddressB, findMeetupSpot, isLoading } = useApp();
+  const {
+    addressA,
+    addressB,
+    setAddressA,
+    setAddressB,
+    findMeetupSpot,
+    searchWithAddresses,
+    recentSearches,
+    addressTemplates,
+    addAddressTemplate,
+    removeAddressTemplate,
+    isLoading,
+  } = useApp();
   const inputARef = useRef<HTMLInputElement | null>(null);
   const inputBRef = useRef<HTMLInputElement | null>(null);
 
@@ -63,6 +75,10 @@ export function LocationInput() {
     findMeetupSpot();
   };
 
+  const handleUseRecent = (a: string, b: string) => {
+    void searchWithAddresses(a, b);
+  };
+
   return (
     <form className={styles.container} onSubmit={handleSubmit}>
       <h2 className={styles.title}>{t('location.title')}</h2>
@@ -104,6 +120,74 @@ export function LocationInput() {
           disabled={isLoading}
         />
       </div>
+
+      <div className={styles.templateActions}>
+        <button
+          type="button"
+          className={styles.miniButton}
+          onClick={() => addAddressTemplate(addressA)}
+          disabled={!addressA.trim() || isLoading}
+        >
+          {t('location.saveA')}
+        </button>
+        <button
+          type="button"
+          className={styles.miniButton}
+          onClick={() => addAddressTemplate(addressB)}
+          disabled={!addressB.trim() || isLoading}
+        >
+          {t('location.saveB')}
+        </button>
+      </div>
+
+      {addressTemplates.length > 0 ? (
+        <div className={styles.quickBlock}>
+          <p className={styles.quickTitle}>{t('location.templatesTitle')}</p>
+          <div className={styles.templateList}>
+            {addressTemplates.map((item) => (
+              <div key={item} className={styles.templateItem}>
+                <span className={styles.templateText}>{item}</span>
+                <div className={styles.templateButtons}>
+                  <button type="button" className={styles.templateButton} onClick={() => setAddressA(item)}>
+                    {t('location.templateToA')}
+                  </button>
+                  <button type="button" className={styles.templateButton} onClick={() => setAddressB(item)}>
+                    {t('location.templateToB')}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.templateButtonDanger}
+                    onClick={() => removeAddressTemplate(item)}
+                  >
+                    {t('location.removeTemplate')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {recentSearches.length > 0 ? (
+        <div className={styles.quickBlock}>
+          <p className={styles.quickTitle}>{t('location.recentTitle')}</p>
+          <div className={styles.recentList}>
+            {recentSearches.slice(0, 5).map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                className={styles.recentItem}
+                onClick={() => handleUseRecent(r.addressA, r.addressB)}
+                disabled={isLoading}
+              >
+                <span className={styles.recentUse}>{t('location.useRecent')}</span>
+                <span className={styles.recentLine}>A: {r.addressA}</span>
+                <span className={styles.recentLine}>B: {r.addressB}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <button type="submit" className={styles.button} disabled={isLoading}>
         {isLoading ? t('location.searching') : t('location.findButton')}

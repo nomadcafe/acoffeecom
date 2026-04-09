@@ -35,6 +35,13 @@ export interface StarredShopSnapshot {
 
 export type SearchSortMode = 'rating' | 'fairness';
 
+export interface RecentSearchItem {
+  id: string;
+  addressA: string;
+  addressB: string;
+  createdAt: number;
+}
+
 export interface AppState {
   locationA: Location | null;
   locationB: Location | null;
@@ -53,4 +60,6 @@ export interface AppState {
   searchKeyword: string;
   /** Sort strategy for result cards. */
   searchSortMode: SearchSortMode;
+  recentSearches: RecentSearchItem[];
+  addressTemplates: string[];
 }

@@ -97,3 +97,114 @@
   background: #ccc;
   cursor: not-allowed;
 }
+
+.templateActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.miniButton {
+  border: 1px solid #d5c8be;
+  background: #fff;
+  color: #6f4e37;
+  border-radius: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+}
+
+.miniButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.quickBlock {
+  margin-top: 0.9rem;
+  border-top: 1px dashed #e7ddd6;
+  padding-top: 0.75rem;
+}
+
+.quickTitle {
+  margin: 0 0 0.45rem 0;
+  font-size: 0.78rem;
+  color: #7c6d62;
+  font-weight: 600;
+}
+
+.templateList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.templateItem {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #faf8f6;
+  padding: 0.45rem 0.55rem;
+}
+
+.templateText {
+  display: block;
+  font-size: 0.78rem;
+  color: #5b514b;
+  margin-bottom: 0.4rem;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.templateButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.templateButton,
+.templateButtonDanger {
+  border: 1px solid #d5c8be;
+  background: #fff;
+  color: #6f4e37;
+  border-radius: 7px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.22rem 0.45rem;
+  cursor: pointer;
+}
+
+.templateButtonDanger {
+  border-color: #e3b8b8;
+  color: #b33a3a;
+}
+
+.recentList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.recentItem {
+  border: 1px solid #ece3dc;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recentUse {
+  display: inline-block;
+  font-size: 0.64rem;
+  color: #8f7f72;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+.recentLine {
+  display: block;
+  font-size: 0.74rem;
+  color: #5a514b;
+  line-height: 1.25;
+  word-break: break-word;
+}

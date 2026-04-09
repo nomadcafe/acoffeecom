@@ -5,8 +5,9 @@ import {
   interpolate,
   messagesByLocale,
   LOCALE_STORAGE_KEY,
+  SUPPORTED_LOCALES,
 } from '../i18n/messages';
-import { getInitialLocale } from '../i18n/detectLocale';
+import { buildLocalizedPathname, getInitialLocale, getLocaleFromPathname } from '../i18n/detectLocale';
 
 interface I18nContextValue {
   locale: Locale;
@@ -36,8 +37,21 @@ function upsertMetaByProperty(property: string, content: string) {
   el.content = content;
 }
 
+function upsertLinkRel(rel: string, href: string, hreflang?: string) {
+  const selector =
+    hreflang != null ? `link[rel="${rel}"][hreflang="${hreflang}"]` : `link[rel="${rel}"]`;
+  let el = document.head.querySelector(selector) as HTMLLinkElement | null;
+  if (!el) {
+    el = document.createElement('link');
+    el.rel = rel;
+    if (hreflang != null) el.hreflang = hreflang;
+    document.head.appendChild(el);
+  }
+  el.href = href;
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => getInitialLocale());
+  const [locale, setLocaleState] = useState<Locale>(() => getInitialLocale(window.location.pathname));
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
@@ -45,6 +59,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(LOCALE_STORAGE_KEY, next);
     } catch {
       /* ignore */
+    }
+
+    const nextPath = buildLocalizedPathname(window.location.pathname, next);
+    const nextUrl = `${nextPath}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.pushState({}, '', nextUrl);
     }
   }, []);
 
@@ -59,15 +79,40 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    const onPopState = () => {
+      const byPath = getLocaleFromPathname(window.location.pathname);
+      if (byPath) setLocaleState(byPath);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  useEffect(() => {
+    const targetPath = buildLocalizedPathname(window.location.pathname, locale);
+    if (window.location.pathname !== targetPath) {
+      window.history.replaceState({}, '', `${targetPath}${window.location.search}${window.location.hash}`);
+    }
+
     document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale === 'ja' ? 'ja' : 'en';
     document.title = t('meta.title');
     upsertMetaByName('description', t('seo.description'));
     upsertMetaByName('keywords', t('seo.keywords'));
+    upsertMetaByProperty('og:url', window.location.href);
     upsertMetaByProperty('og:title', t('seo.ogTitle'));
     upsertMetaByProperty('og:description', t('seo.ogDescription'));
     upsertMetaByProperty('og:locale', t('seo.ogLocale'));
     upsertMetaByName('twitter:title', t('seo.twitterTitle'));
     upsertMetaByName('twitter:description', t('seo.twitterDescription'));
+    upsertLinkRel('canonical', window.location.href);
+
+    const origin = window.location.origin;
+    const currentBasePath = window.location.pathname.replace(/^\/(en|ja|zh)(?=\/|$)/, '') || '/';
+    for (const code of SUPPORTED_LOCALES) {
+      const href = `${origin}${buildLocalizedPathname(currentBasePath, code)}`;
+      const hreflang = code === 'zh' ? 'zh-CN' : code;
+      upsertLinkRel('alternate', href, hreflang);
+    }
+    upsertLinkRel('alternate', `${origin}/en`, 'x-default');
 
     const schemaScript = document.head.querySelector(
       'script[type="application/ld+json"]'
@@ -75,6 +120,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (schemaScript) {
       try {
         const parsed = JSON.parse(schemaScript.textContent || '{}') as Record<string, unknown>;
+        parsed.url = window.location.href;
         parsed.name = t('seo.schemaName');
         parsed.description = t('seo.schemaDescription');
         schemaScript.textContent = JSON.stringify(parsed);

@@ -1,6 +1,12 @@
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { Location, CoffeeShop, AppState, SearchSortMode } from '../types';
+import type {
+  Location,
+  CoffeeShop,
+  AppState,
+  SearchSortMode,
+  RecentSearchItem,
+} from '../types';
 import { useI18n } from './I18nContext';
 import { useStarredShops } from '../hooks/useStarredShops';
 import { geocodeAddress } from '../utils/geocoding';
@@ -22,10 +28,49 @@ interface AppContextType extends AppState {
   setSearchKeyword: (value: string) => void;
   setSearchSortMode: (value: SearchSortMode) => void;
   updateStarredNote: (shopId: string, note: string) => void;
+  addAddressTemplate: (address: string) => void;
+  removeAddressTemplate: (address: string) => void;
+  searchWithAddresses: (nextAddressA: string, nextAddressB: string) => Promise<void>;
   widenSearchParams: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
+const RECENT_SEARCHES_KEY = 'ACoffee-meetup-recent-searches';
+const ADDRESS_TEMPLATES_KEY = 'ACoffee-meetup-address-templates';
+
+function loadRecentSearches(): RecentSearchItem[] {
+  try {
+    const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((x) => typeof x === 'object' && x !== null)
+      .map((x) => x as Partial<RecentSearchItem>)
+      .filter((x) => typeof x.addressA === 'string' && typeof x.addressB === 'string')
+      .map((x, idx) => ({
+        id: x.id && typeof x.id === 'string' ? x.id : `legacy-${idx}`,
+        addressA: x.addressA as string,
+        addressB: x.addressB as string,
+        createdAt: typeof x.createdAt === 'number' ? x.createdAt : Date.now(),
+      }))
+      .slice(0, 8);
+  } catch {
+    return [];
+  }
+}
+
+function loadAddressTemplates(): string[] {
+  try {
+    const raw = localStorage.getItem(ADDRESS_TEMPLATES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((x): x is string => typeof x === 'string').slice(0, 12);
+  } catch {
+    return [];
+  }
+}
 
 function sortShops(
   shops: CoffeeShop[],
@@ -64,6 +109,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchRadiusMeters, setSearchRadiusMeters] = useState(1200);
   const [searchKeyword, setSearchKeyword] = useState('coffee');
   const [searchSortMode, setSearchSortMode] = useState<SearchSortMode>('rating');
+  const [recentSearches, setRecentSearches] = useState<RecentSearchItem[]>(loadRecentSearches);
+  const [addressTemplates, setAddressTemplates] = useState<string[]>(loadAddressTemplates);
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
@@ -77,64 +124,112 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const searchWithAddresses = useCallback(
+    async (nextAddressA: string, nextAddressB: string) => {
+      const a = nextAddressA.trim();
+      const b = nextAddressB.trim();
+      if (!a || !b) {
+        setError(t('errors.bothAddresses'));
+        return;
+      }
+
+      if (!mapRef.current || !geocoderRef.current) {
+        setError(t('errors.mapNotLoaded'));
+        return;
+      }
+
+      setAddressA(a);
+      setAddressB(b);
+      setIsLoading(true);
+      setError(null);
+      setCoffeeShops([]);
+      setSelectedCoffeeShopId(null);
+
+      try {
+        // Geocode both addresses in parallel
+        const [coordsA, coordsB] = await Promise.all([
+          geocodeAddress(a, geocoderRef.current),
+          geocodeAddress(b, geocoderRef.current),
+        ]);
+
+        const locA: Location = { address: a, ...coordsA };
+        const locB: Location = { address: b, ...coordsB };
+
+        setLocationA(locA);
+        setLocationB(locB);
+
+        // Calculate midpoint
+        const mid = calculateMidpoint(coordsA.lat, coordsA.lng, coordsB.lat, coordsB.lng);
+        setMidpoint(mid);
+
+        const { shops } = await searchCoffeeShops(
+          mapRef.current,
+          mid,
+          coordsA,
+          coordsB,
+          searchMinRating,
+          searchRadiusMeters,
+          searchKeyword
+        );
+        setCoffeeShops(sortShops(shops, starredShopIds, searchSortMode));
+
+        const recent: RecentSearchItem = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          addressA: a,
+          addressB: b,
+          createdAt: Date.now(),
+        };
+        setRecentSearches((prev) => {
+          const next = [recent, ...prev.filter((r) => !(r.addressA === a && r.addressB === b))].slice(0, 8);
+          try {
+            localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+          } catch {
+            // Ignore storage quota and privacy mode errors.
+          }
+          return next;
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : t('errors.generic'));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [searchMinRating, searchRadiusMeters, searchKeyword, starredShopIds, searchSortMode, t]
+  );
+
   const findMeetupSpot = useCallback(async () => {
     if (!addressA.trim() || !addressB.trim()) {
       setError(t('errors.bothAddresses'));
       return;
     }
+    await searchWithAddresses(addressA, addressB);
+  }, [addressA, addressB, searchWithAddresses, t]);
 
-    if (!mapRef.current || !geocoderRef.current) {
-      setError(t('errors.mapNotLoaded'));
-      return;
-    }
+  const addAddressTemplate = useCallback((address: string) => {
+    const clean = address.trim();
+    if (!clean) return;
+    setAddressTemplates((prev) => {
+      const next = [clean, ...prev.filter((x) => x !== clean)].slice(0, 12);
+      try {
+        localStorage.setItem(ADDRESS_TEMPLATES_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage quota and privacy mode errors.
+      }
+      return next;
+    });
+  }, []);
 
-    setIsLoading(true);
-    setError(null);
-    setCoffeeShops([]);
-    setSelectedCoffeeShopId(null);
-
-    try {
-      // Geocode both addresses in parallel
-      const [coordsA, coordsB] = await Promise.all([
-        geocodeAddress(addressA, geocoderRef.current),
-        geocodeAddress(addressB, geocoderRef.current),
-      ]);
-
-      const locA: Location = { address: addressA, ...coordsA };
-      const locB: Location = { address: addressB, ...coordsB };
-
-      setLocationA(locA);
-      setLocationB(locB);
-
-      // Calculate midpoint
-      const mid = calculateMidpoint(coordsA.lat, coordsA.lng, coordsB.lat, coordsB.lng);
-      setMidpoint(mid);
-
-      const { shops } = await searchCoffeeShops(
-        mapRef.current,
-        mid,
-        coordsA,
-        coordsB,
-        searchMinRating,
-        searchRadiusMeters,
-        searchKeyword
-      );
-      setCoffeeShops(sortShops(shops, starredShopIds, searchSortMode));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t('errors.generic'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    addressA,
-    addressB,
-    starredShopIds,
-    searchMinRating,
-    searchRadiusMeters,
-    searchKeyword,
-    searchSortMode,
-    t,
-  ]);
+  const removeAddressTemplate = useCallback((address: string) => {
+    setAddressTemplates((prev) => {
+      const next = prev.filter((x) => x !== address);
+      try {
+        localStorage.setItem(ADDRESS_TEMPLATES_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage quota and privacy mode errors.
+      }
+      return next;
+    });
+  }, []);
 
   const widenSearchParams = useCallback(() => {
     setSearchRadiusMeters((r) => Math.min(SEARCH_RADIUS_MAX_M, r + 1000));
@@ -158,6 +253,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         searchRadiusMeters,
         searchKeyword,
         searchSortMode,
+        recentSearches,
+        addressTemplates,
         addressA,
         addressB,
         setAddressA,
@@ -168,8 +265,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSearchSortMode,
         widenSearchParams,
         findMeetupSpot,
+        searchWithAddresses,
         toggleStar,
         updateStarredNote,
+        addAddressTemplate,
+        removeAddressTemplate,
         isStarred,
         setMapRef,
         setSelectedCoffeeShopId,

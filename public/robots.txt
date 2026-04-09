@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://acoffee.com/sitemap.xml

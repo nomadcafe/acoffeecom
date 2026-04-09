@@ -1,0 +1,6 @@
+/en    /index.html   200
+/ja    /index.html   200
+/zh    /index.html   200
+/en/*  /index.html   200
+/ja/*  /index.html   200
+/zh/*  /index.html   200
