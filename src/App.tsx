@@ -3,9 +3,9 @@ import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
 import { SearchFilters } from './components/SearchFilters';
 import { Map } from './components/Map';
-import { SavedPlacesSection } from './components/SavedPlacesSection';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
+import { SavedPlacesMenu } from './components/SavedPlacesMenu';
 import './App.css';
 
 function AppShell() {
@@ -24,7 +24,8 @@ function AppShell() {
             <h1>{t('app.title')}</h1>
             <p>{t('app.tagline')}</p>
           </div>
-          <div className="headerAside">
+          <div className="headerAside headerAsideBar">
+            <SavedPlacesMenu />
             <LanguageSwitcher />
           </div>
         </div>
@@ -33,7 +34,6 @@ function AppShell() {
       <main className="main">
         <aside className="sidebar">
           <LocationInput />
-          <SavedPlacesSection />
           <SearchFilters />
           <CoffeeShopList />
         </aside>

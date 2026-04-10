@@ -1,80 +1,12 @@
-.container {
-  background: #faf8f6;
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  border: 1px solid #ebe6e1;
-  margin-bottom: 0.5rem;
-}
-
-.titleWrap {
-  margin: 0;
-  font-size: inherit;
-  font-weight: inherit;
-}
-
-.disclosureTrigger {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1rem 1fr 1rem;
-  align-items: center;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0.2rem 0;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-  box-sizing: border-box;
-}
-
-.disclosureTrigger:hover .titleText {
-  color: #444;
-}
-
-.disclosureTrigger:focus-visible {
-  outline: 2px solid #6f4e37;
-  outline-offset: 2px;
-}
-
-.disclosureSpacer {
-  width: 1rem;
-}
-
-.titleText {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #5a4a3e;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  text-align: center;
-}
-
-.countBadge {
-  font-weight: 600;
-  color: #6f4e37;
-  font-variant-numeric: tabular-nums;
-}
-
-.disclosureChevron {
-  font-size: 0.65rem;
-  color: #888;
-  line-height: 1;
-  width: 1rem;
-  text-align: center;
-}
-
-.panel {
-  margin-top: 0.5rem;
-}
+/* Shared list UI for saved cafés (used in header dropdown). */
 
 .empty {
   margin: 0;
   font-size: 0.78rem;
-  color: #888;
+  color: #666;
   line-height: 1.45;
   text-align: center;
+  padding: 0.5rem 0;
 }
 
 .list {
@@ -164,9 +96,9 @@
 }
 
 .focusHint {
-  margin: 0.35rem 0 0 0;
+  margin: 0.5rem 0 0 0;
   font-size: 0.65rem;
-  color: #aaa;
+  color: #999;
   text-align: center;
   line-height: 1.35;
 }
@@ -183,6 +115,7 @@
   font-size: 0.74rem;
   color: #555;
   padding: 0.38rem 0.55rem;
+  box-sizing: border-box;
 }
 
 .noteInput:focus {

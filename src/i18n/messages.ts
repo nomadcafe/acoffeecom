@@ -103,6 +103,7 @@ export const en: MessageDict = {
   'star.remove': 'Remove from favorites',
 
   'saved.title': 'Saved cafés',
+  'saved.menuLabel': 'Saved',
   'saved.count': '{{count}} saved',
   'saved.empty':
     'Star a café in the search results below — it will show up here for quick access and maps links.',
@@ -327,6 +328,7 @@ export const zh: MessageDict = {
   'star.remove': '取消收藏',
 
   'saved.title': '已保存咖啡店',
+  'saved.menuLabel': '已保存',
   'saved.count': '{{count}} 家',
   'saved.empty': '在下方搜索结果中点星标后，这里会保存该店，方便快速打开地图。',
   'saved.focusMap': '在地图中定位',
