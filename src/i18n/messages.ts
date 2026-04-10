@@ -112,6 +112,25 @@ export const en: MessageDict = {
     'If a saved café is in your current search results, tap its row to focus it on the map and list.',
   'saved.notePlaceholder': 'Add a private note (quiet, outlets, etc.)',
 
+  'changelog.metaTitle': 'Update log | A Coffee Meetup Finder',
+  'changelog.metaDescription':
+    'Product updates and UX changes for the coffee meetup finder — saved places, languages, and more.',
+  'changelog.metaKeywords': 'acoffee, updates, changelog, coffee meetup',
+  'changelog.ogTitle': 'Update log | A Coffee Meetup Finder',
+  'changelog.ogDescription':
+    'What changed recently: new features and improvements for finding cafés halfway between two places.',
+  'changelog.twitterTitle': 'Update log | A Coffee Meetup Finder',
+  'changelog.twitterDescription':
+    'What changed recently in the coffee meetup finder — features and UX updates.',
+
+  'changelog.pageTitle': 'Update log',
+  'changelog.pageLead': 'Recent changes to this site, in your selected language.',
+  'changelog.backHome': 'Back to finder',
+  'changelog.navLink': 'What’s new',
+
+  'bottomNav.aria': 'Site',
+  'bottomNav.home': 'Finder',
+
   'share.title': 'Coffee meetup suggestions',
   'share.button': 'Share',
   'share.copied': 'Copied',
@@ -225,6 +244,23 @@ export const ja: MessageDict = {
   'saved.focusHint': '保存した店が今の検索結果に含まれるとき、行をタップすると地図と一覧で強調表示されます。',
   'saved.notePlaceholder': 'メモを追加（静か、電源あり など）',
 
+  'changelog.metaTitle': '更新ログ | カフェ面談ファインダー',
+  'changelog.metaDescription':
+    'カフェ面談ファインダーの機能・UI の更新履歴です（保存、言語、その他）。',
+  'changelog.metaKeywords': 'acoffee, 更新, 変更履歴, カフェ',
+  'changelog.ogTitle': '更新ログ | カフェ面談ファインダー',
+  'changelog.ogDescription': '最近の変更内容：二人の中間付近のカフェを探すアプリの改善点。',
+  'changelog.twitterTitle': '更新ログ | カフェ面談ファインダー',
+  'changelog.twitterDescription': 'カフェ面談ファインダーの最近の機能・UI 更新。',
+
+  'changelog.pageTitle': '更新ログ',
+  'changelog.pageLead': '選択中の言語で表示しています。今後の変更もここに追記します。',
+  'changelog.backHome': '検索に戻る',
+  'changelog.navLink': '更新情報',
+
+  'bottomNav.aria': 'サイト内メニュー',
+  'bottomNav.home': '検索',
+
   'share.title': 'カフェ候補を共有',
   'share.button': '共有',
   'share.copied': 'コピー済み',
@@ -334,6 +370,22 @@ export const zh: MessageDict = {
   'saved.focusMap': '在地图中定位',
   'saved.focusHint': '若已保存店铺在当前搜索结果中，点击该行可在地图和列表中高亮。',
   'saved.notePlaceholder': '添加私人备注（安静、有插座等）',
+
+  'changelog.metaTitle': '更新日志 | 咖啡会面查找',
+  'changelog.metaDescription': '本站功能与界面更新说明（收藏、多语言等）。',
+  'changelog.metaKeywords': 'acoffee, 更新, 日志, 咖啡',
+  'changelog.ogTitle': '更新日志 | 咖啡会面查找',
+  'changelog.ogDescription': '近期改动：帮助两人在中间位置找咖啡馆的小工具更新与优化。',
+  'changelog.twitterTitle': '更新日志 | 咖啡会面查找',
+  'changelog.twitterDescription': '咖啡会面查找的近期功能与界面更新。',
+
+  'changelog.pageTitle': '更新日志',
+  'changelog.pageLead': '以下内容随当前所选语言展示，后续更新会陆续记在这里。',
+  'changelog.backHome': '返回查找',
+  'changelog.navLink': '更新说明',
+
+  'bottomNav.aria': '站内导航',
+  'bottomNav.home': '查找',
 
   'share.title': '咖啡会面推荐',
   'share.button': '分享',

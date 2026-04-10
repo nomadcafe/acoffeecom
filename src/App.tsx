@@ -6,17 +6,23 @@ import { Map } from './components/Map';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
+import { UpdateLogPage } from './components/UpdateLogPage';
+import { SiteBottomNav } from './components/SiteBottomNav';
+import { usePathname } from './hooks/usePathname';
+import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
+import { isUpdatesPath } from './i18n/changelog';
 import './App.css';
 
 function AppShell() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const homeHref = buildLocalizedPathname('/', locale);
 
   return (
     <div className="app">
       <header className="header">
         <div className="headerInner">
           <div className="headerBrand">
-            <a className="logo" href="/">
+            <a className="logo" href={homeHref}>
               <img src="/logo.png" alt={t('app.logoAlt')} className="logoImage" width={460} height={130} />
             </a>
           </div>
@@ -42,14 +48,31 @@ function AppShell() {
           <Map />
         </section>
       </main>
+      <SiteBottomNav />
     </div>
   );
 }
 
-export default function App() {
+function AppRoute() {
+  const pathname = usePathname();
+  const logicalPath = stripLocalePrefix(pathname);
+
+  if (isUpdatesPath(logicalPath)) {
+    return (
+      <>
+        <UpdateLogPage />
+        <SiteBottomNav />
+      </>
+    );
+  }
+
   return (
     <AppProvider>
       <AppShell />
     </AppProvider>
   );
+}
+
+export default function App() {
+  return <AppRoute />;
 }

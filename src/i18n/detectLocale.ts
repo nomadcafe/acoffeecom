@@ -10,7 +10,8 @@ export function getLocaleFromPathname(pathname: string): Locale | null {
   return isLocale(segment) ? segment : null;
 }
 
-function stripLocalePrefix(pathname: string): string {
+/** Path without leading `/{en|ja|zh}` segment, e.g. `/ja/updatelog` → `/updatelog`. */
+export function stripLocalePrefix(pathname: string): string {
   const parts = pathname.split('/').filter(Boolean);
   if (parts.length === 0) return '/';
   if (isLocale(parts[0])) parts.shift();

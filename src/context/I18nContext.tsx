@@ -7,7 +7,14 @@ import {
   LOCALE_STORAGE_KEY,
   SUPPORTED_LOCALES,
 } from '../i18n/messages';
-import { buildLocalizedPathname, getInitialLocale, getLocaleFromPathname } from '../i18n/detectLocale';
+import {
+  buildLocalizedPathname,
+  getInitialLocale,
+  getLocaleFromPathname,
+  stripLocalePrefix,
+} from '../i18n/detectLocale';
+import { isUpdatesPath } from '../i18n/changelog';
+import { notifyLocationSync } from '../i18n/locationSync';
 
 interface I18nContextValue {
   locale: Locale;
@@ -65,6 +72,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const nextUrl = `${nextPath}${window.location.search}${window.location.hash}`;
     if (nextUrl !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.pushState({}, '', nextUrl);
+      notifyLocationSync();
     }
   }, []);
 
@@ -91,18 +99,28 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const targetPath = buildLocalizedPathname(window.location.pathname, locale);
     if (window.location.pathname !== targetPath) {
       window.history.replaceState({}, '', `${targetPath}${window.location.search}${window.location.hash}`);
+      notifyLocationSync();
     }
 
+    const logicalPath = stripLocalePrefix(window.location.pathname);
+    const onChangelog = isUpdatesPath(logicalPath);
+
     document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale === 'ja' ? 'ja' : 'en';
-    document.title = t('meta.title');
-    upsertMetaByName('description', t('seo.description'));
-    upsertMetaByName('keywords', t('seo.keywords'));
+    document.title = onChangelog ? t('changelog.metaTitle') : t('meta.title');
+    upsertMetaByName('description', onChangelog ? t('changelog.metaDescription') : t('seo.description'));
+    upsertMetaByName('keywords', onChangelog ? t('changelog.metaKeywords') : t('seo.keywords'));
     upsertMetaByProperty('og:url', window.location.href);
-    upsertMetaByProperty('og:title', t('seo.ogTitle'));
-    upsertMetaByProperty('og:description', t('seo.ogDescription'));
+    upsertMetaByProperty('og:title', onChangelog ? t('changelog.ogTitle') : t('seo.ogTitle'));
+    upsertMetaByProperty('og:description', onChangelog ? t('changelog.ogDescription') : t('seo.ogDescription'));
     upsertMetaByProperty('og:locale', t('seo.ogLocale'));
-    upsertMetaByName('twitter:title', t('seo.twitterTitle'));
-    upsertMetaByName('twitter:description', t('seo.twitterDescription'));
+    upsertMetaByName(
+      'twitter:title',
+      onChangelog ? t('changelog.twitterTitle') : t('seo.twitterTitle')
+    );
+    upsertMetaByName(
+      'twitter:description',
+      onChangelog ? t('changelog.twitterDescription') : t('seo.twitterDescription')
+    );
     upsertLinkRel('canonical', window.location.href);
 
     const origin = window.location.origin;

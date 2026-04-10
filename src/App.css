@@ -13,6 +13,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Space for fixed SiteBottomNav + safe area (see SiteBottomNav.module.css) */
+  --bottom-nav-safe: calc(3.4rem + env(safe-area-inset-bottom, 0px));
 }
 
 .header {
@@ -96,6 +98,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 1rem;
+  padding-bottom: calc(1rem + var(--bottom-nav-safe));
   gap: 1rem;
 }
 
@@ -148,6 +151,7 @@ body {
   .main {
     flex-direction: row;
     padding: 1.5rem;
+    padding-bottom: calc(1.5rem + var(--bottom-nav-safe));
     gap: 1.5rem;
     max-width: 1400px;
     margin: 0 auto;
@@ -159,7 +163,7 @@ body {
     flex-shrink: 0;
     /* Avoid stretching to map height: tall filters + flex:1 list was collapsing the list to 0. */
     align-self: flex-start;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px - var(--bottom-nav-safe));
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 0;
