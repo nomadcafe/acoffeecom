@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
@@ -43,6 +43,8 @@ export function Map() {
   } = useApp();
 
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  /** Rough browser geolocation when user has not searched yet (optional; requires permission). */
+  const [browserLocation, setBrowserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const selectedShop = useMemo(() => {
     if (!selectedCoffeeShopId) return null;
@@ -56,6 +58,31 @@ export function Map() {
     const z = map.getZoom();
     if (z != null && z < 15) map.setZoom(15);
   }, [selectedShop]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (midpoint || locationA || locationB) return;
+    if (!navigator.geolocation) return;
+
+    let cancelled = false;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (cancelled) return;
+        setBrowserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      () => {
+        /* denied, timeout, or unavailable — keep default map center */
+      },
+      { enableHighAccuracy: false, maximumAge: 300_000, timeout: 12_000 }
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, midpoint, locationA, locationB]);
 
   const onLoad = useCallback(
     (map: google.maps.Map) => {
@@ -86,19 +113,36 @@ export function Map() {
     );
   }
 
-  // Calculate bounds to fit all markers
-  const center = midpoint || locationA || locationB || defaultCenter;
+  const center = midpoint || locationA || locationB || browserLocation || defaultCenter;
+  const zoom = midpoint ? 15 : locationA || locationB ? 12 : browserLocation ? 11 : 12;
 
   return (
     <div className={styles.container}>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={center}
-        zoom={midpoint ? 15 : 12}
+        zoom={zoom}
         options={mapOptions}
         onLoad={onLoad}
         onUnmount={onUnmount}
       >
+        {/* Optional: approximate device location before any search */}
+        {browserLocation && (
+          <Marker
+            position={browserLocation}
+            icon={{
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 11,
+              fillColor: '#1a73e8',
+              fillOpacity: 0.9,
+              strokeColor: 'white',
+              strokeWeight: 2,
+            }}
+            title={t('map.youHere')}
+            zIndex={1}
+          />
+        )}
+
         {/* Location A marker */}
         {locationA && (
           <Marker

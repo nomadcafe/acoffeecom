@@ -98,6 +98,7 @@ export const en: MessageDict = {
   'map.midpoint': 'Midpoint',
   'map.infoRating': '{{rating}} stars ({{reviews}} reviews)',
   'map.openMaps': 'Open in Google Maps',
+  'map.youHere': 'Your approximate location (browser)',
 
   'star.add': 'Add to favorites',
   'star.remove': 'Remove from favorites',
@@ -233,6 +234,7 @@ export const ja: MessageDict = {
   'map.midpoint': '中間地点',
   'map.infoRating': '評価 {{rating}}（口コミ {{reviews}} 件）',
   'map.openMaps': 'Google マップで開く',
+  'map.youHere': 'おおよその現在地（ブラウザの位置情報）',
 
   'star.add': 'お気に入りに追加',
   'star.remove': 'お気に入りから外す',
@@ -359,6 +361,7 @@ export const zh: MessageDict = {
   'map.midpoint': '中点',
   'map.infoRating': '{{rating}} 星（{{reviews}} 条评价）',
   'map.openMaps': '在 Google 地图中打开',
+  'map.youHere': '大致位置（由浏览器定位）',
 
   'star.add': '加入收藏',
   'star.remove': '取消收藏',
