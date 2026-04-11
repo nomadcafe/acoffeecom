@@ -88,7 +88,7 @@ export const en: MessageDict = {
   'filters.sortHint': 'Fairness prioritizes places with a smaller distance gap between both people.',
   'filters.keywordPlaceholder': 'e.g. coffee, espresso, brunch',
   'filters.keywordHint':
-    'Default search is cafés. Words like hotel, restaurant, or bar switch the place type; other text refines the request with Google Places. Leave empty for the default.',
+    'Default search is cafés. Words like hotel, restaurant, or bar switch the nearby place type. For cafés, any other keyword filters by place name (the Maps API here does not accept a free-text search). Leave empty for the default.',
   'filters.widenIntro': 'Too few results after searching?',
   'filters.loosen': 'Loosen filters only',
   'filters.widenHint':
@@ -234,7 +234,7 @@ export const ja: MessageDict = {
   'filters.sortHint': '公平さは、二人の距離差が小さい店を優先します。',
   'filters.keywordPlaceholder': '例：コーヒー、エスプレッソ、ブランチ',
   'filters.keywordHint':
-    'デフォルトはカフェ検索です。hotel・restaurant・bar などで種別が切り替わります。その他の語は Google Places への絞り込みに使われます。空欄はデフォルトです。',
+    'デフォルトはカフェ検索です。hotel・restaurant・bar などで検索する場所の種別が切り替わります。カフェのときだけ、その他の語は店名に含まれるかで絞り込みます（この API では自由テキスト検索は使えません）。空欄はデフォルトです。',
   'filters.widenIntro': '結果が少なすぎる場合',
   'filters.loosen': '条件だけ緩める',
   'filters.widenHint':
@@ -371,7 +371,7 @@ export const zh: MessageDict = {
   'filters.sortHint': '公平度会优先显示两人距离差更小的店。',
   'filters.keywordPlaceholder': '例如：coffee、espresso、brunch',
   'filters.keywordHint':
-    '默认搜索咖啡馆；关键词含 hotel、restaurant、bar 等会切换地点类型，其它词会随请求交给 Google Places 细化。留空为默认。',
+    '默认搜索咖啡馆；含 hotel、restaurant、bar 等会切换附近搜索的地点类型。仅在咖啡馆模式下，其它词按店名是否包含来筛选（当前地图接口不支持自由文本搜索）。留空为默认。',
   'filters.widenIntro': '搜索结果太少？',
   'filters.loosen': '仅放宽筛选条件',
   'filters.widenHint':

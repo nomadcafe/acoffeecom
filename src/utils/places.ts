@@ -10,34 +10,43 @@ export const SEARCH_RATING_MAX = 5;
 const RADIUS_FILTER_BUFFER_M = 100;
 
 /**
- * Maps the keyword field to Places (New) primary types + optional textQuery.
- * Previously we always queried only cafés and then filtered names client-side, so
- * keywords like "hotel" never matched any café name.
+ * Maps the keyword to Places (New) `includedPrimaryTypes` only.
+ * The Maps JavaScript `Place.searchNearby` request does not support `textQuery`
+ * (it triggers "unknown property textQuery" at runtime), so we never send it.
  */
 export function resolveNearbySearchParams(keyword: string): {
   includedPrimaryTypes: string[];
-  textQuery?: string;
+  /** True when search is still café-only (allows optional name refine below). */
+  isDefaultCafeSearch: boolean;
 } {
   const raw = keyword.trim();
   const k = raw.toLowerCase();
   if (!raw || k === 'coffee') {
-    return { includedPrimaryTypes: ['cafe', 'coffee_shop'] };
+    return { includedPrimaryTypes: ['cafe', 'coffee_shop'], isDefaultCafeSearch: true };
   }
 
   const words = k.split(/\s+/).filter(Boolean);
   const hotelish = ['hotel', 'lodging', 'motel', 'hostel', 'inn', 'resort'];
   if (words.some((w) => hotelish.includes(w))) {
-    return { includedPrimaryTypes: ['lodging'], textQuery: raw };
+    return { includedPrimaryTypes: ['lodging'], isDefaultCafeSearch: false };
   }
   const foodish = ['restaurant', 'dining', 'eatery', 'bistro'];
   if (words.some((w) => foodish.includes(w))) {
-    return { includedPrimaryTypes: ['restaurant'], textQuery: raw };
+    return { includedPrimaryTypes: ['restaurant'], isDefaultCafeSearch: false };
   }
   if (words.includes('bar') || words.includes('pub')) {
-    return { includedPrimaryTypes: ['bar'], textQuery: raw };
+    return { includedPrimaryTypes: ['bar'], isDefaultCafeSearch: false };
   }
 
-  return { includedPrimaryTypes: ['cafe', 'coffee_shop'], textQuery: raw };
+  return { includedPrimaryTypes: ['cafe', 'coffee_shop'], isDefaultCafeSearch: true };
+}
+
+/** Narrow café results by display name when the API cannot take a free-text query. */
+function nameMatchesKeyword(displayName: string, keyword: string): boolean {
+  const k = keyword.trim().toLowerCase();
+  if (!k || k === 'coffee') return true;
+  const name = displayName.toLowerCase();
+  return k.split(/\s+/).every((part) => part.length > 0 && name.includes(part));
 }
 
 function mapPlacesToCoffeeShops(
@@ -106,13 +115,13 @@ export async function searchCoffeeShopsPaginated(
   const radius = Math.min(50_000, Math.max(200, Math.round(radiusMeters)));
   const kw = keyword.trim() || 'coffee';
   const ratingFloor = Math.min(SEARCH_RATING_MAX, Math.max(1, minRating));
-  const { includedPrimaryTypes, textQuery } = resolveNearbySearchParams(kw);
+  const { includedPrimaryTypes, isDefaultCafeSearch } = resolveNearbySearchParams(kw);
 
   const lib = (await google.maps.importLibrary('places')) as google.maps.PlacesLibrary;
   const { Place, SearchNearbyRankPreference } = lib;
 
   try {
-    const request = {
+    const request: google.maps.places.SearchNearbyRequest = {
       fields: NEARBY_FIELDS,
       locationRestriction: {
         center: { lat: midpoint.lat, lng: midpoint.lng },
@@ -121,12 +130,11 @@ export async function searchCoffeeShopsPaginated(
       includedPrimaryTypes,
       maxResultCount: 20,
       rankPreference: SearchNearbyRankPreference.DISTANCE,
-      ...(textQuery ? { textQuery } : {}),
-    } as google.maps.places.SearchNearbyRequest;
+    };
 
     const { places } = await Place.searchNearby(request);
 
-    const shops = mapPlacesToCoffeeShops(
+    let shops = mapPlacesToCoffeeShops(
       places,
       locationA,
       locationB,
@@ -134,6 +142,10 @@ export async function searchCoffeeShopsPaginated(
       ratingFloor,
       radius
     );
+
+    if (isDefaultCafeSearch && kw.trim() && kw.trim().toLowerCase() !== 'coffee') {
+      shops = shops.filter((s) => nameMatchesKeyword(s.name, kw));
+    }
 
     return { shops };
   } catch (e) {
