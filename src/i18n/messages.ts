@@ -51,13 +51,13 @@ export const en: MessageDict = {
   'location.templateToB': 'Use as B',
   'location.removeTemplate': 'Remove',
 
-  'list.loading': 'Finding the best coffee spots...',
-  'list.placeholder': 'Enter two locations above to find coffee shops at your meetup point.',
-  'list.empty': 'No highly-rated coffee shops found nearby.',
-  'list.emptyHint': 'Try locations that are closer together.',
-  'list.foundOne': '{{count}} coffee shop found',
-  'list.foundMany': '{{count}} coffee shops found',
-  'list.resultNote': 'ACoffee returns up to 20 cafes per search.',
+  'list.loading': 'Finding the best places...',
+  'list.placeholder': 'Enter two locations above to find spots at your meetup point.',
+  'list.empty': 'No highly-rated places found nearby.',
+  'list.emptyHint': 'Try locations that are closer together, widen the radius, or lower the minimum rating.',
+  'list.foundOne': '{{count}} place found',
+  'list.foundMany': '{{count}} places found',
+  'list.resultNote': 'ACoffee returns up to 20 places per search.',
   'list.fairnessExplain':
     'Fairness mode prioritizes places where A and B travel distances are closer to each other.',
 
@@ -87,7 +87,8 @@ export const en: MessageDict = {
   'filters.sortFairness': 'Fairness between A and B',
   'filters.sortHint': 'Fairness prioritizes places with a smaller distance gap between both people.',
   'filters.keywordPlaceholder': 'e.g. coffee, espresso, brunch',
-  'filters.keywordHint': 'Passed to Google Places. Leave empty to use "coffee".',
+  'filters.keywordHint':
+    'Default search is cafés. Words like hotel, restaurant, or bar switch the place type; other text refines the request with Google Places. Leave empty for the default.',
   'filters.widenIntro': 'Too few results after searching?',
   'filters.loosen': 'Loosen filters only',
   'filters.widenHint':
@@ -197,13 +198,13 @@ export const ja: MessageDict = {
   'location.templateToB': 'Bに使う',
   'location.removeTemplate': '削除',
 
-  'list.loading': 'カフェを探しています…',
-  'list.placeholder': '上で2か所を入力すると、中間地点周辺のカフェを表示します。',
-  'list.empty': '条件に合う高評価のカフェが見つかりませんでした。',
-  'list.emptyHint': 'お互い近い場所を指定してみてください。',
-  'list.foundOne': '{{count}}件のカフェが見つかりました',
-  'list.foundMany': '{{count}}件のカフェが見つかりました',
-  'list.resultNote': 'ACoffee は1回の検索で最大20件のカフェを表示します。',
+  'list.loading': '場所を探しています…',
+  'list.placeholder': '上で2か所を入力すると、中間地点周辺の候補を表示します。',
+  'list.empty': '条件に合う高評価の場所が見つかりませんでした。',
+  'list.emptyHint': '近い場所にする、検索半径を広げる、最低評価を下げる、などを試してください。',
+  'list.foundOne': '{{count}}件の場所が見つかりました',
+  'list.foundMany': '{{count}}件の場所が見つかりました',
+  'list.resultNote': 'ACoffee は1回の検索で最大20件の場所を表示します。',
   'list.fairnessExplain': '公平モードは、A と B の移動距離差が小さい店を優先します。',
 
   'card.favorite': 'お気に入り！',
@@ -232,7 +233,8 @@ export const ja: MessageDict = {
   'filters.sortFairness': 'A/B の公平さ',
   'filters.sortHint': '公平さは、二人の距離差が小さい店を優先します。',
   'filters.keywordPlaceholder': '例：コーヒー、エスプレッソ、ブランチ',
-  'filters.keywordHint': 'Google Places に渡します。空欄のときは「coffee」として扱います。',
+  'filters.keywordHint':
+    'デフォルトはカフェ検索です。hotel・restaurant・bar などで種別が切り替わります。その他の語は Google Places への絞り込みに使われます。空欄はデフォルトです。',
   'filters.widenIntro': '結果が少なすぎる場合',
   'filters.loosen': '条件だけ緩める',
   'filters.widenHint':
@@ -334,13 +336,13 @@ export const zh: MessageDict = {
   'location.templateToB': '填入 B',
   'location.removeTemplate': '删除',
 
-  'list.loading': '正在查找优质咖啡店…',
-  'list.placeholder': '请先输入两个地点，以显示会面中点附近的咖啡店。',
-  'list.empty': '附近没有找到高评分咖啡店。',
-  'list.emptyHint': '可以尝试把两个地点设得更接近一些。',
-  'list.foundOne': '找到 {{count}} 家咖啡店',
-  'list.foundMany': '找到 {{count}} 家咖啡店',
-  'list.resultNote': 'ACoffee 每次搜索最多展示 20 家咖啡馆。',
+  'list.loading': '正在查找地点…',
+  'list.placeholder': '请先输入两个地点，以显示会面中点附近的候选地点。',
+  'list.empty': '附近没有找到符合条件的高评分地点。',
+  'list.emptyHint': '可尝试让两地更近、扩大搜索半径或降低最低评分。',
+  'list.foundOne': '找到 {{count}} 个地点',
+  'list.foundMany': '找到 {{count}} 个地点',
+  'list.resultNote': 'ACoffee 每次搜索最多展示 20 个地点。',
   'list.fairnessExplain': '公平模式会优先展示 A 与 B 距离差更小的店。',
 
   'card.favorite': '已收藏！',
@@ -368,7 +370,8 @@ export const zh: MessageDict = {
   'filters.sortFairness': 'A/B 公平度',
   'filters.sortHint': '公平度会优先显示两人距离差更小的店。',
   'filters.keywordPlaceholder': '例如：coffee、espresso、brunch',
-  'filters.keywordHint': '会传给 Google Places；留空则默认使用 “coffee”。',
+  'filters.keywordHint':
+    '默认搜索咖啡馆；关键词含 hotel、restaurant、bar 等会切换地点类型，其它词会随请求交给 Google Places 细化。留空为默认。',
   'filters.widenIntro': '搜索结果太少？',
   'filters.loosen': '仅放宽筛选条件',
   'filters.widenHint':
