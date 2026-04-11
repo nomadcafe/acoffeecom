@@ -99,6 +99,13 @@ export const en: MessageDict = {
   'map.infoRating': '{{rating}} stars ({{reviews}} reviews)',
   'map.openMaps': 'Open in Google Maps',
   'map.youHere': 'Your approximate location (browser)',
+  'map.locateMe': 'My location',
+  'map.locateMeAria': 'Center map on your approximate location',
+  'map.locateDenied': 'Location unavailable. Allow access in the browser or try again.',
+  'map.locateLoading': 'Getting location…',
+  'map.searchingOnMap': 'Searching cafés…',
+  'map.savedNotInResults': 'Saved — not in current results',
+  'map.savedInfoHint': 'Saved café (open the list star to remove)',
 
   'star.add': 'Add to favorites',
   'star.remove': 'Remove from favorites',
@@ -142,6 +149,8 @@ export const en: MessageDict = {
   'errors.bothAddresses': 'Please enter both addresses',
   'errors.mapNotLoaded': 'Map not loaded yet',
   'errors.generic': 'An error occurred',
+  'errors.retry': 'Try again',
+  'errors.dismiss': 'Dismiss',
 };
 
 export const ja: MessageDict = {
@@ -235,6 +244,13 @@ export const ja: MessageDict = {
   'map.infoRating': '評価 {{rating}}（口コミ {{reviews}} 件）',
   'map.openMaps': 'Google マップで開く',
   'map.youHere': 'おおよその現在地（ブラウザの位置情報）',
+  'map.locateMe': '現在地',
+  'map.locateMeAria': '地図の中心を現在地付近に移動',
+  'map.locateDenied': '位置情報を取得できませんでした。ブラウザの許可を確認するか、もう一度お試しください。',
+  'map.locateLoading': '位置を取得中…',
+  'map.searchingOnMap': 'カフェを検索中…',
+  'map.savedNotInResults': '保存済み（今の結果には含まれません）',
+  'map.savedInfoHint': '保存したカフェ（一覧の星で解除）',
 
   'star.add': 'お気に入りに追加',
   'star.remove': 'お気に入りから外す',
@@ -273,6 +289,8 @@ export const ja: MessageDict = {
   'errors.bothAddresses': '両方の住所を入力してください',
   'errors.mapNotLoaded': '地図の読み込みがまだ終わっていません',
   'errors.generic': 'エラーが発生しました',
+  'errors.retry': '再試行',
+  'errors.dismiss': '閉じる',
 };
 
 export const zh: MessageDict = {
@@ -362,6 +380,13 @@ export const zh: MessageDict = {
   'map.infoRating': '{{rating}} 星（{{reviews}} 条评价）',
   'map.openMaps': '在 Google 地图中打开',
   'map.youHere': '大致位置（由浏览器定位）',
+  'map.locateMe': '我的位置',
+  'map.locateMeAria': '将地图中心移到你的大致位置',
+  'map.locateDenied': '无法获取位置。请在浏览器中允许定位权限后重试。',
+  'map.locateLoading': '正在获取位置…',
+  'map.searchingOnMap': '正在搜索咖啡馆…',
+  'map.savedNotInResults': '已收藏（不在当前结果中）',
+  'map.savedInfoHint': '已收藏的店（可在列表中取消星标）',
 
   'star.add': '加入收藏',
   'star.remove': '取消收藏',
@@ -400,6 +425,8 @@ export const zh: MessageDict = {
   'errors.bothAddresses': '请同时输入两个地址',
   'errors.mapNotLoaded': '地图尚未加载完成',
   'errors.generic': '发生错误',
+  'errors.retry': '重试',
+  'errors.dismiss': '关闭',
 };
 
 export const messagesByLocale: Record<Locale, MessageDict> = {

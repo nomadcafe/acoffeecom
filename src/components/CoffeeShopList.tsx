@@ -17,6 +17,8 @@ export function CoffeeShopList() {
     addressA,
     addressB,
     searchSortMode,
+    findMeetupSpot,
+    clearError,
   } = useApp();
   const [shareFeedback, setShareFeedback] = useState<'idle' | 'copied' | 'shared'>('idle');
   const feedbackTimerRef = useRef<number | null>(null);
@@ -39,7 +41,17 @@ export function CoffeeShopList() {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>{error}</div>
+        <div className={styles.error} role="alert">
+          <p className={styles.errorMessage}>{error}</p>
+          <div className={styles.errorActions}>
+            <button type="button" className={styles.errorRetry} onClick={() => void findMeetupSpot()}>
+              {t('errors.retry')}
+            </button>
+            <button type="button" className={styles.errorDismiss} onClick={clearError}>
+              {t('errors.dismiss')}
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

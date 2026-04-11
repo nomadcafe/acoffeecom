@@ -100,6 +100,40 @@
   text-align: center;
 }
 
+.errorMessage {
+  margin: 0 0 0.65rem 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.errorActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.errorRetry,
+.errorDismiss {
+  border-radius: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+}
+
+.errorRetry {
+  border: 1px solid #6f4e37;
+  background: #6f4e37;
+  color: #fff;
+}
+
+.errorDismiss {
+  border: 1px solid #e0a0a0;
+  background: #fff;
+  color: #c62828;
+}
+
 .placeholder,
 .empty {
   text-align: center;

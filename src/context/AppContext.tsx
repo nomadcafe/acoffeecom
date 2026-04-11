@@ -32,6 +32,7 @@ interface AppContextType extends AppState {
   removeAddressTemplate: (address: string) => void;
   searchWithAddresses: (nextAddressA: string, nextAddressB: string) => Promise<void>;
   widenSearchParams: () => void;
+  clearError: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -238,6 +239,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -264,6 +269,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSearchKeyword,
         setSearchSortMode,
         widenSearchParams,
+        clearError,
         findMeetupSpot,
         searchWithAddresses,
         toggleStar,

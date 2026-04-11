@@ -3,6 +3,7 @@ import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-map
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
+import { snapshotToCoffeeShop } from '../hooks/useStarredShops';
 import styles from './Map.module.css';
 
 const libraries: ('places')[] = ['places'];
@@ -24,6 +25,10 @@ const mapOptions: google.maps.MapOptions = {
   mapTypeControl: false,
 };
 
+function hasCoordinates(lat: number, lng: number): boolean {
+  return Math.abs(lat) > 1e-5 || Math.abs(lng) > 1e-5;
+}
+
 export function Map() {
   const { t } = useI18n();
   const { isLoaded, loadError } = useJsApiLoader({
@@ -36,20 +41,41 @@ export function Map() {
     locationB,
     midpoint,
     coffeeShops,
+    starredShops,
     setMapRef,
     isStarred,
     selectedCoffeeShopId,
     setSelectedCoffeeShopId,
+    isLoading,
   } = useApp();
 
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  /** Rough browser geolocation when user has not searched yet (optional; requires permission). */
   const [browserLocation, setBrowserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locateDenied, setLocateDenied] = useState(false);
+  const [selectedSavedOnlyId, setSelectedSavedOnlyId] = useState<string | null>(null);
+
+  const hasMeetupContext = !!(midpoint || locationA || locationB);
+
+  const coffeeIds = useMemo(() => new Set(coffeeShops.map((s) => s.id)), [coffeeShops]);
+
+  const savedNotInResults = useMemo(
+    () =>
+      starredShops.filter(
+        (s) => !coffeeIds.has(s.id) && hasCoordinates(s.lat, s.lng)
+      ),
+    [starredShops, coffeeIds]
+  );
 
   const selectedShop = useMemo(() => {
     if (!selectedCoffeeShopId) return null;
     return coffeeShops.find((s) => s.id === selectedCoffeeShopId) ?? null;
   }, [selectedCoffeeShopId, coffeeShops]);
+
+  const selectedSavedOnly = useMemo(() => {
+    if (!selectedSavedOnlyId) return null;
+    return savedNotInResults.find((s) => s.id === selectedSavedOnlyId) ?? null;
+  }, [selectedSavedOnlyId, savedNotInResults]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -59,30 +85,35 @@ export function Map() {
     if (z != null && z < 15) map.setZoom(15);
   }, [selectedShop]);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (midpoint || locationA || locationB) return;
-    if (!navigator.geolocation) return;
-
-    let cancelled = false;
+  const handleLocateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocateDenied(true);
+      return;
+    }
+    setLocating(true);
+    setLocateDenied(false);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        if (cancelled) return;
-        setBrowserLocation({
+        setLocating(false);
+        const loc = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
-        });
+        };
+        setBrowserLocation(loc);
+        const map = mapInstanceRef.current;
+        if (map) {
+          map.panTo(loc);
+          const z = map.getZoom();
+          if (z != null && z < 11) map.setZoom(11);
+        }
       },
       () => {
-        /* denied, timeout, or unavailable — keep default map center */
+        setLocating(false);
+        setLocateDenied(true);
       },
-      { enableHighAccuracy: false, maximumAge: 300_000, timeout: 12_000 }
+      { enableHighAccuracy: false, maximumAge: 120_000, timeout: 15_000 }
     );
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoaded, midpoint, locationA, locationB]);
+  }, []);
 
   const onLoad = useCallback(
     (map: google.maps.Map) => {
@@ -96,6 +127,11 @@ export function Map() {
     mapInstanceRef.current = null;
     setMapRef(null);
   }, [setMapRef]);
+
+  const onMapClick = useCallback(() => {
+    setSelectedSavedOnlyId(null);
+    setSelectedCoffeeShopId(null);
+  }, [setSelectedCoffeeShopId]);
 
   if (loadError) {
     return (
@@ -116,6 +152,9 @@ export function Map() {
   const center = midpoint || locationA || locationB || browserLocation || defaultCenter;
   const zoom = midpoint ? 15 : locationA || locationB ? 12 : browserLocation ? 11 : 12;
 
+  const showBrowserDot = browserLocation && !hasMeetupContext;
+  const showLocateUi = !hasMeetupContext;
+
   return (
     <div className={styles.container}>
       <GoogleMap
@@ -125,9 +164,9 @@ export function Map() {
         options={mapOptions}
         onLoad={onLoad}
         onUnmount={onUnmount}
+        onClick={onMapClick}
       >
-        {/* Optional: approximate device location before any search */}
-        {browserLocation && (
+        {showBrowserDot ? (
           <Marker
             position={browserLocation}
             icon={{
@@ -141,9 +180,8 @@ export function Map() {
             title={t('map.youHere')}
             zIndex={1}
           />
-        )}
+        ) : null}
 
-        {/* Location A marker */}
         {locationA && (
           <Marker
             position={{ lat: locationA.lat, lng: locationA.lng }}
@@ -163,7 +201,6 @@ export function Map() {
           />
         )}
 
-        {/* Location B marker */}
         {locationB && (
           <Marker
             position={{ lat: locationB.lat, lng: locationB.lng }}
@@ -183,7 +220,6 @@ export function Map() {
           />
         )}
 
-        {/* Midpoint marker */}
         {midpoint && (
           <Marker
             position={midpoint}
@@ -199,7 +235,23 @@ export function Map() {
           />
         )}
 
-        {/* Coffee shop markers */}
+        {savedNotInResults.map((snap) => (
+          <Marker
+            key={`saved-${snap.id}`}
+            position={{ lat: snap.lat, lng: snap.lng }}
+            icon={{
+              url: 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png',
+              scaledSize: new google.maps.Size(28, 28),
+            }}
+            title={t('map.savedNotInResults')}
+            zIndex={selectedSavedOnlyId === snap.id ? google.maps.Marker.MAX_ZINDEX : 2}
+            onClick={() => {
+              setSelectedCoffeeShopId(null);
+              setSelectedSavedOnlyId(snap.id);
+            }}
+          />
+        ))}
+
         {coffeeShops.map((shop) => {
           const starred = isStarred(shop.id);
           return (
@@ -213,12 +265,14 @@ export function Map() {
                 scaledSize: new google.maps.Size(32, 32),
               }}
               zIndex={selectedCoffeeShopId === shop.id ? google.maps.Marker.MAX_ZINDEX + 1 : undefined}
-              onClick={() => setSelectedCoffeeShopId(shop.id)}
+              onClick={() => {
+                setSelectedSavedOnlyId(null);
+                setSelectedCoffeeShopId(shop.id);
+              }}
             />
           );
         })}
 
-        {/* Info window for selected shop */}
         {selectedShop && (
           <InfoWindow
             position={{ lat: selectedShop.lat, lng: selectedShop.lng }}
@@ -246,7 +300,53 @@ export function Map() {
             </div>
           </InfoWindow>
         )}
+
+        {selectedSavedOnly && !selectedShop ? (
+          <InfoWindow
+            position={{ lat: selectedSavedOnly.lat, lng: selectedSavedOnly.lng }}
+            onCloseClick={() => setSelectedSavedOnlyId(null)}
+          >
+            <div className={styles.infoWindow}>
+              <h4>{selectedSavedOnly.name}</h4>
+              {selectedSavedOnly.address ? <p>{selectedSavedOnly.address}</p> : null}
+              <p className={styles.savedHint}>{t('map.savedInfoHint')}</p>
+              <p className={styles.infoWindowMaps}>
+                <a
+                  href={getOpenInGoogleMapsUrl(snapshotToCoffeeShop(selectedSavedOnly))}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('map.openMaps')}
+                </a>
+              </p>
+            </div>
+          </InfoWindow>
+        ) : null}
       </GoogleMap>
+
+      {showLocateUi ? (
+        <div className={styles.mapControls}>
+          <button
+            type="button"
+            className={styles.locateButton}
+            onClick={handleLocateMe}
+            disabled={locating}
+            aria-label={t('map.locateMeAria')}
+          >
+            {locating ? t('map.locateLoading') : t('map.locateMe')}
+          </button>
+          {locateDenied ? <p className={styles.locateHint}>{t('map.locateDenied')}</p> : null}
+        </div>
+      ) : null}
+
+      {isLoading ? (
+        <div className={styles.mapOverlay} aria-busy="true" aria-live="polite">
+          <div className={styles.overlayInner}>
+            <div className={styles.overlaySpinner} />
+            <p>{t('map.searchingOnMap')}</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

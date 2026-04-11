@@ -18,6 +18,8 @@ export function LocationInput() {
     addAddressTemplate,
     removeAddressTemplate,
     isLoading,
+    error,
+    clearError,
   } = useApp();
   const inputARef = useRef<HTMLInputElement | null>(null);
   const inputBRef = useRef<HTMLInputElement | null>(null);
@@ -185,6 +187,26 @@ export function LocationInput() {
                 <span className={styles.recentLine}>B: {r.addressB}</span>
               </button>
             ))}
+          </div>
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className={styles.errorBanner} role="alert">
+          <p className={styles.errorText}>{error}</p>
+          <div className={styles.errorActions}>
+            <button
+              type="button"
+              className={styles.errorRetry}
+              onClick={() => {
+                void findMeetupSpot();
+              }}
+            >
+              {t('errors.retry')}
+            </button>
+            <button type="button" className={styles.errorDismiss} onClick={clearError}>
+              {t('errors.dismiss')}
+            </button>
           </div>
         </div>
       ) : null}

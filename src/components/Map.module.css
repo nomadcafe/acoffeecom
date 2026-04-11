@@ -1,9 +1,99 @@
 .container {
+  position: relative;
   width: 100%;
   height: 100%;
   border-radius: 12px;
   overflow: hidden;
   background: #e8e8e8;
+}
+
+.mapControls {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  max-width: calc(100% - 20px);
+}
+
+.locateButton {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1a73e8;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.locateButton:hover:not(:disabled) {
+  background: #f3f7ff;
+}
+
+.locateButton:disabled {
+  opacity: 0.75;
+  cursor: wait;
+}
+
+.locateHint {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  max-width: 14rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: #5c4030;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.mapOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.overlayInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  color: #555;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.overlaySpinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #eee;
+  border-top-color: #6f4e37;
+  border-radius: 50%;
+  animation: mapSpin 0.9s linear infinite;
+}
+
+@keyframes mapSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.savedHint {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.72rem;
+  color: #888;
+  line-height: 1.35;
 }
 
 .loading,
