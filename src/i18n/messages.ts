@@ -57,7 +57,7 @@ export const en: MessageDict = {
   'list.emptyHint': 'Try locations that are closer together.',
   'list.foundOne': '{{count}} coffee shop found',
   'list.foundMany': '{{count}} coffee shops found',
-  'list.resultNote': 'Places API (New) returns up to 20 cafes per search.',
+  'list.resultNote': 'ACoffee returns up to 20 cafes per search.',
   'list.fairnessExplain':
     'Fairness mode prioritizes places where A and B travel distances are closer to each other.',
 
@@ -203,7 +203,7 @@ export const ja: MessageDict = {
   'list.emptyHint': 'お互い近い場所を指定してみてください。',
   'list.foundOne': '{{count}}件のカフェが見つかりました',
   'list.foundMany': '{{count}}件のカフェが見つかりました',
-  'list.resultNote': 'Places API（新）では1回の検索で最大20件まで返ります。',
+  'list.resultNote': 'ACoffee は1回の検索で最大20件のカフェを表示します。',
   'list.fairnessExplain': '公平モードは、A と B の移動距離差が小さい店を優先します。',
 
   'card.favorite': 'お気に入り！',
@@ -340,7 +340,7 @@ export const zh: MessageDict = {
   'list.emptyHint': '可以尝试把两个地点设得更接近一些。',
   'list.foundOne': '找到 {{count}} 家咖啡店',
   'list.foundMany': '找到 {{count}} 家咖啡店',
-  'list.resultNote': 'Places API（新版）每次搜索最多返回 20 家咖啡店。',
+  'list.resultNote': 'ACoffee 每次搜索最多展示 20 家咖啡馆。',
   'list.fairnessExplain': '公平模式会优先展示 A 与 B 距离差更小的店。',
 
   'card.favorite': '已收藏！',
