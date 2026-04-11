@@ -6,7 +6,7 @@ import { CoffeeShopCard } from './CoffeeShopCard';
 import styles from './CoffeeShopList.module.css';
 
 export function CoffeeShopList() {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const {
     coffeeShops,
     isLoading,
@@ -17,6 +17,7 @@ export function CoffeeShopList() {
     addressA,
     addressB,
     searchSortMode,
+    searchPlaceCategory,
     findMeetupSpot,
     clearError,
   } = useApp();
@@ -61,7 +62,11 @@ export function CoffeeShopList() {
       <div className={styles.container}>
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
-          <p>{t('list.loading')}</p>
+          <p>
+            {t(
+              searchPlaceCategory === 'cafe' ? 'list.loadingCoffee' : 'list.loadingMeetup'
+            )}
+          </p>
         </div>
       </div>
     );
@@ -71,7 +76,11 @@ export function CoffeeShopList() {
     return (
       <div className={styles.container}>
         <div className={styles.placeholder}>
-          <p>{t('list.placeholder')}</p>
+          <p>
+            {t(
+              searchPlaceCategory === 'cafe' ? 'list.placeholderCoffee' : 'list.placeholderMeetup'
+            )}
+          </p>
         </div>
       </div>
     );
@@ -81,7 +90,9 @@ export function CoffeeShopList() {
     return (
       <div className={styles.container}>
         <div className={styles.empty}>
-          <p>{t('list.empty')}</p>
+          <p>
+            {t(searchPlaceCategory === 'cafe' ? 'list.emptyCoffee' : 'list.emptyMeetup')}
+          </p>
           <p className={styles.hint}>{t('list.emptyHint')}</p>
         </div>
       </div>
@@ -89,12 +100,11 @@ export function CoffeeShopList() {
   }
 
   const n = coffeeShops.length;
+  const isCafe = searchPlaceCategory === 'cafe';
   const listTitle =
-    locale === 'ja'
-      ? t('list.foundMany', { count: n })
-      : n === 1
-        ? t('list.foundOne', { count: n })
-        : t('list.foundMany', { count: n });
+    n === 1
+      ? t(isCafe ? 'list.foundOneCoffee' : 'list.foundOneMeetup', { count: n })
+      : t(isCafe ? 'list.foundManyCoffee' : 'list.foundManyMeetup', { count: n });
 
   const buildShareText = () => {
     const top = coffeeShops.slice(0, 3);
@@ -157,7 +167,9 @@ export function CoffeeShopList() {
           </div>
         ))}
       </div>
-      <p className={styles.resultNote}>{t('list.resultNote')}</p>
+      <p className={styles.resultNote}>
+        {t(isCafe ? 'list.resultNoteCoffee' : 'list.resultNoteMeetup')}
+      </p>
     </div>
   );
 }

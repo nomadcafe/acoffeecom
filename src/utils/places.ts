@@ -1,4 +1,4 @@
-import type { CoffeeShop } from '../types';
+import type { CoffeeShop, PlaceSearchCategory } from '../types';
 import { calculateDistance } from './midpoint';
 
 export const SEARCH_RADIUS_MIN_M = 400;
@@ -9,36 +9,17 @@ export const SEARCH_RATING_MAX = 5;
 /** Extra meters when filtering by radius so slight API / floating-point differences do not drop valid rows. */
 const RADIUS_FILTER_BUFFER_M = 100;
 
-/**
- * Maps the keyword to Places (New) `includedPrimaryTypes` only.
- * The Maps JavaScript `Place.searchNearby` request does not support `textQuery`
- * (it triggers "unknown property textQuery" at runtime), so we never send it.
- */
-export function resolveNearbySearchParams(keyword: string): {
-  includedPrimaryTypes: string[];
-  /** True when search is still café-only (allows optional name refine below). */
-  isDefaultCafeSearch: boolean;
-} {
-  const raw = keyword.trim();
-  const k = raw.toLowerCase();
-  if (!raw || k === 'coffee') {
-    return { includedPrimaryTypes: ['cafe', 'coffee_shop'], isDefaultCafeSearch: true };
+export function includedTypesForCategory(category: PlaceSearchCategory): string[] {
+  switch (category) {
+    case 'restaurant':
+      return ['restaurant'];
+    case 'lodging':
+      return ['lodging'];
+    case 'bar':
+      return ['bar'];
+    default:
+      return ['cafe', 'coffee_shop'];
   }
-
-  const words = k.split(/\s+/).filter(Boolean);
-  const hotelish = ['hotel', 'lodging', 'motel', 'hostel', 'inn', 'resort'];
-  if (words.some((w) => hotelish.includes(w))) {
-    return { includedPrimaryTypes: ['lodging'], isDefaultCafeSearch: false };
-  }
-  const foodish = ['restaurant', 'dining', 'eatery', 'bistro'];
-  if (words.some((w) => foodish.includes(w))) {
-    return { includedPrimaryTypes: ['restaurant'], isDefaultCafeSearch: false };
-  }
-  if (words.includes('bar') || words.includes('pub')) {
-    return { includedPrimaryTypes: ['bar'], isDefaultCafeSearch: false };
-  }
-
-  return { includedPrimaryTypes: ['cafe', 'coffee_shop'], isDefaultCafeSearch: true };
 }
 
 /** Narrow café results by display name when the API cannot take a free-text query. */
@@ -110,12 +91,13 @@ export async function searchCoffeeShopsPaginated(
   locationB: { lat: number; lng: number },
   minRating: number = 4.0,
   radiusMeters: number = 1200,
+  placeCategory: PlaceSearchCategory = 'cafe',
   keyword: string = 'coffee'
 ): Promise<{ shops: CoffeeShop[] }> {
   const radius = Math.min(50_000, Math.max(200, Math.round(radiusMeters)));
   const kw = keyword.trim() || 'coffee';
   const ratingFloor = Math.min(SEARCH_RATING_MAX, Math.max(1, minRating));
-  const { includedPrimaryTypes, isDefaultCafeSearch } = resolveNearbySearchParams(kw);
+  const includedPrimaryTypes = includedTypesForCategory(placeCategory);
 
   const lib = (await google.maps.importLibrary('places')) as google.maps.PlacesLibrary;
   const { Place, SearchNearbyRankPreference } = lib;
@@ -143,7 +125,7 @@ export async function searchCoffeeShopsPaginated(
       radius
     );
 
-    if (isDefaultCafeSearch && kw.trim() && kw.trim().toLowerCase() !== 'coffee') {
+    if (placeCategory === 'cafe' && kw.trim() && kw.trim().toLowerCase() !== 'coffee') {
       shops = shops.filter((s) => nameMatchesKeyword(s.name, kw));
     }
 
@@ -167,6 +149,7 @@ export function searchCoffeeShops(
   locationB: { lat: number; lng: number },
   minRating?: number,
   radiusMeters?: number,
+  placeCategory?: PlaceSearchCategory,
   keyword?: string
 ): Promise<{ shops: CoffeeShop[] }> {
   return searchCoffeeShopsPaginated(
@@ -176,6 +159,7 @@ export function searchCoffeeShops(
     locationB,
     minRating,
     radiusMeters,
+    placeCategory ?? 'cafe',
     keyword
   );
 }

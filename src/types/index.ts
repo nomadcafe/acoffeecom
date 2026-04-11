@@ -35,6 +35,16 @@ export interface StarredShopSnapshot {
 
 export type SearchSortMode = 'rating' | 'fairness';
 
+/** Nearby search primary-type group (Maps Places API). Default is cafés for coffee meetups. */
+export type PlaceSearchCategory = 'cafe' | 'restaurant' | 'lodging' | 'bar';
+
+export const PLACE_SEARCH_CATEGORIES: PlaceSearchCategory[] = [
+  'cafe',
+  'restaurant',
+  'lodging',
+  'bar',
+];
+
 export interface RecentSearchItem {
   id: string;
   addressA: string;
@@ -56,8 +66,10 @@ export interface AppState {
   searchMinRating: number;
   /** Places search radius in meters, centered on the A–B midpoint (not on each address). */
   searchRadiusMeters: number;
-  /** Places `keyword`; empty string falls back to `coffee` in the API layer. */
+  /** Optional name filter when place category is cafés. */
   searchKeyword: string;
+  /** What to search around the midpoint (default cafés). */
+  searchPlaceCategory: PlaceSearchCategory;
   /** Sort strategy for result cards. */
   searchSortMode: SearchSortMode;
   recentSearches: RecentSearchItem[];

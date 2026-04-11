@@ -47,6 +47,7 @@ export function Map() {
     selectedCoffeeShopId,
     setSelectedCoffeeShopId,
     isLoading,
+    searchPlaceCategory,
   } = useApp();
 
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -343,7 +344,13 @@ export function Map() {
         <div className={styles.mapOverlay} aria-busy="true" aria-live="polite">
           <div className={styles.overlayInner}>
             <div className={styles.overlaySpinner} />
-            <p>{t('map.searchingOnMap')}</p>
+            <p>
+              {t(
+                searchPlaceCategory === 'cafe'
+                  ? 'map.searchingOnMapCoffee'
+                  : 'map.searchingOnMapMeetup'
+              )}
+            </p>
           </div>
         </div>
       ) : null}

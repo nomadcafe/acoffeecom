@@ -1,7 +1,8 @@
 import { useId, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import type { SearchSortMode } from '../types';
+import type { PlaceSearchCategory, SearchSortMode } from '../types';
+import { PLACE_SEARCH_CATEGORIES } from '../types';
 import {
   SEARCH_RADIUS_MAX_M,
   SEARCH_RADIUS_MIN_M,
@@ -9,6 +10,13 @@ import {
   SEARCH_RATING_MIN,
 } from '../utils/places';
 import styles from './SearchFilters.module.css';
+
+const CATEGORY_LABEL_KEY: Record<PlaceSearchCategory, string> = {
+  cafe: 'filters.placeCafe',
+  restaurant: 'filters.placeRestaurant',
+  lodging: 'filters.placeLodging',
+  bar: 'filters.placeBar',
+};
 
 function formatRadius(m: number): string {
   if (m < 1000) return `${m} m`;
@@ -30,6 +38,8 @@ export function SearchFilters() {
     setSearchRadiusMeters,
     searchKeyword,
     setSearchKeyword,
+    searchPlaceCategory,
+    setSearchPlaceCategory,
     searchSortMode,
     setSearchSortMode,
     widenSearchParams,
@@ -38,6 +48,8 @@ export function SearchFilters() {
 
   const widenDisabled =
     isLoading || (searchRadiusMeters >= SEARCH_RADIUS_MAX_M && searchMinRating <= SEARCH_RATING_MIN);
+
+  const isCafeMode = searchPlaceCategory === 'cafe';
 
   return (
     <section className={styles.container} aria-labelledby={filtersHeadingId}>
@@ -65,6 +77,26 @@ export function SearchFilters() {
         className={styles.filtersPanel}
       >
         <p className={styles.lead} dangerouslySetInnerHTML={{ __html: t('filters.lead') }} />
+
+        <div className={styles.field}>
+          <label htmlFor="searchPlaceCategory" className={styles.keywordLabel}>
+            {t('filters.placeType')}
+          </label>
+          <select
+            id="searchPlaceCategory"
+            className={styles.keywordInput}
+            value={searchPlaceCategory}
+            onChange={(e) => setSearchPlaceCategory(e.target.value as PlaceSearchCategory)}
+            disabled={isLoading}
+          >
+            {PLACE_SEARCH_CATEGORIES.map((value) => (
+              <option key={value} value={value}>
+                {t(CATEGORY_LABEL_KEY[value])}
+              </option>
+            ))}
+          </select>
+          <p className={styles.hint}>{t('filters.placeTypeHint')}</p>
+        </div>
 
         <div className={styles.field}>
           <div className={styles.fieldHeader}>
@@ -130,21 +162,23 @@ export function SearchFilters() {
           <p className={styles.hint}>{t('filters.sortHint')}</p>
         </div>
 
-        <div className={styles.field}>
-          <label htmlFor="searchKeyword" className={styles.keywordLabel}>
-            {t('filters.keyword')}
-          </label>
-          <input
-            id="searchKeyword"
-            type="text"
-            className={styles.keywordInput}
-            placeholder={t('filters.keywordPlaceholder')}
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            disabled={isLoading}
-          />
-          <p className={styles.hint}>{t('filters.keywordHint')}</p>
-        </div>
+        {isCafeMode ? (
+          <div className={styles.field}>
+            <label htmlFor="searchKeyword" className={styles.keywordLabel}>
+              {t('filters.keywordCafe')}
+            </label>
+            <input
+              id="searchKeyword"
+              type="text"
+              className={styles.keywordInput}
+              placeholder={t('filters.keywordPlaceholderCafe')}
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              disabled={isLoading}
+            />
+            <p className={styles.hint}>{t('filters.keywordHintCafe')}</p>
+          </div>
+        ) : null}
 
         <div className={styles.widenBlock}>
           <p className={styles.widenIntro}>{t('filters.widenIntro')}</p>

@@ -6,6 +6,7 @@ import type {
   AppState,
   SearchSortMode,
   RecentSearchItem,
+  PlaceSearchCategory,
 } from '../types';
 import { useI18n } from './I18nContext';
 import { useStarredShops } from '../hooks/useStarredShops';
@@ -26,6 +27,7 @@ interface AppContextType extends AppState {
   setSearchMinRating: (value: number) => void;
   setSearchRadiusMeters: (value: number) => void;
   setSearchKeyword: (value: string) => void;
+  setSearchPlaceCategory: (value: PlaceSearchCategory) => void;
   setSearchSortMode: (value: SearchSortMode) => void;
   updateStarredNote: (shopId: string, note: string) => void;
   addAddressTemplate: (address: string) => void;
@@ -38,6 +40,19 @@ interface AppContextType extends AppState {
 const AppContext = createContext<AppContextType | null>(null);
 const RECENT_SEARCHES_KEY = 'ACoffee-meetup-recent-searches';
 const ADDRESS_TEMPLATES_KEY = 'ACoffee-meetup-address-templates';
+const PLACE_CATEGORY_KEY = 'ACoffee-meetup-place-category';
+
+function loadPlaceCategory(): PlaceSearchCategory {
+  try {
+    const raw = localStorage.getItem(PLACE_CATEGORY_KEY);
+    if (raw === 'cafe' || raw === 'restaurant' || raw === 'lodging' || raw === 'bar') {
+      return raw;
+    }
+  } catch {
+    /* ignore */
+  }
+  return 'cafe';
+}
 
 function loadRecentSearches(): RecentSearchItem[] {
   try {
@@ -109,6 +124,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchMinRating, setSearchMinRating] = useState(4);
   const [searchRadiusMeters, setSearchRadiusMeters] = useState(1200);
   const [searchKeyword, setSearchKeyword] = useState('coffee');
+  const [searchPlaceCategory, setSearchPlaceCategoryState] =
+    useState<PlaceSearchCategory>(loadPlaceCategory);
   const [searchSortMode, setSearchSortMode] = useState<SearchSortMode>('rating');
   const [recentSearches, setRecentSearches] = useState<RecentSearchItem[]>(loadRecentSearches);
   const [addressTemplates, setAddressTemplates] = useState<string[]>(loadAddressTemplates);
@@ -117,6 +134,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
   const { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred } = useStarredShops();
+
+  const setSearchPlaceCategory = useCallback((value: PlaceSearchCategory) => {
+    setSearchPlaceCategoryState(value);
+    try {
+      localStorage.setItem(PLACE_CATEGORY_KEY, value);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const setMapRef = useCallback((map: google.maps.Map | null) => {
     mapRef.current = map;
@@ -170,6 +196,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           coordsB,
           searchMinRating,
           searchRadiusMeters,
+          searchPlaceCategory,
           searchKeyword
         );
         setCoffeeShops(sortShops(shops, starredShopIds, searchSortMode));
@@ -195,7 +222,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [searchMinRating, searchRadiusMeters, searchKeyword, starredShopIds, searchSortMode, t]
+    [
+      searchMinRating,
+      searchRadiusMeters,
+      searchPlaceCategory,
+      searchKeyword,
+      starredShopIds,
+      searchSortMode,
+      t,
+    ]
   );
 
   const findMeetupSpot = useCallback(async () => {
@@ -257,6 +292,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         searchMinRating,
         searchRadiusMeters,
         searchKeyword,
+        searchPlaceCategory,
         searchSortMode,
         recentSearches,
         addressTemplates,
@@ -267,6 +303,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSearchMinRating,
         setSearchRadiusMeters,
         setSearchKeyword,
+        setSearchPlaceCategory,
         setSearchSortMode,
         widenSearchParams,
         clearError,
