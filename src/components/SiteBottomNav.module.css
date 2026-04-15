@@ -4,82 +4,131 @@
   left: 0;
   right: 0;
   z-index: 400;
+  display: flex;
+  flex-direction: column;
   background: #fff;
-  border-top: 1px solid #e5ddd6;
-  box-shadow: 0 -4px 20px rgba(44, 24, 16, 0.08);
+  border-top: 1px solid #e0d5cc;
+  box-shadow: 0 -6px 24px rgba(44, 24, 16, 0.1);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-.disclaimer {
-  margin: 0;
-  padding: 0.4rem 0.85rem 0;
-  text-align: center;
-  font-size: 0.62rem;
-  line-height: 1.35;
-  color: #8a7d73;
-  max-width: 36rem;
-  margin-left: auto;
-  margin-right: auto;
+.disclaimerBand {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem 0.6rem;
+  background: linear-gradient(180deg, rgba(111, 78, 55, 0.07) 0%, rgba(111, 78, 55, 0.03) 100%);
+  border-bottom: 1px solid rgba(111, 78, 55, 0.1);
 }
 
-.inner {
-  max-width: 1400px;
+.disclaimer {
+  margin: 0 auto;
+  max-width: 40rem;
+  text-align: center;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: #6f625a;
+}
+
+.tabNav {
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.tabInner {
+  max-width: 560px;
   margin: 0 auto;
   display: flex;
   align-items: stretch;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.75rem 0.5rem;
+  justify-content: stretch;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem 0.55rem;
+  min-height: 3.65rem;
 }
 
-.link {
+.tab {
   flex: 1;
-  max-width: 12rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
-  padding: 0.35rem 0.5rem;
-  border-radius: 10px;
+  gap: 0.2rem;
+  min-height: 3.25rem;
+  padding: 0.35rem 0.65rem 0.4rem;
+  border-radius: 14px;
   text-decoration: none;
-  color: #6b5c52;
-  font-size: 0.68rem;
+  color: #7a6a60;
   font-weight: 600;
-  line-height: 1.2;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
 }
 
-.link:hover {
-  background: rgba(111, 78, 55, 0.06);
+.tab:hover {
+  background: rgba(111, 78, 55, 0.07);
   color: #4a3d35;
 }
 
-.link:focus-visible {
+.tab:focus-visible {
   outline: 2px solid #6f4e37;
   outline-offset: 2px;
 }
 
-.linkActive {
-  color: #5c3d2e;
-  background: rgba(111, 78, 55, 0.1);
+.tab:active {
+  transform: scale(0.98);
 }
 
-.label {
+.tabActive {
+  color: #5c3d2e;
+  background: rgba(111, 78, 55, 0.12);
+}
+
+.tabGlyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.tabIcon {
+  display: block;
+  color: #8a7b70;
+  transition: color 0.15s ease;
+}
+
+.tabActive .tabIcon {
+  color: #6f4e37;
+}
+
+.tabLabel {
+  font-size: 0.72rem;
+  line-height: 1.2;
   text-align: center;
+  letter-spacing: 0.01em;
 }
 
 @media (min-width: 768px) {
-  .inner {
-    justify-content: center;
-    gap: 1rem;
-    padding: 0.5rem 1.25rem 0.55rem;
+  .disclaimerBand {
+    padding: 0.7rem 1.25rem 0.65rem;
   }
 
-  .link {
-    flex: 0 1 auto;
-    min-width: 7rem;
+  .disclaimer {
+    font-size: 0.74rem;
+  }
+
+  .tabInner {
+    max-width: 420px;
+    padding: 0.55rem 1rem 0.65rem;
+    min-height: 3.85rem;
+    gap: 0.65rem;
+  }
+
+  .tab {
+    min-height: 3.4rem;
+    padding: 0.4rem 0.85rem 0.45rem;
+    border-radius: 16px;
+  }
+
+  .tabLabel {
     font-size: 0.8rem;
-    padding: 0.45rem 0.85rem;
   }
 }
