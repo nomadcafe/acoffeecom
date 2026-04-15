@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  --bottom-nav-safe: calc(3.4rem + env(safe-area-inset-bottom, 0px));
+  --bottom-nav-safe: calc(5.35rem + env(safe-area-inset-bottom, 0px));
 }
 
 .header {

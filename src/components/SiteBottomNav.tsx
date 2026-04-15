@@ -14,23 +14,28 @@ export function SiteBottomNav() {
   const updatesHref = buildLocalizedPathname(UPDATES_PATH, locale);
 
   return (
-    <nav className={styles.nav} aria-label={t('bottomNav.aria')}>
-      <div className={styles.inner}>
-        <a
-          className={`${styles.link} ${!onChangelog ? styles.linkActive : ''}`}
-          href={homeHref}
-          aria-current={!onChangelog ? 'page' : undefined}
-        >
-          <span className={styles.label}>{t('bottomNav.home')}</span>
-        </a>
-        <a
-          className={`${styles.link} ${onChangelog ? styles.linkActive : ''}`}
-          href={updatesHref}
-          aria-current={onChangelog ? 'page' : undefined}
-        >
-          <span className={styles.label}>{t('changelog.navLink')}</span>
-        </a>
-      </div>
-    </nav>
+    <footer className={styles.bar}>
+      <p className={styles.disclaimer} role="note">
+        {t('bottomNav.bmacDisclaimer')}
+      </p>
+      <nav aria-label={t('bottomNav.aria')}>
+        <div className={styles.inner}>
+          <a
+            className={`${styles.link} ${!onChangelog ? styles.linkActive : ''}`}
+            href={homeHref}
+            aria-current={!onChangelog ? 'page' : undefined}
+          >
+            <span className={styles.label}>{t('bottomNav.home')}</span>
+          </a>
+          <a
+            className={`${styles.link} ${onChangelog ? styles.linkActive : ''}`}
+            href={updatesHref}
+            aria-current={onChangelog ? 'page' : undefined}
+          >
+            <span className={styles.label}>{t('changelog.navLink')}</span>
+          </a>
+        </div>
+      </nav>
+    </footer>
   );
 }

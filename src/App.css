@@ -14,7 +14,7 @@ body {
   display: flex;
   flex-direction: column;
   /* Space for fixed SiteBottomNav + safe area (see SiteBottomNav.module.css) */
-  --bottom-nav-safe: calc(3.4rem + env(safe-area-inset-bottom, 0px));
+  --bottom-nav-safe: calc(5.35rem + env(safe-area-inset-bottom, 0px));
 }
 
 .header {

@@ -153,6 +153,8 @@ export const en: MessageDict = {
 
   'bottomNav.aria': 'Site',
   'bottomNav.home': 'Finder',
+  'bottomNav.bmacDisclaimer':
+    'ACoffee is not affiliated with Buy Me a Coffee or buymeacoffee.com.',
 
   'share.title': 'Coffee meetup suggestions',
   'share.button': 'Share',
@@ -308,6 +310,8 @@ export const ja: MessageDict = {
 
   'bottomNav.aria': 'サイト内メニュー',
   'bottomNav.home': '検索',
+  'bottomNav.bmacDisclaimer':
+    '当サイト（ACoffee）は Buy Me a Coffee および buymeacoffee.com とは無関係です。',
 
   'share.title': 'カフェ候補を共有',
   'share.button': '共有',
@@ -459,6 +463,8 @@ export const zh: MessageDict = {
 
   'bottomNav.aria': '站内导航',
   'bottomNav.home': '查找',
+  'bottomNav.bmacDisclaimer':
+    'ACoffee 与 Buy Me a Coffee（buymeacoffee.com）无任何关联。',
 
   'share.title': '咖啡会面推荐',
   'share.button': '分享',
