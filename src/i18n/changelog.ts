@@ -18,6 +18,17 @@ export type ChangelogEntry = {
 export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   en: [
     {
+      isoDate: '2026-04-17',
+      title: 'URL sharing, code quality, and bug fixes',
+      bullets: [
+        'Search state is now reflected in the URL (?a=…&b=…). Share or bookmark a link and recipients land on the same search automatically.',
+        'Sort mode and starred shops now update the results list instantly — no re-search needed after changing sort order or starring a café.',
+        'Removed a redundant Places API field request (photos) that was billed but never displayed, reducing API costs.',
+        'List cards are now fully keyboard-navigable (Enter / Space to select).',
+        'Translation strings with bold text are now rendered safely without dangerouslySetInnerHTML.',
+      ],
+    },
+    {
       isoDate: '2026-04-10',
       title: 'Chinese, sharing, fairness, SEO, and navigation',
       bullets: [
@@ -49,6 +60,17 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   ],
   ja: [
     {
+      isoDate: '2026-04-17',
+      title: 'URL 共有・コード品質改善・バグ修正',
+      bullets: [
+        '検索状態が URL に反映されるようになりました（?a=…&b=…）。リンクを共有またはブックマークすると、開いた側も同じ検索結果が自動で表示されます。',
+        '並び順の変更やカフェの星付け後、再検索なしで即座にリストが更新されるようになりました。',
+        '表示されていなかった Places API の写真フィールドのリクエストを削除し、不要な API コストを削減しました。',
+        'リスト上の各カードがキーボード（Enter・スペース）で操作できるようになりました。',
+        '翻訳文中の太字テキストを dangerouslySetInnerHTML を使わずに安全にレンダリングするよう改善しました。',
+      ],
+    },
+    {
       isoDate: '2026-04-10',
       title: '中国語・共有・公平性・SEO・ナビ',
       bullets: [
@@ -79,6 +101,17 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
     },
   ],
   zh: [
+    {
+      isoDate: '2026-04-17',
+      title: 'URL 分享、代码质量改善与问题修复',
+      bullets: [
+        '搜索状态现在会同步到 URL（?a=…&b=…），分享或收藏链接后，对方打开即可自动还原相同的搜索结果。',
+        '更改排序方式或收藏咖啡店后，列表会即时更新，无需重新搜索。',
+        '移除了从未展示但一直被计费的 Places API 照片字段请求，降低 API 成本。',
+        '列表中的每张卡片现在支持键盘操作（Enter / 空格键选中）。',
+        '翻译文本中的加粗内容改为安全渲染方式，不再使用 dangerouslySetInnerHTML。',
+      ],
+    },
     {
       isoDate: '2026-04-10',
       title: '简体中文、分享、公平性、SEO 与导航',

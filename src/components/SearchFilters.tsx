@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { RichText } from './RichText';
 import type { PlaceSearchCategory, SearchSortMode } from '../types';
 import { PLACE_SEARCH_CATEGORIES } from '../types';
 import {
@@ -76,7 +77,7 @@ export function SearchFilters() {
         hidden={!filtersExpanded}
         className={styles.filtersPanel}
       >
-        <p className={styles.lead} dangerouslySetInnerHTML={{ __html: t('filters.lead') }} />
+        <RichText as="p" className={styles.lead} text={t('filters.lead')} />
 
         <div className={styles.field}>
           <label htmlFor="searchPlaceCategory" className={styles.keywordLabel}>
@@ -142,7 +143,7 @@ export function SearchFilters() {
             <span>{formatRadius(SEARCH_RADIUS_MIN_M)}</span>
             <span>{formatRadius(SEARCH_RADIUS_MAX_M)}</span>
           </div>
-          <p className={styles.fieldHelp} dangerouslySetInnerHTML={{ __html: t('filters.radiusHelp') }} />
+          <RichText as="p" className={styles.fieldHelp} text={t('filters.radiusHelp')} />
         </div>
 
         <div className={styles.field}>
@@ -191,12 +192,11 @@ export function SearchFilters() {
           >
             {t('filters.loosen')}
           </button>
-          <p
+          <RichText
+            as="p"
             id={widenHintId}
             className={styles.widenHint}
-            dangerouslySetInnerHTML={{
-              __html: t('filters.widenHint', { min: SEARCH_RATING_MIN }),
-            }}
+            text={t('filters.widenHint', { min: SEARCH_RATING_MIN })}
           />
         </div>
       </div>

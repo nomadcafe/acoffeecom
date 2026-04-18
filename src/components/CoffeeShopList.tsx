@@ -160,8 +160,16 @@ export function CoffeeShopList() {
               if (el) itemRefs.current.set(shop.id, el);
               else itemRefs.current.delete(shop.id);
             }}
+            role="button"
+            tabIndex={0}
             className={`${styles.cardWrap} ${selectedCoffeeShopId === shop.id ? styles.cardWrapSelected : ''}`}
             onClick={() => setSelectedCoffeeShopId(shop.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSelectedCoffeeShopId(shop.id);
+              }
+            }}
           >
             <CoffeeShopCard shop={shop} />
           </div>

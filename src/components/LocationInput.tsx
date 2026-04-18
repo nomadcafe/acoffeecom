@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { RichText } from './RichText';
 import styles from './LocationInput.module.css';
 
 export function LocationInput() {
@@ -84,10 +85,7 @@ export function LocationInput() {
   return (
     <form className={styles.container} onSubmit={handleSubmit}>
       <h2 className={styles.title}>{t('location.title')}</h2>
-      <p
-        className={styles.subtitle}
-        dangerouslySetInnerHTML={{ __html: t('location.subtitle') }}
-      />
+      <RichText as="p" className={styles.subtitle} text={t('location.subtitle')} />
 
       <div className={styles.inputGroup}>
         <label htmlFor="locationA" className={styles.label}>

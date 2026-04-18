@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CoffeeShop, StarredShopSnapshot } from '../types';
 
 const STORAGE_KEY = 'ACoffee-meetup-starred-shops';
@@ -68,8 +68,13 @@ export function useStarredShops(): {
   isStarred: (shopId: string) => boolean;
 } {
   const [starredShops, setStarredShops] = useState<StarredShopSnapshot[]>(loadStarredShops);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(starredShops));
     } catch (e) {

@@ -46,8 +46,6 @@ function mapPlacesToCoffeeShops(
       const lat = p.location?.lat() ?? 0;
       const lng = p.location?.lng() ?? 0;
       const distanceFromMidpoint = calculateDistance(midpoint.lat, midpoint.lng, lat, lng);
-      const photoUrl = p.photos?.[0]?.getURI({ maxWidth: 200 });
-
       const gUri = p.googleMapsURI?.trim();
       return {
         id: p.id,
@@ -60,7 +58,6 @@ function mapPlacesToCoffeeShops(
         distanceFromA: calculateDistance(locationA.lat, locationA.lng, lat, lng),
         distanceFromB: calculateDistance(locationB.lat, locationB.lng, lat, lng),
         distanceFromMidpoint,
-        photoUrl: photoUrl ?? undefined,
         googleMapsUri: gUri ? gUri : undefined,
       };
     })
@@ -75,7 +72,6 @@ const NEARBY_FIELDS: string[] = [
   'formattedAddress',
   'rating',
   'userRatingCount',
-  'photos',
   'googleMapsURI',
 ];
 
@@ -84,7 +80,7 @@ const NEARBY_FIELDS: string[] = [
  * Does not use legacy {@link google.maps.places.PlacesService} (blocked for new GCP projects since Mar 2025).
  * Returns up to 20 places per search; pagination is not exposed on this JS surface.
  */
-export async function searchCoffeeShopsPaginated(
+export async function searchCoffeeShops(
   _map: google.maps.Map,
   midpoint: { lat: number; lng: number },
   locationA: { lat: number; lng: number },
@@ -138,28 +134,3 @@ export async function searchCoffeeShopsPaginated(
   }
 }
 
-/**
- * Same behavior as {@link searchCoffeeShopsPaginated}.
- * Stable import name for the app context.
- */
-export function searchCoffeeShops(
-  map: google.maps.Map,
-  midpoint: { lat: number; lng: number },
-  locationA: { lat: number; lng: number },
-  locationB: { lat: number; lng: number },
-  minRating?: number,
-  radiusMeters?: number,
-  placeCategory?: PlaceSearchCategory,
-  keyword?: string
-): Promise<{ shops: CoffeeShop[] }> {
-  return searchCoffeeShopsPaginated(
-    map,
-    midpoint,
-    locationA,
-    locationB,
-    minRating,
-    radiusMeters,
-    placeCategory ?? 'cafe',
-    keyword
-  );
-}

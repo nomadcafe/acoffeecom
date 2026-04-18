@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type {
   Location,
@@ -112,12 +112,16 @@ function sortShops(
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { t } = useI18n();
-  const [addressA, setAddressA] = useState('');
-  const [addressB, setAddressB] = useState('');
+  const [addressA, setAddressA] = useState(() => {
+    return new URLSearchParams(window.location.search).get('a') ?? '';
+  });
+  const [addressB, setAddressB] = useState(() => {
+    return new URLSearchParams(window.location.search).get('b') ?? '';
+  });
   const [locationA, setLocationA] = useState<Location | null>(null);
   const [locationB, setLocationB] = useState<Location | null>(null);
   const [midpoint, setMidpoint] = useState<{ lat: number; lng: number } | null>(null);
-  const [coffeeShops, setCoffeeShops] = useState<CoffeeShop[]>([]);
+  const [rawShops, setRawShops] = useState<CoffeeShop[]>([]);
   const [selectedCoffeeShopId, setSelectedCoffeeShopId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,8 +136,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  // Stores the a/b values from URL params so the auto-search fires once after the map loads.
+  const pendingUrlSearch = useRef<{ a: string; b: string } | null>((() => {
+    const params = new URLSearchParams(window.location.search);
+    const a = params.get('a')?.trim() ?? '';
+    const b = params.get('b')?.trim() ?? '';
+    return a && b ? { a, b } : null;
+  })());
 
   const { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred } = useStarredShops();
+
+  // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
+  const coffeeShops = useMemo(
+    () => sortShops(rawShops, starredShopIds, searchSortMode),
+    [rawShops, starredShopIds, searchSortMode]
+  );
 
   const setSearchPlaceCategory = useCallback((value: PlaceSearchCategory) => {
     setSearchPlaceCategoryState(value);
@@ -149,6 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (map && !geocoderRef.current) {
       geocoderRef.current = new google.maps.Geocoder();
     }
+    setIsMapReady(!!map);
   }, []);
 
   const searchWithAddresses = useCallback(
@@ -169,7 +188,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAddressB(b);
       setIsLoading(true);
       setError(null);
-      setCoffeeShops([]);
+      setRawShops([]);
       setSelectedCoffeeShopId(null);
 
       try {
@@ -199,7 +218,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
           searchPlaceCategory,
           searchKeyword
         );
-        setCoffeeShops(sortShops(shops, starredShopIds, searchSortMode));
+        setRawShops(shops);
+
+        // Reflect the search in the URL so it can be bookmarked or shared.
+        const params = new URLSearchParams();
+        params.set('a', a);
+        params.set('b', b);
+        const newQuery = `?${params.toString()}`;
+        if (newQuery !== window.location.search) {
+          window.history.replaceState(
+            {},
+            '',
+            `${window.location.pathname}${newQuery}${window.location.hash}`
+          );
+        }
 
         const recent: RecentSearchItem = {
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -222,15 +254,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [
-      searchMinRating,
-      searchRadiusMeters,
-      searchPlaceCategory,
-      searchKeyword,
-      starredShopIds,
-      searchSortMode,
-      t,
-    ]
+    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, t]
   );
 
   const findMeetupSpot = useCallback(async () => {
@@ -240,6 +264,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     await searchWithAddresses(addressA, addressB);
   }, [addressA, addressB, searchWithAddresses, t]);
+
+  // Auto-search from URL params once the map instance is ready.
+  useEffect(() => {
+    if (!isMapReady || !pendingUrlSearch.current) return;
+    const { a, b } = pendingUrlSearch.current;
+    pendingUrlSearch.current = null;
+    void searchWithAddresses(a, b);
+  }, [isMapReady, searchWithAddresses]);
 
   const addAddressTemplate = useCallback((address: string) => {
     const clean = address.trim();

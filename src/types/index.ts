@@ -17,7 +17,6 @@ export interface CoffeeShop {
   /** Straight-line distance from the A–B midpoint (same point used as the Places search center). */
   distanceFromMidpoint?: number;
   isOpen?: boolean;
-  photoUrl?: string;
   /** From Places (New) `googleMapsURI` when requested; preferred for “open in Maps”. */
   googleMapsUri?: string;
 }
