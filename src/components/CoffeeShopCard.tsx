@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { CoffeeShop } from '../types';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
@@ -24,7 +25,7 @@ function renderStars(rating: number): string {
   return stars;
 }
 
-export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
+export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
   const { t } = useI18n();
   const { isStarred, searchSortMode } = useApp();
   const starred = isStarred(shop.id);
@@ -99,4 +100,4 @@ export function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
       </div>
     </div>
   );
-}
+});

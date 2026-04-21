@@ -134,6 +134,7 @@ export const en: MessageDict = {
   'saved.focusHint':
     'If a saved café is in your current search results, tap its row to focus it on the map and list.',
   'saved.notePlaceholder': 'Add a private note (quiet, outlets, etc.)',
+  'saved.noteAriaLabel': 'Private note for {{name}}',
 
   'changelog.metaTitle': 'Update log | A Coffee Meetup Finder',
   'changelog.metaDescription':
@@ -292,6 +293,7 @@ export const ja: MessageDict = {
   'saved.focusMap': '地図で表示',
   'saved.focusHint': '保存した店が今の検索結果に含まれるとき、行をタップすると地図と一覧で強調表示されます。',
   'saved.notePlaceholder': 'メモを追加（静か、電源あり など）',
+  'saved.noteAriaLabel': '{{name}} のメモ',
 
   'changelog.metaTitle': '更新ログ | カフェ面談ファインダー',
   'changelog.metaDescription':
@@ -446,6 +448,7 @@ export const zh: MessageDict = {
   'saved.focusMap': '在地图中定位',
   'saved.focusHint': '若已保存店铺在当前搜索结果中，点击该行可在地图和列表中高亮。',
   'saved.notePlaceholder': '添加私人备注（安静、有插座等）',
+  'saved.noteAriaLabel': '{{name}} 的备注',
 
   'changelog.metaTitle': '更新日志 | 咖啡会面查找',
   'changelog.metaDescription': '本站功能与界面更新说明（收藏、多语言等）。',

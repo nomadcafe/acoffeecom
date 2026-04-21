@@ -1,17 +1,21 @@
+import { lazy, Suspense } from 'react';
 import { AppProvider } from './context/AppContext';
 import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
 import { SearchFilters } from './components/SearchFilters';
-import { Map } from './components/Map';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
-import { UpdateLogPage } from './components/UpdateLogPage';
 import { SiteBottomNav } from './components/SiteBottomNav';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
 import './App.css';
+
+const Map = lazy(() => import('./components/Map').then((m) => ({ default: m.Map })));
+const UpdateLogPage = lazy(() =>
+  import('./components/UpdateLogPage').then((m) => ({ default: m.UpdateLogPage })),
+);
 
 function AppShell() {
   const { t, locale } = useI18n();
@@ -45,7 +49,9 @@ function AppShell() {
         </aside>
 
         <section className="map-section">
-          <Map />
+          <Suspense fallback={<div className="mapFallback" aria-hidden="true" />}>
+            <Map />
+          </Suspense>
         </section>
       </main>
       <SiteBottomNav />
@@ -60,7 +66,9 @@ function AppRoute() {
   if (isUpdatesPath(logicalPath)) {
     return (
       <>
-        <UpdateLogPage />
+        <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+          <UpdateLogPage />
+        </Suspense>
         <SiteBottomNav />
       </>
     );

@@ -79,6 +79,7 @@ export function SavedPlacesPanel() {
                   className={styles.noteInput}
                   type="text"
                   placeholder={t('saved.notePlaceholder')}
+                  aria-label={t('saved.noteAriaLabel', { name: snap.name })}
                   value={snap.note ?? ''}
                   onChange={(e) => updateStarredNote(snap.id, e.target.value)}
                 />

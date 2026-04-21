@@ -9,6 +9,8 @@ export function SavedPlacesMenu() {
   const { starredShops } = useApp();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const count = starredShops.length;
 
@@ -26,15 +28,28 @@ export function SavedPlacesMenu() {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
+  // Move focus into the dropdown when it opens so keyboard users land inside the panel.
+  useEffect(() => {
+    if (!open || !dropdownRef.current) return;
+    const focusable = dropdownRef.current.querySelector<HTMLElement>(
+      'a, button, input, [tabindex]:not([tabindex="-1"])',
+    );
+    (focusable ?? dropdownRef.current).focus();
+  }, [open]);
+
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <button
+        ref={triggerRef}
         type="button"
         className={`${styles.trigger} ${open ? styles.triggerOpen : ''}`}
         aria-expanded={open}
@@ -49,7 +64,14 @@ export function SavedPlacesMenu() {
         </span>
       </button>
       {open ? (
-        <div id={menuId} className={styles.dropdown} role="region" aria-label={t('saved.title')}>
+        <div
+          id={menuId}
+          ref={dropdownRef}
+          tabIndex={-1}
+          className={styles.dropdown}
+          role="region"
+          aria-label={t('saved.title')}
+        >
           <h2 className={styles.dropdownTitle}>{t('saved.title')}</h2>
           <SavedPlacesPanel />
         </div>
