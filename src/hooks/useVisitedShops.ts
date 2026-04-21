@@ -5,8 +5,6 @@ const STORAGE_KEY = 'ACoffee-meetup-visited-shops';
 /** Taps within this window count as one stamp (prevents accidental double-taps). */
 const DEBOUNCE_MS = 2000;
 
-type LegacySnapshot = Omit<VisitedShopSnapshot, 'visits'> & { visitedAt?: number };
-
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
@@ -17,15 +15,10 @@ function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
     .filter(isRecord)
     .map((s): VisitedShopSnapshot | null => {
       if (typeof s.id !== 'string' || typeof s.name !== 'string') return null;
-      // Migrate legacy { visitedAt: number } to { visits: [visitedAt] }.
-      const legacy = s as LegacySnapshot;
-      const rawVisits = Array.isArray(s.visits) ? (s.visits as unknown[]) : undefined;
-      const visits =
-        rawVisits != null
-          ? rawVisits.filter((n): n is number => typeof n === 'number' && Number.isFinite(n))
-          : typeof legacy.visitedAt === 'number'
-            ? [legacy.visitedAt]
-            : [];
+      if (!Array.isArray(s.visits)) return null;
+      const visits = (s.visits as unknown[]).filter(
+        (n): n is number => typeof n === 'number' && Number.isFinite(n),
+      );
       if (visits.length === 0) return null;
       return {
         id: s.id,
