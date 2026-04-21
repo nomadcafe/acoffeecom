@@ -23,8 +23,11 @@ interface AppContextType extends AppState {
   findMeetupSpot: () => Promise<void>;
   toggleStar: (shop: CoffeeShop) => void;
   isStarred: (shopId: string) => boolean;
-  toggleVisited: (shop: CoffeeShop) => void;
+  addVisit: (shop: CoffeeShop) => void;
+  removeVisited: (shopId: string) => void;
   isVisited: (shopId: string) => boolean;
+  visitCount: (shopId: string) => number;
+  lastVisit: (shopId: string) => number | null;
   setMapRef: (map: google.maps.Map | null) => void;
   setSelectedCoffeeShopId: (id: string | null) => void;
   setSearchMinRating: (value: number) => void;
@@ -149,7 +152,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   })());
 
   const { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred } = useStarredShops();
-  const { visitedShops, toggleVisited, isVisited } = useVisitedShops();
+  const { visitedShops, addVisit, removeVisited, isVisited, visitCount, lastVisit } =
+    useVisitedShops();
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const coffeeShops = useMemo(
@@ -350,8 +354,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addAddressTemplate,
       removeAddressTemplate,
       isStarred,
-      toggleVisited,
+      addVisit,
+      removeVisited,
       isVisited,
+      visitCount,
+      lastVisit,
       setMapRef,
       setSelectedCoffeeShopId,
     }),
@@ -384,8 +391,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addAddressTemplate,
       removeAddressTemplate,
       isStarred,
-      toggleVisited,
+      addVisit,
+      removeVisited,
       isVisited,
+      visitCount,
+      lastVisit,
       setMapRef,
     ],
   );

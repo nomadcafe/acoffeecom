@@ -3,12 +3,16 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
+import { formatRelativeTime, formatAbsoluteDate } from '../utils/relativeTime';
+import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
 import styles from './VisitedPlacesMenu.module.css';
 
 export function VisitedPlacesMenu() {
-  const { t } = useI18n();
-  const { visitedShops, toggleVisited } = useApp();
+  const { t, locale } = useI18n();
+  const { visitedShops, removeVisited } = useApp();
   const [open, setOpen] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -16,9 +20,24 @@ export function VisitedPlacesMenu() {
   const count = visitedShops.length;
 
   const sortedVisited = useMemo(
-    () => [...visitedShops].sort((a, b) => b.visitedAt - a.visitedAt),
+    () => [...visitedShops].sort((a, b) => (b.visits[0] ?? 0) - (a.visits[0] ?? 0)),
     [visitedShops],
   );
+
+  const totalVisits = useMemo(
+    () => visitedShops.reduce((sum, s) => sum + s.visits.length, 0),
+    [visitedShops],
+  );
+
+  const firstVisitDate = useMemo(() => {
+    if (visitedShops.length === 0) return null;
+    let earliest = Infinity;
+    for (const s of visitedShops) {
+      const last = s.visits[s.visits.length - 1];
+      if (last != null && last < earliest) earliest = last;
+    }
+    return earliest === Infinity ? null : earliest;
+  }, [visitedShops]);
 
   useEffect(() => {
     if (!open) return;
@@ -50,6 +69,39 @@ export function VisitedPlacesMenu() {
     );
     (focusable ?? dropdownRef.current).focus();
   }, [open]);
+
+  const onShare = async () => {
+    if (sharing) return;
+    setShareError(null);
+    setSharing(true);
+    try {
+      const topShops = [...visitedShops]
+        .sort((a, b) => b.visits.length - a.visits.length)
+        .slice(0, 3)
+        .map((s) => ({ name: s.name, visits: s.visits.length }));
+      const blob = await renderPassportCard({
+        title: t('visited.shareCardTitle'),
+        countLabel: t('visited.shareCardCountLabel', { count }),
+        visitsLabel: t('visited.shareCardVisitsLabel', { count: totalVisits }),
+        sinceLabel:
+          firstVisitDate != null
+            ? t('visited.shareCardSinceLabel', { date: formatAbsoluteDate(firstVisitDate, locale) })
+            : '',
+        topLabel: t('visited.shareCardTopLabel'),
+        brand: 'acoffee.com',
+        topShops,
+      });
+      await sharePassportCard(blob, {
+        title: t('visited.shareCardTitle'),
+        text: t('visited.shareCardText', { count, visits: totalVisits }),
+        fileName: 'my-coffee-passport.png',
+      });
+    } catch (e) {
+      setShareError(e instanceof Error ? e.message : t('visited.shareError'));
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
@@ -85,37 +137,73 @@ export function VisitedPlacesMenu() {
             <p className={styles.empty}>{t('visited.empty')}</p>
           ) : (
             <>
-              <p className={styles.stat}>{t('visited.stat', { count })}</p>
+              <div className={styles.statsBar}>
+                <div className={styles.stats}>
+                  <div className={styles.statLine}>
+                    {t('visited.statPrimary', { count, visits: totalVisits })}
+                  </div>
+                  {firstVisitDate != null ? (
+                    <div className={styles.statSince}>
+                      {t('visited.statSince', { date: formatAbsoluteDate(firstVisitDate, locale) })}
+                    </div>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className={styles.shareButton}
+                  onClick={onShare}
+                  disabled={sharing}
+                >
+                  {sharing ? t('visited.sharing') : t('visited.share')}
+                </button>
+              </div>
+              {shareError ? <p className={styles.shareError}>{shareError}</p> : null}
               <ul className={styles.list}>
-                {sortedVisited.map((snap) => (
-                  <li key={snap.id} className={styles.row}>
-                    <div className={styles.rowMain}>
-                      <div className={styles.rowName}>{snap.name}</div>
-                      {snap.address ? (
-                        <div className={styles.rowAddress}>{snap.address}</div>
-                      ) : null}
-                    </div>
-                    <div className={styles.rowActions}>
-                      <a
-                        className={styles.mapsLink}
-                        href={getOpenInGoogleMapsUrl(visitedSnapshotToCoffeeShop(snap))}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {t('card.openMaps')}
-                      </a>
-                      <button
-                        type="button"
-                        className={styles.removeButton}
-                        onClick={() => toggleVisited(visitedSnapshotToCoffeeShop(snap))}
-                        aria-label={t('visited.removeAria', { name: snap.name })}
-                        title={t('visited.remove')}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                {sortedVisited.map((snap) => {
+                  const last = snap.visits[0];
+                  const vc = snap.visits.length;
+                  return (
+                    <li key={snap.id} className={styles.row}>
+                      <div className={styles.rowMain}>
+                        <div className={styles.rowName}>{snap.name}</div>
+                        {snap.address ? (
+                          <div className={styles.rowAddress}>{snap.address}</div>
+                        ) : null}
+                        {last != null ? (
+                          <div className={styles.rowMeta}>
+                            {vc >= 2
+                              ? t('visited.rowMetaMany', {
+                                  count: vc,
+                                  last: formatRelativeTime(last, locale),
+                                })
+                              : t('visited.rowMetaOnce', {
+                                  last: formatRelativeTime(last, locale),
+                                })}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className={styles.rowActions}>
+                        <a
+                          className={styles.mapsLink}
+                          href={getOpenInGoogleMapsUrl(visitedSnapshotToCoffeeShop(snap))}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {t('card.openMaps')}
+                        </a>
+                        <button
+                          type="button"
+                          className={styles.removeButton}
+                          onClick={() => removeVisited(snap.id)}
+                          aria-label={t('visited.removeAria', { name: snap.name })}
+                          title={t('visited.remove')}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </>
           )}

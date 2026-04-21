@@ -1,28 +1,73 @@
 .visitedButton {
+  position: relative;
   background: none;
   border: none;
-  font-size: 1.35rem;
   cursor: pointer;
   padding: 0.25rem;
-  transition: transform 0.2s, filter 0.2s, opacity 0.2s;
-  opacity: 0.3;
-  filter: grayscale(1);
+  transition: transform 0.15s ease;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .visitedButton:hover {
-  transform: scale(1.15);
+  transform: scale(1.1);
+}
+
+.visitedButton:active .icon {
+  animation: stamp 0.25s ease;
+}
+
+.icon {
+  font-size: 1.35rem;
+  transition: filter 0.2s, opacity 0.2s;
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.visitedButton:hover .icon {
   opacity: 0.75;
   filter: grayscale(0.5);
 }
 
-.visitedButton.visited {
+.visitedButton.stamped .icon {
   opacity: 1;
   filter: none;
+}
+
+.count {
+  position: absolute;
+  top: -1px;
+  right: -2px;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #6b4423;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px #fff;
 }
 
 .visitedButton:focus-visible {
   outline: 2px solid #6b4423;
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+@keyframes stamp {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

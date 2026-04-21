@@ -2,29 +2,42 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CoffeeShop, VisitedShopSnapshot } from '../types';
 
 const STORAGE_KEY = 'ACoffee-meetup-visited-shops';
+/** Taps within this window count as one stamp (prevents accidental double-taps). */
+const DEBOUNCE_MS = 2000;
 
-function isSnapshot(x: unknown): x is VisitedShopSnapshot {
-  return (
-    typeof x === 'object' &&
-    x !== null &&
-    typeof (x as VisitedShopSnapshot).id === 'string' &&
-    typeof (x as VisitedShopSnapshot).name === 'string'
-  );
+type LegacySnapshot = Omit<VisitedShopSnapshot, 'visits'> & { visitedAt?: number };
+
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
 }
 
 function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
   if (!Array.isArray(raw)) return [];
-  return (raw as unknown[])
-    .filter(isSnapshot)
-    .map((s) => ({
-      id: s.id,
-      name: s.name || 'Visited café',
-      address: s.address ?? '',
-      lat: typeof s.lat === 'number' ? s.lat : 0,
-      lng: typeof s.lng === 'number' ? s.lng : 0,
-      googleMapsUri: s.googleMapsUri,
-      visitedAt: typeof s.visitedAt === 'number' ? s.visitedAt : Date.now(),
-    }));
+  return raw
+    .filter(isRecord)
+    .map((s): VisitedShopSnapshot | null => {
+      if (typeof s.id !== 'string' || typeof s.name !== 'string') return null;
+      // Migrate legacy { visitedAt: number } to { visits: [visitedAt] }.
+      const legacy = s as LegacySnapshot;
+      const rawVisits = Array.isArray(s.visits) ? (s.visits as unknown[]) : undefined;
+      const visits =
+        rawVisits != null
+          ? rawVisits.filter((n): n is number => typeof n === 'number' && Number.isFinite(n))
+          : typeof legacy.visitedAt === 'number'
+            ? [legacy.visitedAt]
+            : [];
+      if (visits.length === 0) return null;
+      return {
+        id: s.id,
+        name: s.name || 'Visited café',
+        address: typeof s.address === 'string' ? s.address : '',
+        lat: typeof s.lat === 'number' ? s.lat : 0,
+        lng: typeof s.lng === 'number' ? s.lng : 0,
+        googleMapsUri: typeof s.googleMapsUri === 'string' ? s.googleMapsUri : undefined,
+        visits: [...visits].sort((a, b) => b - a),
+      };
+    })
+    .filter((x): x is VisitedShopSnapshot => x != null);
 }
 
 function loadVisitedShops(): VisitedShopSnapshot[] {
@@ -53,8 +66,11 @@ export function visitedSnapshotToCoffeeShop(s: VisitedShopSnapshot): CoffeeShop 
 export function useVisitedShops(): {
   visitedShops: VisitedShopSnapshot[];
   visitedShopIds: string[];
-  toggleVisited: (shop: CoffeeShop) => void;
+  addVisit: (shop: CoffeeShop) => void;
+  removeVisited: (shopId: string) => void;
   isVisited: (shopId: string) => boolean;
+  visitCount: (shopId: string) => number;
+  lastVisit: (shopId: string) => number | null;
 } {
   const [visitedShops, setVisitedShops] = useState<VisitedShopSnapshot[]>(loadVisitedShops);
   const isFirstRender = useRef(true);
@@ -73,11 +89,18 @@ export function useVisitedShops(): {
 
   const visitedShopIds = useMemo(() => visitedShops.map((s) => s.id), [visitedShops]);
 
-  const toggleVisited = useCallback((shop: CoffeeShop) => {
+  const addVisit = useCallback((shop: CoffeeShop) => {
+    const now = Date.now();
     setVisitedShops((prev) => {
-      const exists = prev.some((s) => s.id === shop.id);
-      if (exists) {
-        return prev.filter((s) => s.id !== shop.id);
+      const existing = prev.find((s) => s.id === shop.id);
+      if (existing) {
+        // Debounce: ignore taps within DEBOUNCE_MS of the last visit for this shop.
+        if (existing.visits[0] != null && now - existing.visits[0] < DEBOUNCE_MS) {
+          return prev;
+        }
+        return prev.map((s) =>
+          s.id === shop.id ? { ...s, visits: [now, ...s.visits] } : s,
+        );
       }
       const snap: VisitedShopSnapshot = {
         id: shop.id,
@@ -86,10 +109,14 @@ export function useVisitedShops(): {
         lat: shop.lat,
         lng: shop.lng,
         googleMapsUri: shop.googleMapsUri,
-        visitedAt: Date.now(),
+        visits: [now],
       };
       return [snap, ...prev];
     });
+  }, []);
+
+  const removeVisited = useCallback((shopId: string) => {
+    setVisitedShops((prev) => prev.filter((s) => s.id !== shopId));
   }, []);
 
   const isVisited = useCallback(
@@ -97,5 +124,23 @@ export function useVisitedShops(): {
     [visitedShopIds],
   );
 
-  return { visitedShops, visitedShopIds, toggleVisited, isVisited };
+  const visitCount = useCallback(
+    (shopId: string) => visitedShops.find((s) => s.id === shopId)?.visits.length ?? 0,
+    [visitedShops],
+  );
+
+  const lastVisit = useCallback(
+    (shopId: string) => visitedShops.find((s) => s.id === shopId)?.visits[0] ?? null,
+    [visitedShops],
+  );
+
+  return {
+    visitedShops,
+    visitedShopIds,
+    addVisit,
+    removeVisited,
+    isVisited,
+    visitCount,
+    lastVisit,
+  };
 }

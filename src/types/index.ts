@@ -40,7 +40,8 @@ export interface VisitedShopSnapshot {
   lat: number;
   lng: number;
   googleMapsUri?: string;
-  visitedAt: number;
+  /** Ordered newest-first list of visit timestamps (ms). A passport-style stamp log. */
+  visits: number[];
 }
 
 export type SearchSortMode = 'rating' | 'fairness';

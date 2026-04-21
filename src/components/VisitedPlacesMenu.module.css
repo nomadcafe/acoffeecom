@@ -85,10 +85,78 @@
   line-height: 1.45;
 }
 
-.stat {
-  margin: 0 0 0.6rem 0;
+.statsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+  padding: 0.55rem 0.7rem;
+  background: #fff6ea;
+  border: 1px solid #ead7bc;
+  border-radius: 10px;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.statLine {
   font-size: 0.82rem;
   color: #5a4030;
+  font-weight: 700;
+}
+
+.statSince {
+  font-size: 0.68rem;
+  color: #8a7865;
+}
+
+.shareButton {
+  flex-shrink: 0;
+  padding: 0.38rem 0.7rem;
+  border: 1px solid #6b4423;
+  border-radius: 8px;
+  background: #6b4423;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.shareButton:hover:not(:disabled) {
+  background: #523318;
+}
+
+.shareButton:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.shareButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.shareButton:focus-visible {
+  outline: 2px solid #3e2416;
+  outline-offset: 2px;
+}
+
+.shareError {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.72rem;
+  color: #b23c17;
+}
+
+.rowMeta {
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  color: #6b4423;
   font-weight: 600;
 }
 

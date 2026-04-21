@@ -9,22 +9,25 @@ interface VisitedButtonProps {
 
 export function VisitedButton({ shop }: VisitedButtonProps) {
   const { t } = useI18n();
-  const { toggleVisited, isVisited } = useApp();
-  const visited = isVisited(shop.id);
+  const { addVisit, visitCount } = useApp();
+  const count = visitCount(shop.id);
+  const stamped = count > 0;
 
   return (
     <button
       type="button"
-      className={`${styles.visitedButton} ${visited ? styles.visited : ''}`}
+      className={`${styles.visitedButton} ${stamped ? styles.stamped : ''}`}
       onClick={(e) => {
         e.stopPropagation();
-        toggleVisited(shop);
+        addVisit(shop);
       }}
-      aria-label={visited ? t('visited.remove') : t('visited.add')}
-      aria-pressed={visited}
-      title={visited ? t('visited.remove') : t('visited.add')}
+      aria-label={stamped ? t('visited.stampAgain', { count }) : t('visited.add')}
+      title={stamped ? t('visited.stampAgain', { count }) : t('visited.add')}
     >
-      <span aria-hidden="true">☕</span>
+      <span className={styles.icon} aria-hidden="true">
+        ☕
+      </span>
+      {count > 0 ? <span className={styles.count}>{count}</span> : null}
     </button>
   );
 }

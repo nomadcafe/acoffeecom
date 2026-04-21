@@ -5,6 +5,7 @@ import { StarButton } from './StarButton';
 import { VisitedButton } from './VisitedButton';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { formatRelativeTime } from '../utils/relativeTime';
 import styles from './CoffeeShopCard.module.css';
 
 interface CoffeeShopCardProps {
@@ -27,22 +28,30 @@ function renderStars(rating: number): string {
 }
 
 export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
-  const { t } = useI18n();
-  const { isStarred, isVisited, searchSortMode } = useApp();
+  const { t, locale } = useI18n();
+  const { isStarred, isVisited, visitCount, lastVisit, searchSortMode } = useApp();
   const starred = isStarred(shop.id);
   const visited = isVisited(shop.id);
+  const count = visitCount(shop.id);
+  const last = lastVisit(shop.id);
   const fairnessGap =
     shop.distanceFromA != null && shop.distanceFromB != null
       ? Math.abs(shop.distanceFromA - shop.distanceFromB)
       : null;
+
+  const visitedLabel = last != null
+    ? count >= 2
+      ? t('card.visitStats', { count, last: formatRelativeTime(last, locale) })
+      : t('card.visitedOnce', { last: formatRelativeTime(last, locale) })
+    : null;
 
   return (
     <div
       className={`${styles.card} ${starred ? styles.starred : ''} ${visited ? styles.visited : ''}`}
     >
       {starred && <div className={styles.favoriteBadge}>{t('card.favorite')}</div>}
-      {visited && !starred && (
-        <div className={styles.visitedBadge}>{t('card.beenHere')}</div>
+      {visited && !starred && visitedLabel && (
+        <div className={styles.visitedBadge}>{visitedLabel}</div>
       )}
 
       <div className={styles.header}>
