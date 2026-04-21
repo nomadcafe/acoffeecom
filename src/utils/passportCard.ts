@@ -153,11 +153,17 @@ interface ShareOptions {
   fileName: string;
 }
 
+export type ShareResult = 'shared' | 'cancelled' | 'downloaded';
+
 /**
  * Uses the Web Share API with files when supported (iOS Safari, Chrome Android);
- * otherwise triggers a download of the PNG blob.
+ * otherwise triggers a download of the PNG blob. Reports which path ran so
+ * the caller can show an accurate status message.
  */
-export async function sharePassportCard(blob: Blob, options: ShareOptions): Promise<void> {
+export async function sharePassportCard(
+  blob: Blob,
+  options: ShareOptions,
+): Promise<ShareResult> {
   const file = new File([blob], options.fileName, { type: 'image/png' });
   const nav = navigator as Navigator & {
     canShare?: (data: { files: File[] }) => boolean;
@@ -166,14 +172,14 @@ export async function sharePassportCard(blob: Blob, options: ShareOptions): Prom
   if (nav.canShare?.({ files: [file] }) && nav.share) {
     try {
       await nav.share({ files: [file], title: options.title, text: options.text });
-      return;
+      return 'shared';
     } catch (e) {
-      // AbortError means the user cancelled — not an error surface.
-      if (e instanceof DOMException && e.name === 'AbortError') return;
+      if (e instanceof DOMException && e.name === 'AbortError') return 'cancelled';
       // Fall through to download on other errors.
     }
   }
   downloadBlob(blob, options.fileName);
+  return 'downloaded';
 }
 
 function downloadBlob(blob: Blob, fileName: string): void {

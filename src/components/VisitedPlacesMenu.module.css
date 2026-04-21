@@ -153,6 +153,13 @@
   color: #b23c17;
 }
 
+.shareInfo {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.72rem;
+  color: #3e6b2f;
+  font-weight: 600;
+}
+
 .rowMeta {
   margin-top: 0.2rem;
   font-size: 0.7rem;

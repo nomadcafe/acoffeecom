@@ -12,7 +12,9 @@ export function VisitedPlacesMenu() {
   const { visitedShops, removeVisited } = useApp();
   const [open, setOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const [shareError, setShareError] = useState<string | null>(null);
+  const [shareStatus, setShareStatus] = useState<
+    { kind: 'error' | 'info'; message: string } | null
+  >(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -72,7 +74,7 @@ export function VisitedPlacesMenu() {
 
   const onShare = async () => {
     if (sharing) return;
-    setShareError(null);
+    setShareStatus(null);
     setSharing(true);
     try {
       const topShops = [...visitedShops]
@@ -91,17 +93,32 @@ export function VisitedPlacesMenu() {
         brand: 'acoffee.com',
         topShops,
       });
-      await sharePassportCard(blob, {
+      const result = await sharePassportCard(blob, {
         title: t('visited.shareCardTitle'),
         text: t('visited.shareCardText', { count, visits: totalVisits }),
         fileName: 'my-coffee-passport.png',
       });
+      if (result === 'shared') {
+        setShareStatus({ kind: 'info', message: t('visited.shareShared') });
+      } else if (result === 'downloaded') {
+        setShareStatus({ kind: 'info', message: t('visited.shareDownloaded') });
+      }
+      // 'cancelled' → no status, user already knows they dismissed it.
     } catch (e) {
-      setShareError(e instanceof Error ? e.message : t('visited.shareError'));
+      setShareStatus({
+        kind: 'error',
+        message: e instanceof Error ? e.message : t('visited.shareError'),
+      });
     } finally {
       setSharing(false);
     }
   };
+
+  useEffect(() => {
+    if (!shareStatus) return;
+    const id = window.setTimeout(() => setShareStatus(null), 5000);
+    return () => window.clearTimeout(id);
+  }, [shareStatus]);
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
@@ -157,7 +174,16 @@ export function VisitedPlacesMenu() {
                   {sharing ? t('visited.sharing') : t('visited.share')}
                 </button>
               </div>
-              {shareError ? <p className={styles.shareError}>{shareError}</p> : null}
+              {shareStatus ? (
+                <p
+                  className={
+                    shareStatus.kind === 'error' ? styles.shareError : styles.shareInfo
+                  }
+                  role="status"
+                >
+                  {shareStatus.message}
+                </p>
+              ) : null}
               <ul className={styles.list}>
                 {sortedVisited.map((snap) => {
                   const last = snap.visits[0];
