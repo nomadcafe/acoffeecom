@@ -4,6 +4,7 @@ import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { formatRelativeTime, formatAbsoluteDate } from '../utils/relativeTime';
+import { computeStreak } from '../utils/streak';
 import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
 import styles from './VisitedPlacesMenu.module.css';
 
@@ -40,6 +41,8 @@ export function VisitedPlacesMenu() {
     }
     return earliest === Infinity ? null : earliest;
   }, [visitedShops]);
+
+  const streak = useMemo(() => computeStreak(visitedShops), [visitedShops]);
 
   useEffect(() => {
     if (!open) return;
@@ -89,6 +92,7 @@ export function VisitedPlacesMenu() {
           firstVisitDate != null
             ? t('visited.shareCardSinceLabel', { date: formatAbsoluteDate(firstVisitDate, locale) })
             : '',
+        streakLabel: streak > 0 ? t('visited.shareCardStreakLabel', { count: streak }) : '',
         topLabel: t('visited.shareCardTopLabel'),
         brand: 'acoffee.com',
         topShops,
@@ -159,6 +163,11 @@ export function VisitedPlacesMenu() {
                   <div className={styles.statLine}>
                     {t('visited.statPrimary', { count, visits: totalVisits })}
                   </div>
+                  {streak > 0 ? (
+                    <div className={styles.statStreak}>
+                      {t('visited.statStreak', { count: streak })}
+                    </div>
+                  ) : null}
                   {firstVisitDate != null ? (
                     <div className={styles.statSince}>
                       {t('visited.statSince', { date: formatAbsoluteDate(firstVisitDate, locale) })}

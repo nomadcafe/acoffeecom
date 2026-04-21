@@ -7,6 +7,7 @@ export interface PassportCardData {
   countLabel: string;
   visitsLabel: string;
   sinceLabel: string;
+  streakLabel: string;
   topLabel: string;
   brand: string;
   topShops: { name: string; visits: number }[];
@@ -60,16 +61,23 @@ export async function renderPassportCard(data: PassportCardData): Promise<Blob> 
     ctx.fillText(data.sinceLabel, SIZE / 2, 502);
   }
 
+  // Streak — the emotional peak of the card when present.
+  if (data.streakLabel) {
+    ctx.fillStyle = '#ff9c3a';
+    ctx.font = '700 44px system-ui, "Apple Color Emoji", "Segoe UI Emoji", Arial, sans-serif';
+    ctx.fillText(data.streakLabel, SIZE / 2, 560);
+  }
+
   // Top shops section.
   if (data.topShops.length > 0) {
     ctx.fillStyle = 'rgba(255, 229, 184, 0.9)';
     ctx.font = '600 24px "Helvetica Neue", Arial, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(data.topLabel.toUpperCase(), SIZE / 2, 600);
+    ctx.fillText(data.topLabel.toUpperCase(), SIZE / 2, 630);
 
     ctx.font = '500 34px "Helvetica Neue", Arial, sans-serif';
     ctx.textAlign = 'left';
-    const listStartY = 660;
+    const listStartY = 690;
     const rowH = 64;
     const maxNameWidth = SIZE - 300;
     data.topShops.forEach((shop, i) => {

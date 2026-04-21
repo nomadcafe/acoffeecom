@@ -6,6 +6,7 @@ import { VisitedButton } from './VisitedButton';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { formatRelativeTime } from '../utils/relativeTime';
+import { isToday } from '../utils/streak';
 import styles from './CoffeeShopCard.module.css';
 
 interface CoffeeShopCardProps {
@@ -39,10 +40,15 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
       ? Math.abs(shop.distanceFromA - shop.distanceFromB)
       : null;
 
+  const visitedToday = last != null && isToday(last);
   const visitedLabel = last != null
-    ? count >= 2
-      ? t('card.visitStats', { count, last: formatRelativeTime(last, locale) })
-      : t('card.visitedOnce', { last: formatRelativeTime(last, locale) })
+    ? visitedToday
+      ? count >= 2
+        ? t('card.visitStatsToday', { count })
+        : t('card.visitedToday')
+      : count >= 2
+        ? t('card.visitStats', { count, last: formatRelativeTime(last, locale) })
+        : t('card.visitedOnce', { last: formatRelativeTime(last, locale) })
     : null;
 
   return (

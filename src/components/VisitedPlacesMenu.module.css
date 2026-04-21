@@ -115,6 +115,12 @@
   color: #8a7865;
 }
 
+.statStreak {
+  font-size: 0.78rem;
+  color: #b23c17;
+  font-weight: 700;
+}
+
 .shareButton {
   flex-shrink: 0;
   padding: 0.38rem 0.7rem;
