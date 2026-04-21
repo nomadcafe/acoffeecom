@@ -180,10 +180,8 @@ export async function sharePassportCard(
     share?: (data: { files?: File[]; title?: string; text?: string }) => Promise<void>;
   };
   if (nav.canShare?.({ files: [file] }) && nav.share) {
+    const startedAt = Date.now();
     try {
-      // Some browsers (notably desktop Chrome on certain OS combos) can leave
-      // the share promise pending indefinitely if the system share sheet is
-      // blocked or hidden. Race it against a timeout so we always fall through.
       await Promise.race([
         nav.share({ files: [file], title: options.title, text: options.text }),
         new Promise<never>((_, reject) =>
@@ -192,8 +190,14 @@ export async function sharePassportCard(
       ]);
       return 'shared';
     } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return 'cancelled';
-      console.warn('Web Share failed, falling back to download:', e);
+      const elapsed = Date.now() - startedAt;
+      // Desktop Chrome (and some other browsers) throws AbortError almost
+      // instantly when the share sheet can't open — not a user dismissal.
+      // A real user-cancel needs at least a beat to tap through the sheet.
+      if (e instanceof DOMException && e.name === 'AbortError' && elapsed >= 500) {
+        return 'cancelled';
+      }
+      console.warn('Web Share rejected, falling back to download:', e);
     }
   }
   downloadBlob(blob, options.fileName);
