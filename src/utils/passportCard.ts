@@ -115,7 +115,9 @@ export async function renderPassportCard(data: PassportCardData): Promise<Blob> 
   ctx.fillText(data.brand, SIZE / 2, SIZE - 90);
 
   return new Promise<Blob>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('Canvas encode timed out')), 10_000);
     canvas.toBlob((blob) => {
+      window.clearTimeout(timer);
       if (blob) resolve(blob);
       else reject(new Error('Failed to encode PNG'));
     }, 'image/png');
@@ -179,11 +181,19 @@ export async function sharePassportCard(
   };
   if (nav.canShare?.({ files: [file] }) && nav.share) {
     try {
-      await nav.share({ files: [file], title: options.title, text: options.text });
+      // Some browsers (notably desktop Chrome on certain OS combos) can leave
+      // the share promise pending indefinitely if the system share sheet is
+      // blocked or hidden. Race it against a timeout so we always fall through.
+      await Promise.race([
+        nav.share({ files: [file], title: options.title, text: options.text }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Web Share timed out')), 8_000),
+        ),
+      ]);
       return 'shared';
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return 'cancelled';
-      // Fall through to download on other errors.
+      console.warn('Web Share failed, falling back to download:', e);
     }
   }
   downloadBlob(blob, options.fileName);

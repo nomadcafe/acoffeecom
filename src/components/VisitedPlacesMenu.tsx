@@ -109,6 +109,7 @@ export function VisitedPlacesMenu() {
       }
       // 'cancelled' → no status, user already knows they dismissed it.
     } catch (e) {
+      console.error('Passport share failed:', e);
       setShareStatus({
         kind: 'error',
         message: e instanceof Error ? e.message : t('visited.shareError'),
