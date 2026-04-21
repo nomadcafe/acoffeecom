@@ -44,6 +44,7 @@ export function Map() {
     starredShops,
     setMapRef,
     isStarred,
+    isVisited,
     selectedCoffeeShopId,
     setSelectedCoffeeShopId,
     isLoading,
@@ -255,14 +256,18 @@ export function Map() {
 
         {coffeeShops.map((shop) => {
           const starred = isStarred(shop.id);
+          const visited = isVisited(shop.id);
+          const iconUrl = visited
+            ? 'https://maps.google.com/mapfiles/ms/icons/orange-dot.png'
+            : starred
+              ? 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
+              : 'https://maps.google.com/mapfiles/ms/icons/coffee.png';
           return (
             <Marker
               key={shop.id}
               position={{ lat: shop.lat, lng: shop.lng }}
               icon={{
-                url: starred
-                  ? 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
-                  : 'https://maps.google.com/mapfiles/ms/icons/coffee.png',
+                url: iconUrl,
                 scaledSize: new google.maps.Size(32, 32),
               }}
               zIndex={selectedCoffeeShopId === shop.id ? google.maps.Marker.MAX_ZINDEX + 1 : undefined}

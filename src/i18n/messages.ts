@@ -68,6 +68,7 @@ export const en: MessageDict = {
     'Fairness mode prioritizes places where A and B travel distances are closer to each other.',
 
   'card.favorite': 'Your Favorite!',
+  'card.beenHere': 'Been here',
   'card.openMaps': 'Open in Google Maps',
   'card.reviews': '{{count}} reviews',
   'card.distanceA': 'Straight-line distance from location A',
@@ -124,6 +125,15 @@ export const en: MessageDict = {
 
   'star.add': 'Add to favorites',
   'star.remove': 'Remove from favorites',
+
+  'visited.add': 'Mark as visited',
+  'visited.remove': 'Remove from visited',
+  'visited.removeAria': 'Remove {{name}} from visited',
+  'visited.menuLabel': 'Passport',
+  'visited.title': 'My Coffee Passport',
+  'visited.empty':
+    'Tap the ☕ icon on a café card to stamp it here — build your coffee map over time.',
+  'visited.stat': '{{count}} cafés on your map',
 
   'saved.title': 'Saved cafés',
   'saved.menuLabel': 'Saved',
@@ -230,6 +240,7 @@ export const ja: MessageDict = {
   'list.fairnessExplain': '公平モードは、A と B の移動距離差が小さい店を優先します。',
 
   'card.favorite': 'お気に入り！',
+  'card.beenHere': '行った',
   'card.openMaps': 'Google マップで開く',
   'card.reviews': '口コミ {{count}} 件',
   'card.distanceA': '場所Aからの直線距離',
@@ -286,6 +297,15 @@ export const ja: MessageDict = {
 
   'star.add': 'お気に入りに追加',
   'star.remove': 'お気に入りから外す',
+
+  'visited.add': '行った店として登録',
+  'visited.remove': '行った店から外す',
+  'visited.removeAria': '{{name}} を「行った店」から外す',
+  'visited.menuLabel': 'パスポート',
+  'visited.title': 'マイ・コーヒーパスポート',
+  'visited.empty':
+    'カフェカードの ☕ をタップすると、ここにスタンプが増えていきます。あなただけのコーヒー地図を育てよう。',
+  'visited.stat': 'マップに {{count}} 軒',
 
   'saved.title': '保存したカフェ',
   'saved.count': '{{count}} 件',
@@ -385,6 +405,7 @@ export const zh: MessageDict = {
   'list.fairnessExplain': '公平模式会优先展示 A 与 B 距离差更小的店。',
 
   'card.favorite': '已收藏！',
+  'card.beenHere': '去过',
   'card.openMaps': '在 Google 地图中打开',
   'card.reviews': '{{count}} 条评价',
   'card.distanceA': '距 A 点的直线距离',
@@ -440,6 +461,14 @@ export const zh: MessageDict = {
 
   'star.add': '加入收藏',
   'star.remove': '取消收藏',
+
+  'visited.add': '标记为去过',
+  'visited.remove': '从"去过"中移除',
+  'visited.removeAria': '将 {{name}} 从"去过"中移除',
+  'visited.menuLabel': '护照',
+  'visited.title': '我的咖啡护照',
+  'visited.empty': '在下方咖啡店卡片上点击 ☕ 图标，这里就会盖上印章，慢慢集齐你的咖啡地图。',
+  'visited.stat': '地图上已有 {{count}} 家',
 
   'saved.title': '已保存咖啡店',
   'saved.menuLabel': '已保存',

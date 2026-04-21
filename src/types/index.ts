@@ -32,6 +32,17 @@ export interface StarredShopSnapshot {
   note?: string;
 }
 
+/** Persisted when user marks a shop as visited — powers the "Coffee Passport" count + list. */
+export interface VisitedShopSnapshot {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  googleMapsUri?: string;
+  visitedAt: number;
+}
+
 export type SearchSortMode = 'rating' | 'fairness';
 
 /** Nearby search primary-type group (Maps Places API). Default is cafés for coffee meetups. */
@@ -59,6 +70,7 @@ export interface AppState {
   /** Highlights a shop on the map and list; null when nothing is selected. */
   selectedCoffeeShopId: string | null;
   starredShops: StarredShopSnapshot[];
+  visitedShops: VisitedShopSnapshot[];
   isLoading: boolean;
   error: string | null;
   /** Minimum star rating filter (typical Google scale ~1–5). */

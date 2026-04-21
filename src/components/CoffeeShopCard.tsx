@@ -2,6 +2,7 @@ import { memo } from 'react';
 import type { CoffeeShop } from '../types';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
+import { VisitedButton } from './VisitedButton';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import styles from './CoffeeShopCard.module.css';
@@ -27,16 +28,22 @@ function renderStars(rating: number): string {
 
 export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
   const { t } = useI18n();
-  const { isStarred, searchSortMode } = useApp();
+  const { isStarred, isVisited, searchSortMode } = useApp();
   const starred = isStarred(shop.id);
+  const visited = isVisited(shop.id);
   const fairnessGap =
     shop.distanceFromA != null && shop.distanceFromB != null
       ? Math.abs(shop.distanceFromA - shop.distanceFromB)
       : null;
 
   return (
-    <div className={`${styles.card} ${starred ? styles.starred : ''}`}>
+    <div
+      className={`${styles.card} ${starred ? styles.starred : ''} ${visited ? styles.visited : ''}`}
+    >
       {starred && <div className={styles.favoriteBadge}>{t('card.favorite')}</div>}
+      {visited && !starred && (
+        <div className={styles.visitedBadge}>{t('card.beenHere')}</div>
+      )}
 
       <div className={styles.header}>
         <div className={styles.info}>
@@ -52,7 +59,10 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
             {t('card.openMaps')}
           </a>
         </div>
-        <StarButton shop={shop} />
+        <div className={styles.actions}>
+          <VisitedButton shop={shop} />
+          <StarButton shop={shop} />
+        </div>
       </div>
 
       <div className={styles.details}>

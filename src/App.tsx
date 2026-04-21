@@ -6,6 +6,7 @@ import { SearchFilters } from './components/SearchFilters';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
+import { VisitedPlacesMenu } from './components/VisitedPlacesMenu';
 import { SiteBottomNav } from './components/SiteBottomNav';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
@@ -35,6 +36,7 @@ function AppShell() {
             <p>{t('app.tagline')}</p>
           </div>
           <div className="headerAside headerAsideBar">
+            <VisitedPlacesMenu />
             <SavedPlacesMenu />
             <LanguageSwitcher />
           </div>

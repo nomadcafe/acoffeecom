@@ -10,6 +10,7 @@ import type {
 } from '../types';
 import { useI18n } from './I18nContext';
 import { useStarredShops } from '../hooks/useStarredShops';
+import { useVisitedShops } from '../hooks/useVisitedShops';
 import { geocodeAddress } from '../utils/geocoding';
 import { calculateMidpoint } from '../utils/midpoint';
 import { searchCoffeeShops, SEARCH_RADIUS_MAX_M, SEARCH_RATING_MIN } from '../utils/places';
@@ -22,6 +23,8 @@ interface AppContextType extends AppState {
   findMeetupSpot: () => Promise<void>;
   toggleStar: (shop: CoffeeShop) => void;
   isStarred: (shopId: string) => boolean;
+  toggleVisited: (shop: CoffeeShop) => void;
+  isVisited: (shopId: string) => boolean;
   setMapRef: (map: google.maps.Map | null) => void;
   setSelectedCoffeeShopId: (id: string | null) => void;
   setSearchMinRating: (value: number) => void;
@@ -146,6 +149,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   })());
 
   const { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred } = useStarredShops();
+  const { visitedShops, toggleVisited, isVisited } = useVisitedShops();
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const coffeeShops = useMemo(
@@ -318,6 +322,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       coffeeShops,
       selectedCoffeeShopId,
       starredShops,
+      visitedShops,
       isLoading,
       error,
       searchMinRating,
@@ -345,6 +350,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addAddressTemplate,
       removeAddressTemplate,
       isStarred,
+      toggleVisited,
+      isVisited,
       setMapRef,
       setSelectedCoffeeShopId,
     }),
@@ -355,6 +362,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       coffeeShops,
       selectedCoffeeShopId,
       starredShops,
+      visitedShops,
       isLoading,
       error,
       searchMinRating,
@@ -376,6 +384,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addAddressTemplate,
       removeAddressTemplate,
       isStarred,
+      toggleVisited,
+      isVisited,
       setMapRef,
     ],
   );

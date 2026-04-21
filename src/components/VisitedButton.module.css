@@ -1,0 +1,28 @@
+.visitedButton {
+  background: none;
+  border: none;
+  font-size: 1.35rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: transform 0.2s, filter 0.2s, opacity 0.2s;
+  opacity: 0.3;
+  filter: grayscale(1);
+  line-height: 1;
+}
+
+.visitedButton:hover {
+  transform: scale(1.15);
+  opacity: 0.75;
+  filter: grayscale(0.5);
+}
+
+.visitedButton.visited {
+  opacity: 1;
+  filter: none;
+}
+
+.visitedButton:focus-visible {
+  outline: 2px solid #6b4423;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
