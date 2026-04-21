@@ -163,7 +163,7 @@ interface ShareOptions {
   fileName: string;
 }
 
-export type ShareResult = 'shared' | 'cancelled' | 'downloaded';
+export type ShareResult = 'shared' | 'downloaded';
 
 /**
  * Uses the Web Share API with files when supported (iOS Safari, Chrome Android);
@@ -180,7 +180,6 @@ export async function sharePassportCard(
     share?: (data: { files?: File[]; title?: string; text?: string }) => Promise<void>;
   };
   if (nav.canShare?.({ files: [file] }) && nav.share) {
-    const startedAt = Date.now();
     try {
       await Promise.race([
         nav.share({ files: [file], title: options.title, text: options.text }),
@@ -190,14 +189,9 @@ export async function sharePassportCard(
       ]);
       return 'shared';
     } catch (e) {
-      const elapsed = Date.now() - startedAt;
-      // Desktop Chrome (and some other browsers) throws AbortError almost
-      // instantly when the share sheet can't open — not a user dismissal.
-      // A real user-cancel needs at least a beat to tap through the sheet.
-      if (e instanceof DOMException && e.name === 'AbortError' && elapsed >= 500) {
-        return 'cancelled';
-      }
-      console.warn('Web Share rejected, falling back to download:', e);
+      // Any failure — user cancel, browser rejection, timeout — falls through
+      // to a guaranteed download so the user always walks away with the file.
+      console.warn('Web Share failed, falling back to download:', e);
     }
   }
   downloadBlob(blob, options.fileName);

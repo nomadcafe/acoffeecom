@@ -102,12 +102,11 @@ export function VisitedPlacesMenu() {
         text: t('visited.shareCardText', { count, visits: totalVisits }),
         fileName: 'my-coffee-passport.png',
       });
-      if (result === 'shared') {
-        setShareStatus({ kind: 'info', message: t('visited.shareShared') });
-      } else if (result === 'downloaded') {
-        setShareStatus({ kind: 'info', message: t('visited.shareDownloaded') });
-      }
-      // 'cancelled' → no status, user already knows they dismissed it.
+      setShareStatus({
+        kind: 'info',
+        message:
+          result === 'shared' ? t('visited.shareShared') : t('visited.shareDownloaded'),
+      });
     } catch (e) {
       console.error('Passport share failed:', e);
       setShareStatus({
