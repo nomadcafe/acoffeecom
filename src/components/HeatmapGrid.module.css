@@ -1,0 +1,51 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.55rem 0.4rem 0.5rem 0.4rem;
+  background: #fff;
+  border: 1px solid #ead7bc;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.label {
+  fill: #8a7865;
+  font-size: 8px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.cell {
+  transition: stroke 0.15s ease;
+}
+
+.cell:hover {
+  stroke: #3e2416;
+  stroke-width: 1;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-left: 2px;
+  font-size: 0.62rem;
+  color: #8a7865;
+}
+
+.legendLabel {
+  font-weight: 600;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}

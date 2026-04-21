@@ -153,6 +153,14 @@ export const en: MessageDict = {
   'visited.shareCardSinceLabel': 'since {{date}}',
   'visited.shareCardStreakLabel': '🔥 {{count}}-day streak',
   'visited.shareCardTopLabel': 'Most visited',
+  'visited.shareCardHeatmapLabel': 'Last 90 days',
+
+  'passport.heatmapTitle': 'Last 90 days',
+  'passport.heatmapTip': '{{count}} on {{date}}',
+  'passport.heatmapEmpty': 'No visits on {{date}}',
+  'passport.heatmapLess': 'Less',
+  'passport.heatmapMore': 'More',
+  'passport.heatmapAria': 'Coffee visit heatmap, last 90 days',
   'visited.shareCardText':
     'My coffee passport — {{count}} cafés, {{visits}} visits. Built on acoffee.com.',
 
@@ -346,6 +354,14 @@ export const ja: MessageDict = {
   'visited.shareCardSinceLabel': '{{date}} から',
   'visited.shareCardStreakLabel': '🔥 連続 {{count}} 日',
   'visited.shareCardTopLabel': '常連',
+  'visited.shareCardHeatmapLabel': '直近 90 日',
+
+  'passport.heatmapTitle': '直近 90 日',
+  'passport.heatmapTip': '{{date}}：{{count}} 回',
+  'passport.heatmapEmpty': '{{date}}：来店なし',
+  'passport.heatmapLess': '少',
+  'passport.heatmapMore': '多',
+  'passport.heatmapAria': '直近 90 日の来店ヒートマップ',
   'visited.shareCardText':
     'マイ・コーヒーパスポート — {{count}} 軒、{{visits}} 回。acoffee.com で作成。',
 
@@ -530,6 +546,14 @@ export const zh: MessageDict = {
   'visited.shareCardSinceLabel': '自 {{date}} 起',
   'visited.shareCardStreakLabel': '🔥 连续打卡 {{count}} 天',
   'visited.shareCardTopLabel': '最常去',
+  'visited.shareCardHeatmapLabel': '最近 90 天',
+
+  'passport.heatmapTitle': '最近 90 天',
+  'passport.heatmapTip': '{{date}}：{{count}} 次',
+  'passport.heatmapEmpty': '{{date}}：无打卡',
+  'passport.heatmapLess': '少',
+  'passport.heatmapMore': '多',
+  'passport.heatmapAria': '最近 90 天咖啡打卡热力图',
   'visited.shareCardText':
     '我的咖啡护照 — {{count}} 家店，{{visits}} 次访问。acoffee.com 生成。',
 

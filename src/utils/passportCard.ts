@@ -1,3 +1,6 @@
+import { colorForCountDark } from './heatmap';
+import type { HeatmapGrid } from './heatmap';
+
 /**
  * Renders a 1080x1080 "My Coffee Passport" PNG off-screen.
  * Pure canvas — no external assets — so it ships without network calls and keeps bundle small.
@@ -9,8 +12,10 @@ export interface PassportCardData {
   sinceLabel: string;
   streakLabel: string;
   topLabel: string;
+  heatmapLabel: string;
   brand: string;
   topShops: { name: string; visits: number }[];
+  heatmap: HeatmapGrid | null;
 }
 
 const SIZE = 1080;
@@ -68,51 +73,74 @@ export async function renderPassportCard(data: PassportCardData): Promise<Blob> 
     ctx.fillText(data.streakLabel, SIZE / 2, 560);
   }
 
-  // Top shops section.
+  // Top shops section (compacted so heatmap below has room).
   if (data.topShops.length > 0) {
     ctx.fillStyle = 'rgba(255, 229, 184, 0.9)';
-    ctx.font = '600 24px "Helvetica Neue", Arial, sans-serif';
+    ctx.font = '600 22px "Helvetica Neue", Arial, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(data.topLabel.toUpperCase(), SIZE / 2, 630);
+    ctx.fillText(data.topLabel.toUpperCase(), SIZE / 2, 618);
 
-    ctx.font = '500 34px "Helvetica Neue", Arial, sans-serif';
-    ctx.textAlign = 'left';
-    const listStartY = 690;
-    const rowH = 64;
+    const listStartY = 668;
+    const rowH = 48;
     const maxNameWidth = SIZE - 300;
     data.topShops.forEach((shop, i) => {
       const y = listStartY + i * rowH;
-      // Rank circle.
       ctx.beginPath();
-      ctx.arc(160, y - 10, 22, 0, Math.PI * 2);
+      ctx.arc(160, y - 9, 18, 0, Math.PI * 2);
       ctx.fillStyle = '#ffe5b8';
       ctx.fill();
       ctx.fillStyle = '#3e2416';
-      ctx.font = '700 26px "Helvetica Neue", Arial, sans-serif';
+      ctx.font = '700 22px "Helvetica Neue", Arial, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(i + 1), 160, y - 10);
+      ctx.fillText(String(i + 1), 160, y - 9);
       ctx.textBaseline = 'alphabetic';
 
-      // Name (truncated if too long).
       ctx.fillStyle = '#fff';
-      ctx.font = '500 32px "Helvetica Neue", Arial, sans-serif';
+      ctx.font = '500 28px "Helvetica Neue", Arial, sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(truncate(ctx, shop.name, maxNameWidth), 205, y);
+      ctx.fillText(truncate(ctx, shop.name, maxNameWidth), 188, y);
 
-      // Visit count on right.
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.font = '400 28px "Helvetica Neue", Arial, sans-serif';
+      ctx.font = '400 24px "Helvetica Neue", Arial, sans-serif';
       ctx.textAlign = 'right';
       ctx.fillText(`×${shop.visits}`, SIZE - 160, y);
     });
   }
 
+  // Heatmap section — the "coffee journey" visual.
+  if (data.heatmap && data.heatmap.weeks.length > 0) {
+    ctx.fillStyle = 'rgba(255, 229, 184, 0.9)';
+    ctx.font = '600 22px "Helvetica Neue", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(data.heatmapLabel.toUpperCase(), SIZE / 2, 835);
+
+    const cell = 22;
+    const gap = 3;
+    const pitch = cell + gap;
+    const weeks = data.heatmap.weeks;
+    const gridW = weeks.length * pitch - gap;
+    const gridX = (SIZE - gridW) / 2;
+    const gridY = 860;
+
+    weeks.forEach((week, w) => {
+      week.forEach((c, d) => {
+        if (c.empty) return;
+        ctx.fillStyle = colorForCountDark(c.count);
+        const x = gridX + w * pitch;
+        const y = gridY + d * pitch;
+        roundRect(ctx, x, y, cell, cell, 3);
+        ctx.fill();
+      });
+    });
+  }
+
   // Brand footer.
   ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-  ctx.font = '500 28px "Helvetica Neue", Arial, sans-serif';
+  ctx.font = '500 24px "Helvetica Neue", Arial, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(data.brand, SIZE / 2, SIZE - 90);
+  ctx.fillText(data.brand, SIZE / 2, SIZE - 50);
 
   return new Promise<Blob>((resolve, reject) => {
     const timer = window.setTimeout(() => reject(new Error('Canvas encode timed out')), 10_000);

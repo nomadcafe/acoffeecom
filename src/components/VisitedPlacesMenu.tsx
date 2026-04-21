@@ -5,7 +5,9 @@ import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { formatRelativeTime, formatAbsoluteDate } from '../utils/relativeTime';
 import { computeStreak } from '../utils/streak';
+import { buildHeatmap } from '../utils/heatmap';
 import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
+import { HeatmapGrid } from './HeatmapGrid';
 import styles from './VisitedPlacesMenu.module.css';
 
 export function VisitedPlacesMenu() {
@@ -43,6 +45,11 @@ export function VisitedPlacesMenu() {
   }, [visitedShops]);
 
   const streak = useMemo(() => computeStreak(visitedShops), [visitedShops]);
+
+  const allTimestamps = useMemo(
+    () => visitedShops.flatMap((s) => s.visits),
+    [visitedShops],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -84,6 +91,7 @@ export function VisitedPlacesMenu() {
         .sort((a, b) => b.visits.length - a.visits.length)
         .slice(0, 3)
         .map((s) => ({ name: s.name, visits: s.visits.length }));
+      const heatmap = buildHeatmap(allTimestamps, 90);
       const blob = await renderPassportCard({
         title: t('visited.shareCardTitle'),
         countLabel: t('visited.shareCardCountLabel', { count }),
@@ -94,8 +102,10 @@ export function VisitedPlacesMenu() {
             : '',
         streakLabel: streak > 0 ? t('visited.shareCardStreakLabel', { count: streak }) : '',
         topLabel: t('visited.shareCardTopLabel'),
+        heatmapLabel: t('visited.shareCardHeatmapLabel'),
         brand: 'acoffee.com',
         topShops,
+        heatmap,
       });
       const result = await sharePassportCard(blob, {
         title: t('visited.shareCardTitle'),
@@ -193,6 +203,10 @@ export function VisitedPlacesMenu() {
                   {shareStatus.message}
                 </p>
               ) : null}
+              <div className={styles.heatmapBlock}>
+                <div className={styles.heatmapTitle}>{t('passport.heatmapTitle')}</div>
+                <HeatmapGrid timestamps={allTimestamps} days={90} />
+              </div>
               <ul className={styles.list}>
                 {sortedVisited.map((snap) => {
                   const last = snap.visits[0];
