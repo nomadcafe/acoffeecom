@@ -8,6 +8,7 @@ import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
 import { VisitedPlacesMenu } from './components/VisitedPlacesMenu';
 import { SiteBottomNav } from './components/SiteBottomNav';
+import { BottomSheet } from './components/BottomSheet';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
@@ -43,17 +44,19 @@ function AppShell() {
       </header>
 
       <main className="main">
-        <aside className="sidebar">
-          <LocationInput />
-          <SearchFilters />
-          <CoffeeShopList />
-        </aside>
-
         <section className="map-section">
           <Suspense fallback={<div className="mapFallback" aria-hidden="true" />}>
             <Map />
           </Suspense>
         </section>
+
+        <BottomSheet>
+          <aside className="sidebar">
+            <LocationInput />
+            <SearchFilters />
+            <CoffeeShopList />
+          </aside>
+        </BottomSheet>
       </main>
       <SiteBottomNav />
     </div>

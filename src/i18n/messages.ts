@@ -214,6 +214,12 @@ export const en: MessageDict = {
   'bottomNav.passport': 'Passport',
   'bottomNav.bmacDisclaimer': 'ACoffee.com is not affiliated with buymeacoffee.com.',
 
+  'sheet.label': 'Search and results',
+  'sheet.dragHandle': 'Drag to resize. Up/Down arrows or Enter to snap.',
+  'sheet.snap.peek': 'Peek',
+  'sheet.snap.half': 'Half open',
+  'sheet.snap.full': 'Fully open',
+
   'share.title': 'Coffee meetup suggestions',
   'share.nearbyTitle': 'Coffee spots near me',
   'share.button': 'Share',
@@ -428,6 +434,12 @@ export const ja: MessageDict = {
   'bottomNav.aria': 'サイト内メニュー',
   'bottomNav.home': '検索',
   'bottomNav.passport': 'パスポート',
+
+  'sheet.label': '検索と候補',
+  'sheet.dragHandle': 'ドラッグで高さを変更。上下キーまたは Enter でスナップします。',
+  'sheet.snap.peek': 'プレビュー',
+  'sheet.snap.half': '半分表示',
+  'sheet.snap.full': '全画面表示',
   'bottomNav.bmacDisclaimer':
     'ACoffee.com は buymeacoffee.com とは無関係です。',
 
@@ -640,6 +652,12 @@ export const zh: MessageDict = {
   'bottomNav.aria': '站内导航',
   'bottomNav.home': '查找',
   'bottomNav.passport': '护照',
+
+  'sheet.label': '搜索与结果',
+  'sheet.dragHandle': '拖动调整高度。上下方向键或回车键可吸附切换。',
+  'sheet.snap.peek': '收起',
+  'sheet.snap.half': '半屏',
+  'sheet.snap.full': '全屏',
   'bottomNav.bmacDisclaimer': 'ACoffee.com 与 buymeacoffee.com 无任何关联。',
 
   'share.title': '咖啡会面推荐',
