@@ -14,7 +14,13 @@ import { useStarredShops } from '../hooks/useStarredShops';
 import { useVisitedShops } from '../hooks/useVisitedShops';
 import { geocodeAddress } from '../utils/geocoding';
 import { calculateMidpoint } from '../utils/midpoint';
-import { searchCoffeeShops, SEARCH_RADIUS_MAX_M, SEARCH_RATING_MIN } from '../utils/places';
+import {
+  searchCoffeeShops,
+  SEARCH_RADIUS_MAX_M,
+  SEARCH_RADIUS_MIN_M,
+  SEARCH_RATING_MAX,
+  SEARCH_RATING_MIN,
+} from '../utils/places';
 
 interface AppContextType extends AppState {
   setAddressA: (address: string) => void;
@@ -96,6 +102,23 @@ function loadAddressTemplates(): string[] {
   }
 }
 
+const DEFAULT_MIN_RATING = 4;
+const DEFAULT_RADIUS_M = 1200;
+const DEFAULT_KEYWORD = 'coffee';
+const DEFAULT_SORT_MODE: SearchSortMode = 'rating';
+
+function initialFilter<T>(
+  params: URLSearchParams,
+  key: string,
+  fallback: T,
+  parse: (raw: string) => T | undefined,
+): T {
+  const raw = params.get(key);
+  if (raw == null) return fallback;
+  const parsed = parse(raw);
+  return parsed === undefined ? fallback : parsed;
+}
+
 function sortShops(
   shops: CoffeeShop[],
   starredShopIds: string[],
@@ -133,12 +156,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedCoffeeShopId, setSelectedCoffeeShopId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchMinRating, setSearchMinRating] = useState(4);
-  const [searchRadiusMeters, setSearchRadiusMeters] = useState(1200);
-  const [searchKeyword, setSearchKeyword] = useState('coffee');
-  const [searchPlaceCategory, setSearchPlaceCategoryState] =
-    useState<PlaceSearchCategory>(loadPlaceCategory);
-  const [searchSortMode, setSearchSortMode] = useState<SearchSortMode>('rating');
+  const [searchMinRating, setSearchMinRating] = useState(() =>
+    initialFilter(new URLSearchParams(window.location.search), 'mr', DEFAULT_MIN_RATING, (raw) => {
+      const n = Number(raw);
+      return Number.isFinite(n) && n >= SEARCH_RATING_MIN && n <= SEARCH_RATING_MAX ? n : undefined;
+    }),
+  );
+  const [searchRadiusMeters, setSearchRadiusMeters] = useState(() =>
+    initialFilter(new URLSearchParams(window.location.search), 'r', DEFAULT_RADIUS_M, (raw) => {
+      const n = Number(raw);
+      return Number.isFinite(n) && n >= SEARCH_RADIUS_MIN_M && n <= SEARCH_RADIUS_MAX_M
+        ? Math.round(n)
+        : undefined;
+    }),
+  );
+  const [searchKeyword, setSearchKeyword] = useState(() => {
+    const raw = new URLSearchParams(window.location.search).get('q');
+    return raw && raw.trim() ? raw : DEFAULT_KEYWORD;
+  });
+  const [searchPlaceCategory, setSearchPlaceCategoryState] = useState<PlaceSearchCategory>(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('cat');
+    if (fromUrl === 'cafe' || fromUrl === 'restaurant' || fromUrl === 'lodging' || fromUrl === 'bar') {
+      return fromUrl;
+    }
+    return loadPlaceCategory();
+  });
+  const [searchSortMode, setSearchSortMode] = useState<SearchSortMode>(() => {
+    const v = new URLSearchParams(window.location.search).get('sort');
+    return v === 'fairness' || v === 'rating' ? v : DEFAULT_SORT_MODE;
+  });
   const [searchMode, setSearchMode] = useState<SearchMode>('meetup');
   const [recentSearches, setRecentSearches] = useState<RecentSearchItem[]>(loadRecentSearches);
   const [addressTemplates, setAddressTemplates] = useState<string[]>(loadAddressTemplates);
@@ -253,9 +299,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setRawShops(shops);
 
         // Reflect the search in the URL so it can be bookmarked or shared.
-        const params = new URLSearchParams();
+        // Preserve filter params (r/mr/q/cat/sort) that the sync effect manages.
+        const params = new URLSearchParams(window.location.search);
         params.set('a', a);
         params.set('b', b);
+        params.delete('near');
         const newQuery = `?${params.toString()}`;
         if (newQuery !== window.location.search) {
           window.history.replaceState(
@@ -328,8 +376,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
         setRawShops(shops);
 
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(window.location.search);
         params.set('near', `${center.lat.toFixed(5)},${center.lng.toFixed(5)}`);
+        params.delete('a');
+        params.delete('b');
         const newQuery = `?${params.toString()}`;
         if (newQuery !== window.location.search) {
           window.history.replaceState(
@@ -358,6 +408,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
       void searchAround({ lat: pending.lat, lng: pending.lng });
     }
   }, [isMapReady, searchWithAddresses, searchAround]);
+
+  // Reflect filter state in URL so bookmarked/shared links carry the same
+  // radius / rating / keyword / category / sort. Only non-default values
+  // are written; a/b and near params are preserved as-is.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const setOrDelete = (key: string, value: string, isDefault: boolean) => {
+      if (isDefault) params.delete(key);
+      else params.set(key, value);
+    };
+    setOrDelete('r', String(searchRadiusMeters), searchRadiusMeters === DEFAULT_RADIUS_M);
+    setOrDelete('mr', String(searchMinRating), searchMinRating === DEFAULT_MIN_RATING);
+    setOrDelete('q', searchKeyword, searchKeyword === DEFAULT_KEYWORD);
+    setOrDelete('cat', searchPlaceCategory, searchPlaceCategory === 'cafe');
+    setOrDelete('sort', searchSortMode, searchSortMode === DEFAULT_SORT_MODE);
+    const query = params.toString();
+    const target = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+    if (target !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState({}, '', target);
+    }
+  }, [searchRadiusMeters, searchMinRating, searchKeyword, searchPlaceCategory, searchSortMode]);
 
   const addAddressTemplate = useCallback((address: string) => {
     const clean = address.trim();
