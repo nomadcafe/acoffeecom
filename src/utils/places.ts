@@ -32,8 +32,8 @@ function nameMatchesKeyword(displayName: string, keyword: string): boolean {
 
 function mapPlacesToCoffeeShops(
   places: google.maps.places.Place[],
-  locationA: { lat: number; lng: number },
-  locationB: { lat: number; lng: number },
+  locationA: { lat: number; lng: number } | null,
+  locationB: { lat: number; lng: number } | null,
   midpoint: { lat: number; lng: number },
   minRating: number,
   searchRadiusMeters: number
@@ -55,8 +55,12 @@ function mapPlacesToCoffeeShops(
         lng,
         rating: p.rating ?? 0,
         userRatingsTotal: p.userRatingCount ?? 0,
-        distanceFromA: calculateDistance(locationA.lat, locationA.lng, lat, lng),
-        distanceFromB: calculateDistance(locationB.lat, locationB.lng, lat, lng),
+        distanceFromA: locationA
+          ? calculateDistance(locationA.lat, locationA.lng, lat, lng)
+          : undefined,
+        distanceFromB: locationB
+          ? calculateDistance(locationB.lat, locationB.lng, lat, lng)
+          : undefined,
         distanceFromMidpoint,
         googleMapsUri: gUri ? gUri : undefined,
       };
@@ -83,8 +87,8 @@ const NEARBY_FIELDS: string[] = [
 export async function searchCoffeeShops(
   _map: google.maps.Map,
   midpoint: { lat: number; lng: number },
-  locationA: { lat: number; lng: number },
-  locationB: { lat: number; lng: number },
+  locationA: { lat: number; lng: number } | null,
+  locationB: { lat: number; lng: number } | null,
   minRating: number = 4.0,
   radiusMeters: number = 1200,
   placeCategory: PlaceSearchCategory = 'cafe',

@@ -54,6 +54,7 @@ export function Map() {
     setSelectedCoffeeShopId,
     isLoading,
     searchPlaceCategory,
+    searchMode,
   } = useApp();
 
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -232,7 +233,10 @@ export function Map() {
   const center = midpoint || locationA || locationB || browserLocation || defaultCenter;
   const zoom = midpoint ? 15 : locationA || locationB ? 12 : browserLocation ? 11 : 12;
 
-  const showBrowserDot = browserLocation && !hasMeetupContext;
+  const isNearby = searchMode === 'nearby';
+  // In nearby mode, the midpoint IS the user's location — render the blue dot there
+  // and hide the orange midpoint marker so they don't overlap.
+  const youDotPosition = isNearby ? midpoint : !hasMeetupContext ? browserLocation : null;
   const showLocateUi = !hasMeetupContext;
 
   return (
@@ -246,9 +250,9 @@ export function Map() {
         onUnmount={onUnmount}
         onClick={onMapClick}
       >
-        {showBrowserDot ? (
+        {youDotPosition ? (
           <Marker
-            position={browserLocation}
+            position={youDotPosition}
             icon={{
               path: google.maps.SymbolPath.CIRCLE,
               scale: 11,
@@ -300,7 +304,7 @@ export function Map() {
           />
         )}
 
-        {midpoint && (
+        {midpoint && !isNearby && (
           <Marker
             position={midpoint}
             icon={{

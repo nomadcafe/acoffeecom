@@ -147,6 +147,42 @@
   margin-top: 0.5rem;
 }
 
+.nearMeButton {
+  margin-top: 1.25rem;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: #6f4e37;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.nearMeButton:hover:not(:disabled) {
+  background: #5a4030;
+}
+
+.nearMeButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.nearMeError {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.8rem;
+  color: #c62828;
+}
+
+.placeholderDivider {
+  margin: 1rem 0 0.75rem 0;
+  font-size: 0.8rem;
+  color: #b8a99a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .loadMoreRow {
   margin-top: 1rem;
   padding-top: 0.5rem;

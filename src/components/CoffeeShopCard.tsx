@@ -30,11 +30,12 @@ function renderStars(rating: number): string {
 
 export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
   const { t, locale } = useI18n();
-  const { isStarred, isVisited, visitCount, lastVisit, searchSortMode } = useApp();
+  const { isStarred, isVisited, visitCount, lastVisit, searchSortMode, searchMode } = useApp();
   const starred = isStarred(shop.id);
   const visited = isVisited(shop.id);
   const count = visitCount(shop.id);
   const last = lastVisit(shop.id);
+  const isNearby = searchMode === 'nearby';
   const fairnessGap =
     shop.distanceFromA != null && shop.distanceFromB != null
       ? Math.abs(shop.distanceFromA - shop.distanceFromB)
@@ -89,30 +90,46 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
 
         <div className={styles.distanceGroup}>
           <div className={styles.distances}>
-            <span
-              className={styles.distance}
-              title={t('card.distanceA')}
-            >
-              <span className={styles.distanceMarker} style={{ backgroundColor: '#4285f4' }}>A</span>
-              {shop.distanceFromA != null ? formatDistance(shop.distanceFromA) : '—'}
-            </span>
-            <span
-              className={styles.distance}
-              title={t('card.distanceB')}
-            >
-              <span className={styles.distanceMarker} style={{ backgroundColor: '#34a853' }}>B</span>
-              {shop.distanceFromB != null ? formatDistance(shop.distanceFromB) : '—'}
-            </span>
-            <span
-              className={styles.distance}
-              title={t('card.distanceM')}
-            >
-              <span className={styles.distanceMarker} style={{ backgroundColor: '#ff9800' }}>M</span>
-              {shop.distanceFromMidpoint != null ? formatDistance(shop.distanceFromMidpoint) : '—'}
-            </span>
+            {isNearby ? (
+              <span
+                className={styles.distance}
+                title={t('card.distanceYou')}
+              >
+                <span className={styles.distanceMarker} style={{ backgroundColor: '#1a73e8' }}>
+                  •
+                </span>
+                {shop.distanceFromMidpoint != null ? formatDistance(shop.distanceFromMidpoint) : '—'}
+              </span>
+            ) : (
+              <>
+                <span
+                  className={styles.distance}
+                  title={t('card.distanceA')}
+                >
+                  <span className={styles.distanceMarker} style={{ backgroundColor: '#4285f4' }}>A</span>
+                  {shop.distanceFromA != null ? formatDistance(shop.distanceFromA) : '—'}
+                </span>
+                <span
+                  className={styles.distance}
+                  title={t('card.distanceB')}
+                >
+                  <span className={styles.distanceMarker} style={{ backgroundColor: '#34a853' }}>B</span>
+                  {shop.distanceFromB != null ? formatDistance(shop.distanceFromB) : '—'}
+                </span>
+                <span
+                  className={styles.distance}
+                  title={t('card.distanceM')}
+                >
+                  <span className={styles.distanceMarker} style={{ backgroundColor: '#ff9800' }}>M</span>
+                  {shop.distanceFromMidpoint != null ? formatDistance(shop.distanceFromMidpoint) : '—'}
+                </span>
+              </>
+            )}
           </div>
-          <p className={styles.distanceHint}>{t('card.distanceHint')}</p>
-          {searchSortMode === 'fairness' && fairnessGap != null ? (
+          {!isNearby ? (
+            <p className={styles.distanceHint}>{t('card.distanceHint')}</p>
+          ) : null}
+          {!isNearby && searchSortMode === 'fairness' && fairnessGap != null ? (
             <p className={styles.distanceHint}>{t('card.fairnessGap', { gap: formatDistance(fairnessGap) })}</p>
           ) : null}
         </div>

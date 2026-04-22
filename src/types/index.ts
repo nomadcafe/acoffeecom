@@ -46,6 +46,9 @@ export interface VisitedShopSnapshot {
 
 export type SearchSortMode = 'rating' | 'fairness';
 
+/** 'meetup' = A+B midpoint search; 'nearby' = single-point search around the user. */
+export type SearchMode = 'meetup' | 'nearby';
+
 /** Nearby search primary-type group (Maps Places API). Default is cafés for coffee meetups. */
 export type PlaceSearchCategory = 'cafe' | 'restaurant' | 'lodging' | 'bar';
 
@@ -84,6 +87,8 @@ export interface AppState {
   searchPlaceCategory: PlaceSearchCategory;
   /** Sort strategy for result cards. */
   searchSortMode: SearchSortMode;
+  /** Meetup (A+B) vs nearby (single-point) search mode. */
+  searchMode: SearchMode;
   recentSearches: RecentSearchItem[];
   addressTemplates: string[];
 }

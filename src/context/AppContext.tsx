@@ -4,6 +4,7 @@ import type {
   Location,
   CoffeeShop,
   AppState,
+  SearchMode,
   SearchSortMode,
   RecentSearchItem,
   PlaceSearchCategory,
@@ -39,6 +40,7 @@ interface AppContextType extends AppState {
   addAddressTemplate: (address: string) => void;
   removeAddressTemplate: (address: string) => void;
   searchWithAddresses: (nextAddressA: string, nextAddressB: string) => Promise<void>;
+  searchAround: (center: { lat: number; lng: number }) => Promise<void>;
   widenSearchParams: () => void;
   clearError: () => void;
 }
@@ -137,18 +139,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchPlaceCategory, setSearchPlaceCategoryState] =
     useState<PlaceSearchCategory>(loadPlaceCategory);
   const [searchSortMode, setSearchSortMode] = useState<SearchSortMode>('rating');
+  const [searchMode, setSearchMode] = useState<SearchMode>('meetup');
   const [recentSearches, setRecentSearches] = useState<RecentSearchItem[]>(loadRecentSearches);
   const [addressTemplates, setAddressTemplates] = useState<string[]>(loadAddressTemplates);
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
-  // Stores the a/b values from URL params so the auto-search fires once after the map loads.
-  const pendingUrlSearch = useRef<{ a: string; b: string } | null>((() => {
+  // Stores URL-derived search intent so the auto-search fires once after the map loads.
+  // a+b → meetup search; near=lat,lng → nearby search.
+  const pendingUrlSearch = useRef<
+    | { kind: 'meetup'; a: string; b: string }
+    | { kind: 'nearby'; lat: number; lng: number }
+    | null
+  >((() => {
     const params = new URLSearchParams(window.location.search);
     const a = params.get('a')?.trim() ?? '';
     const b = params.get('b')?.trim() ?? '';
-    return a && b ? { a, b } : null;
+    if (a && b) return { kind: 'meetup', a, b };
+    const near = params.get('near')?.trim() ?? '';
+    if (near) {
+      const [latStr, lngStr] = near.split(',');
+      const lat = Number(latStr);
+      const lng = Number(lngStr);
+      if (
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        Math.abs(lat) <= 90 &&
+        Math.abs(lng) <= 180
+      ) {
+        return { kind: 'nearby', lat, lng };
+      }
+    }
+    return null;
   })());
 
   const { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred } = useStarredShops();
@@ -194,6 +217,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       setAddressA(a);
       setAddressB(b);
+      setSearchMode('meetup');
       setIsLoading(true);
       setError(null);
       setRawShops([]);
@@ -273,13 +297,67 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await searchWithAddresses(addressA, addressB);
   }, [addressA, addressB, searchWithAddresses, t]);
 
+  const searchAround = useCallback(
+    async (center: { lat: number; lng: number }) => {
+      if (!mapRef.current) {
+        setError(t('errors.mapNotLoaded'));
+        return;
+      }
+
+      setSearchMode('nearby');
+      setAddressA('');
+      setAddressB('');
+      setLocationA(null);
+      setLocationB(null);
+      setMidpoint(center);
+      setIsLoading(true);
+      setError(null);
+      setRawShops([]);
+      setSelectedCoffeeShopId(null);
+
+      try {
+        const { shops } = await searchCoffeeShops(
+          mapRef.current,
+          center,
+          null,
+          null,
+          searchMinRating,
+          searchRadiusMeters,
+          searchPlaceCategory,
+          searchKeyword
+        );
+        setRawShops(shops);
+
+        const params = new URLSearchParams();
+        params.set('near', `${center.lat.toFixed(5)},${center.lng.toFixed(5)}`);
+        const newQuery = `?${params.toString()}`;
+        if (newQuery !== window.location.search) {
+          window.history.replaceState(
+            {},
+            '',
+            `${window.location.pathname}${newQuery}${window.location.hash}`
+          );
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : t('errors.generic'));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, t]
+  );
+
   // Auto-search from URL params once the map instance is ready.
   useEffect(() => {
     if (!isMapReady || !pendingUrlSearch.current) return;
-    const { a, b } = pendingUrlSearch.current;
+    const pending = pendingUrlSearch.current;
     pendingUrlSearch.current = null;
-    void searchWithAddresses(a, b);
-  }, [isMapReady, searchWithAddresses]);
+    if (pending.kind === 'meetup') {
+      void searchWithAddresses(pending.a, pending.b);
+    } else {
+      void searchAround({ lat: pending.lat, lng: pending.lng });
+    }
+  }, [isMapReady, searchWithAddresses, searchAround]);
 
   const addAddressTemplate = useCallback((address: string) => {
     const clean = address.trim();
@@ -334,6 +412,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchKeyword,
       searchPlaceCategory,
       searchSortMode,
+      searchMode,
       recentSearches,
       addressTemplates,
       addressA,
@@ -349,6 +428,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clearError,
       findMeetupSpot,
       searchWithAddresses,
+      searchAround,
       toggleStar,
       updateStarredNote,
       addAddressTemplate,
@@ -377,6 +457,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchKeyword,
       searchPlaceCategory,
       searchSortMode,
+      searchMode,
       recentSearches,
       addressTemplates,
       addressA,
@@ -386,6 +467,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clearError,
       findMeetupSpot,
       searchWithAddresses,
+      searchAround,
       toggleStar,
       updateStarredNote,
       addAddressTemplate,
