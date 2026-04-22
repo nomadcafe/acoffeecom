@@ -51,28 +51,30 @@
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--ac-border-strong);
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+  background: var(--ac-surface);
+  color: var(--ac-text);
 }
 
 .input:focus {
   outline: none;
-  border-color: #6f4e37;
-  box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.1);
+  border-color: var(--ac-accent);
+  box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.12);
 }
 
 .input:disabled {
-  background: #f5f5f5;
+  background: var(--ac-surface-tinted);
   cursor: not-allowed;
 }
 
 .button {
   width: 100%;
   padding: 0.95rem 1rem;
-  background: #6f4e37;
+  background: var(--ac-accent);
   color: white;
   border: none;
   border-radius: 8px;
@@ -85,7 +87,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background: #5a3f2d;
+  background: var(--ac-accent-dark);
   transform: translateY(-1px);
 }
 
@@ -105,9 +107,9 @@
 }
 
 .miniButton {
-  border: 1px solid #d5c8be;
-  background: #fff;
-  color: #6f4e37;
+  border: 1px solid var(--ac-border-strong);
+  background: var(--ac-surface);
+  color: var(--ac-accent);
   border-radius: 7px;
   font-size: 0.76rem;
   font-weight: 600;
@@ -122,7 +124,7 @@
 
 .quickBlock {
   margin-top: 0.9rem;
-  border-top: 1px dashed #e7ddd6;
+  border-top: 1px dashed var(--ac-border);
   padding-top: 0.75rem;
 }
 
@@ -140,9 +142,9 @@
 }
 
 .templateItem {
-  border: 1px solid #eee;
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
-  background: #faf8f6;
+  background: var(--ac-surface-tinted);
   padding: 0.45rem 0.55rem;
 }
 
@@ -163,9 +165,9 @@
 
 .templateButton,
 .templateButtonDanger {
-  border: 1px solid #d5c8be;
-  background: #fff;
-  color: #6f4e37;
+  border: 1px solid var(--ac-border-strong);
+  background: var(--ac-surface);
+  color: var(--ac-accent);
   border-radius: 7px;
   font-size: 0.68rem;
   font-weight: 600;
@@ -185,9 +187,9 @@
 }
 
 .recentItem {
-  border: 1px solid #ece3dc;
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--ac-surface);
   padding: 0.45rem 0.55rem;
   text-align: left;
   cursor: pointer;
@@ -240,8 +242,8 @@
 }
 
 .errorRetry {
-  border: 1px solid #6f4e37;
-  background: #6f4e37;
+  border: 1px solid var(--ac-accent);
+  background: var(--ac-accent);
   color: #fff;
 }
 

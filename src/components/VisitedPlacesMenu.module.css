@@ -8,29 +8,32 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.4rem 0.65rem;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: var(--ac-surface);
+  color: var(--ac-text-muted);
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .trigger:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.65);
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-border-strong);
+  color: var(--ac-text);
 }
 
 .trigger:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--ac-accent);
   outline-offset: 2px;
 }
 
 .triggerOpen {
-  background: rgba(255, 255, 255, 0.26);
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-accent);
+  color: var(--ac-accent);
 }
 
 .triggerIcon {
@@ -46,8 +49,8 @@
   min-width: 1.1rem;
   padding: 0.08rem 0.35rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #5a4030;
+  background: var(--ac-accent);
+  color: #fff;
   font-size: 0.68rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -61,10 +64,10 @@
   max-height: min(70vh, 440px);
   overflow-y: auto;
   padding: 0.75rem 0.85rem;
-  background: #faf8f6;
-  border: 1px solid #e5ddd6;
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
   border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--ac-shadow-pop);
   z-index: 300;
 }
 
@@ -88,7 +91,7 @@
 
 .viewFullLink {
   font-size: 0.72rem;
-  color: #6f4e37;
+  color: var(--ac-accent);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -111,8 +114,8 @@
   gap: 0.6rem;
   margin-bottom: 0.55rem;
   padding: 0.55rem 0.7rem;
-  background: #fff6ea;
-  border: 1px solid #ead7bc;
+  background: var(--ac-surface-tinted);
+  border: 1px solid var(--ac-border);
   border-radius: 10px;
 }
 
@@ -143,9 +146,9 @@
 .shareButton {
   flex-shrink: 0;
   padding: 0.38rem 0.7rem;
-  border: 1px solid #6b4423;
+  border: 1px solid var(--ac-accent);
   border-radius: 8px;
-  background: #6b4423;
+  background: var(--ac-accent);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 600;
@@ -155,7 +158,7 @@
 }
 
 .shareButton:hover:not(:disabled) {
-  background: #523318;
+  background: var(--ac-accent-dark);
 }
 
 .shareButton:active:not(:disabled) {
@@ -219,8 +222,8 @@
   gap: 0.5rem;
   align-items: flex-start;
   padding: 0.5rem 0.6rem;
-  background: #fff;
-  border: 1px solid #ece2d6;
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
 }
 

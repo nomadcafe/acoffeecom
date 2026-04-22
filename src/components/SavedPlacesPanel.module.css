@@ -27,10 +27,10 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.65rem 0.75rem;
-  background: #fff;
+  background: var(--ac-surface);
   border-radius: 10px;
-  border: 1px solid #eee;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--ac-border);
+  box-shadow: 0 1px 2px rgba(111, 78, 55, 0.04);
 }
 
 .rowMain {
@@ -51,7 +51,7 @@
 }
 
 .rowMainClickable:focus-visible {
-  outline: 2px solid #6f4e37;
+  outline: 2px solid var(--ac-accent);
   outline-offset: 2px;
 }
 
@@ -109,17 +109,17 @@
 
 .noteInput {
   width: 100%;
-  border: 1px solid #e2ddd8;
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--ac-surface);
   font-size: 0.74rem;
-  color: #555;
+  color: var(--ac-text-muted);
   padding: 0.38rem 0.55rem;
   box-sizing: border-box;
 }
 
 .noteInput:focus {
   outline: none;
-  border-color: #b9a89a;
+  border-color: var(--ac-border-strong);
   box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
 }
