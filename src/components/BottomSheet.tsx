@@ -18,11 +18,6 @@ interface Props {
   children: ReactNode;
 }
 
-/**
- * Total sheet height as a fraction of viewport. The sheet is always this tall;
- * the snap states slide it up/down so only a portion is visible.
- */
-const SHEET_VH = 0.9;
 /** Visible portion of the sheet when peeked (handle + one line of content). */
 const PEEK_PX = 136;
 /** Fraction of viewport visible at half snap. */
@@ -30,8 +25,12 @@ const HALF_FRACTION = 0.52;
 /** Drag distance in px that triggers a snap even if the absolute position is closer to the previous snap. */
 const VELOCITY_TRIGGER_PX = 60;
 
-function getSnapOffsetPx(snap: Snap, viewportH: number): number {
-  const sheetH = SHEET_VH * viewportH;
+/**
+ * @param snap target snap point
+ * @param sheetH measured sheet height in px (matches `height: 90dvh` in CSS)
+ * @param viewportH current visible viewport height in px
+ */
+function getSnapOffsetPx(snap: Snap, sheetH: number, viewportH: number): number {
   if (snap === 'full') return 0;
   if (snap === 'half') return Math.max(0, sheetH - HALF_FRACTION * viewportH);
   return Math.max(0, sheetH - PEEK_PX);
@@ -48,10 +47,12 @@ export function BottomSheet({ children }: Props) {
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (!sheetRef.current) return;
       e.currentTarget.setPointerCapture(e.pointerId);
+      const sheetH = sheetRef.current.offsetHeight;
       dragStart.current = {
         y: e.clientY,
-        offset: getSnapOffsetPx(snap, window.innerHeight),
+        offset: getSnapOffsetPx(snap, sheetH, window.innerHeight),
       };
       setDragOffset(dragStart.current.offset);
     },
@@ -59,19 +60,20 @@ export function BottomSheet({ children }: Props) {
   );
 
   const onPointerMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!dragStart.current) return;
+    if (!dragStart.current || !sheetRef.current) return;
     const dy = e.clientY - dragStart.current.y;
-    const sheetH = SHEET_VH * window.innerHeight;
+    const sheetH = sheetRef.current.offsetHeight;
     const next = Math.max(0, Math.min(sheetH, dragStart.current.offset + dy));
     setDragOffset(next);
   }, []);
 
   const onPointerEnd = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
-      if (!dragStart.current) return;
+      if (!dragStart.current || !sheetRef.current) return;
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget.releasePointerCapture(e.pointerId);
       }
+      const sheetH = sheetRef.current.offsetHeight;
       const currentOffset = dragOffset ?? dragStart.current.offset;
       const startOffset = dragStart.current.offset;
       const dragged = currentOffset - startOffset;
@@ -94,7 +96,7 @@ export function BottomSheet({ children }: Props) {
       let nearest: Snap = snap;
       let nearestDiff = Infinity;
       for (const s of SNAP_ORDER) {
-        const diff = Math.abs(getSnapOffsetPx(s, window.innerHeight) - currentOffset);
+        const diff = Math.abs(getSnapOffsetPx(s, sheetH, window.innerHeight) - currentOffset);
         if (diff < nearestDiff) {
           nearestDiff = diff;
           nearest = s;

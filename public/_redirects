@@ -4,3 +4,9 @@
 /en/*  /index.html   200
 /ja/*  /index.html   200
 /zh/*  /index.html   200
+
+# SPA fallback: any other path (e.g. bare /passport, /updatelog) is routed
+# client-side. Netlify evaluates rules top-down and skips this for real
+# files in the build output (assets, sitemap, manifest, sw), so hashed JS
+# and the service worker still serve normally.
+/*     /index.html   200

@@ -98,10 +98,11 @@ body {
 
 .map-section {
   /* Mobile: fill the space between header and bottom nav. The BottomSheet
-     overlays the lower portion. */
+     overlays the lower portion. dvh tracks iOS toolbar / soft keyboard. */
   flex: 1;
   min-height: 0;
   height: calc(100vh - 3.75rem - var(--bottom-nav-safe));
+  height: calc(100dvh - 3.75rem - var(--bottom-nav-safe));
   border-radius: 0;
   overflow: hidden;
 }
