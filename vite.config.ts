@@ -33,7 +33,7 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//, /^\/_/],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/ipwho\.is\//,
+            urlPattern: /^https:\/\/ipapi\.co\//,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'ip-location',

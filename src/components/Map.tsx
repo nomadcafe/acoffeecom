@@ -136,12 +136,12 @@ export function Map() {
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5_000);
-    fetch('https://ipwho.is/', { signal: controller.signal })
+    fetch('https://ipapi.co/json/', { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => {
         if (
           data &&
-          data.success &&
+          !data.error &&
           typeof data.latitude === 'number' &&
           typeof data.longitude === 'number'
         ) {
