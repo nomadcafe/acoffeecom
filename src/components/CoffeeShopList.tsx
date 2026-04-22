@@ -127,7 +127,9 @@ export function CoffeeShopList() {
     return (
       <div className={styles.container}>
         <div className={styles.placeholder}>
-          <p>
+          <h1 className={styles.heroTitle}>{t('app.title')}</h1>
+          <p className={styles.heroTagline}>{t('app.tagline')}</p>
+          <p className={styles.placeholderLead}>
             {t(
               searchPlaceCategory === 'cafe' ? 'list.placeholderCoffee' : 'list.placeholderMeetup'
             )}

@@ -26,15 +26,10 @@ function AppShell() {
     <div className="app">
       <header className="header">
         <div className="headerInner">
-          <div className="headerBrand">
-            <a className="logo" href={homeHref}>
-              <img src="/logo.png" alt={t('app.logoAlt')} className="logoImage" width={460} height={130} />
-            </a>
-          </div>
-          <div className="headerTitles">
-            <h1>{t('app.title')}</h1>
-            <p>{t('app.tagline')}</p>
-          </div>
+          <a className="logo" href={homeHref} aria-label={t('app.logoAlt')}>
+            <img src="/logo.png" alt="" className="logoImage" width={40} height={40} />
+            <span className="logoWordmark">ACoffee</span>
+          </a>
           <div className="headerAside headerAsideBar">
             <VisitedPlacesMenu />
             <SavedPlacesMenu />

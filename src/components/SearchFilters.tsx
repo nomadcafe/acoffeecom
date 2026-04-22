@@ -52,6 +52,19 @@ export function SearchFilters() {
 
   const isCafeMode = searchPlaceCategory === 'cafe';
 
+  const summaryParts = [
+    t(CATEGORY_LABEL_KEY[searchPlaceCategory]),
+    `${searchMinRating.toFixed(1)}★`,
+    formatRadius(searchRadiusMeters),
+  ];
+  if (isCafeMode && searchKeyword.trim() && searchKeyword.trim().toLowerCase() !== 'coffee') {
+    summaryParts.push(`“${searchKeyword.trim()}”`);
+  }
+  if (searchSortMode === 'fairness') {
+    summaryParts.push(t('filters.sortFairness'));
+  }
+  const summary = summaryParts.join(' · ');
+
   return (
     <section className={styles.container} aria-labelledby={filtersHeadingId}>
       <h2 id={filtersHeadingId} className={styles.titleWrap}>
@@ -62,8 +75,14 @@ export function SearchFilters() {
           aria-controls={filtersPanelId}
           onClick={() => setFiltersExpanded((v) => !v)}
         >
-          <span className={styles.disclosureSpacer} aria-hidden />
           <span className={styles.titleText}>{t('filters.title')}</span>
+          {!filtersExpanded ? (
+            <span className={styles.summaryText} aria-hidden>
+              {summary}
+            </span>
+          ) : (
+            <span className={styles.summarySpacer} aria-hidden />
+          )}
           <span className={styles.disclosureChevron} aria-hidden>
             {filtersExpanded ? '▾' : '▸'}
           </span>

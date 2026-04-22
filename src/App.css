@@ -18,78 +18,67 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #6f4e37 0%, #8b6b4f 100%);
-  color: white;
-  padding: 1.15rem 1.5rem;
+  background: #fff;
+  color: #2c1810;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #ece4db;
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .headerInner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 0.75rem 1rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.headerBrand {
-  justify-self: start;
+  min-height: 2.75rem;
 }
 
 .headerAside {
-  justify-self: end;
-  align-self: start;
+  display: flex;
+  align-items: center;
 }
 
 .headerAsideBar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .logo {
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
   text-decoration: none;
-  line-height: 0;
+  color: inherit;
   transition: opacity 0.15s ease;
 }
 
 .logo:hover {
-  opacity: 0.88;
+  opacity: 0.85;
 }
 
 .logoImage {
   display: block;
-  height: 5.875rem;
-  width: auto;
-  max-width: min(28rem, 90vw);
+  width: 2rem;
+  height: 2rem;
   object-fit: contain;
 }
 
+.logoWordmark {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 .logo:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 4px;
-  border-radius: 50%;
-}
-
-.headerTitles {
-  text-align: center;
-  max-width: min(100%, 28rem);
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.header p {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.9rem;
-  opacity: 0.9;
+  outline: 2px solid #6f4e37;
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .main {
@@ -124,38 +113,19 @@ body {
   min-height: 50vh;
 }
 
-@media (max-width: 560px) {
-  .headerInner {
-    grid-template-columns: 1fr;
-  }
-
-  .headerTitles {
-    text-align: center;
-    max-width: none;
-    order: 2;
-  }
-
-  .headerBrand {
-    order: 1;
-  }
-
-  .headerAside {
-    order: 3;
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-  }
-}
-
 /* Desktop layout */
 @media (min-width: 768px) {
-  .header h1 {
-    font-size: 1.75rem;
+  .header {
+    padding: 0.55rem 1.5rem;
   }
 
   .logoImage {
-    height: 7.5rem;
-    max-width: 35rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .logoWordmark {
+    font-size: 1.15rem;
   }
 
   .main {
