@@ -42,6 +42,7 @@ interface AppContextType extends AppState {
   setSearchKeyword: (value: string) => void;
   setSearchPlaceCategory: (value: PlaceSearchCategory) => void;
   setSearchSortMode: (value: SearchSortMode) => void;
+  setSearchOpenNow: (value: boolean) => void;
   updateStarredNote: (shopId: string, note: string) => void;
   addAddressTemplate: (address: string) => void;
   removeAddressTemplate: (address: string) => void;
@@ -185,6 +186,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const v = new URLSearchParams(window.location.search).get('sort');
     return v === 'fairness' || v === 'rating' ? v : DEFAULT_SORT_MODE;
   });
+  const [searchOpenNow, setSearchOpenNow] = useState<boolean>(() => {
+    return new URLSearchParams(window.location.search).get('open') === '1';
+  });
   const [searchMode, setSearchMode] = useState<SearchMode>('meetup');
   const [recentSearches, setRecentSearches] = useState<RecentSearchItem[]>(loadRecentSearches);
   const [addressTemplates, setAddressTemplates] = useState<string[]>(loadAddressTemplates);
@@ -294,7 +298,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           searchMinRating,
           searchRadiusMeters,
           searchPlaceCategory,
-          searchKeyword
+          searchKeyword,
+          searchOpenNow
         );
         setRawShops(shops);
 
@@ -334,7 +339,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, t]
+    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, searchOpenNow, t]
   );
 
   const findMeetupSpot = useCallback(async () => {
@@ -372,7 +377,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           searchMinRating,
           searchRadiusMeters,
           searchPlaceCategory,
-          searchKeyword
+          searchKeyword,
+          searchOpenNow
         );
         setRawShops(shops);
 
@@ -394,7 +400,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, t]
+    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, searchOpenNow, t]
   );
 
   // Auto-search from URL params once the map instance is ready.
@@ -423,12 +429,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setOrDelete('q', searchKeyword, searchKeyword === DEFAULT_KEYWORD);
     setOrDelete('cat', searchPlaceCategory, searchPlaceCategory === 'cafe');
     setOrDelete('sort', searchSortMode, searchSortMode === DEFAULT_SORT_MODE);
+    setOrDelete('open', '1', !searchOpenNow);
     const query = params.toString();
     const target = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
     if (target !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState({}, '', target);
     }
-  }, [searchRadiusMeters, searchMinRating, searchKeyword, searchPlaceCategory, searchSortMode]);
+  }, [searchRadiusMeters, searchMinRating, searchKeyword, searchPlaceCategory, searchSortMode, searchOpenNow]);
 
   const addAddressTemplate = useCallback((address: string) => {
     const clean = address.trim();
@@ -484,6 +491,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchPlaceCategory,
       searchSortMode,
       searchMode,
+      searchOpenNow,
+      setSearchOpenNow,
       recentSearches,
       addressTemplates,
       addressA,
@@ -529,6 +538,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchPlaceCategory,
       searchSortMode,
       searchMode,
+      searchOpenNow,
       recentSearches,
       addressTemplates,
       addressA,

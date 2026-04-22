@@ -89,6 +89,8 @@ export interface AppState {
   searchSortMode: SearchSortMode;
   /** Meetup (A+B) vs nearby (single-point) search mode. */
   searchMode: SearchMode;
+  /** When true, hide results that are not currently open. */
+  searchOpenNow: boolean;
   recentSearches: RecentSearchItem[];
   addressTemplates: string[];
 }

@@ -218,3 +218,28 @@
   text-align: center;
   line-height: 1.4;
 }
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleInput {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--ac-accent);
+  cursor: pointer;
+}
+
+.toggleInput:disabled {
+  cursor: not-allowed;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #555;
+}

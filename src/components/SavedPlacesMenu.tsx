@@ -46,6 +46,11 @@ export function SavedPlacesMenu() {
     (focusable ?? dropdownRef.current).focus();
   }, [open]);
 
+  // First-run clean surface: hide the trigger entirely until the user has
+  // starred at least one café. Reappears as soon as they do. Placed after
+  // all hooks so render order stays stable.
+  if (count === 0) return null;
+
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <button

@@ -43,6 +43,8 @@ export function SearchFilters() {
     setSearchPlaceCategory,
     searchSortMode,
     setSearchSortMode,
+    searchOpenNow,
+    setSearchOpenNow,
     widenSearchParams,
     isLoading,
   } = useApp();
@@ -62,6 +64,9 @@ export function SearchFilters() {
   }
   if (searchSortMode === 'fairness') {
     summaryParts.push(t('filters.sortFairness'));
+  }
+  if (searchOpenNow) {
+    summaryParts.push(t('filters.openNowShort'));
   }
   const summary = summaryParts.join(' · ');
 
@@ -180,6 +185,20 @@ export function SearchFilters() {
             <option value="fairness">{t('filters.sortFairness')}</option>
           </select>
           <p className={styles.hint}>{t('filters.sortHint')}</p>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.toggleRow}>
+            <input
+              type="checkbox"
+              className={styles.toggleInput}
+              checked={searchOpenNow}
+              onChange={(e) => setSearchOpenNow(e.target.checked)}
+              disabled={isLoading}
+            />
+            <span className={styles.toggleLabel}>{t('filters.openNow')}</span>
+          </label>
+          <p className={styles.hint}>{t('filters.openNowHint')}</p>
         </div>
 
         {isCafeMode ? (

@@ -116,6 +116,9 @@ export const en: MessageDict = {
   'filters.sortRating': 'Rating (default)',
   'filters.sortFairness': 'Fairness between A and B',
   'filters.sortHint': 'Fairness prioritizes places with a smaller distance gap between both people.',
+  'filters.openNow': 'Open now only',
+  'filters.openNowShort': 'Open now',
+  'filters.openNowHint': 'Hides cafés that are closed or have unknown hours.',
   'filters.keywordPlaceholderCafe': 'e.g. espresso, brunch, roaster',
   'filters.keywordHintCafe':
     'Optional. Each word must appear in the café name (the map API has no free-text search). Leave empty or use “coffee” for all nearby cafés.',
@@ -351,6 +354,9 @@ export const ja: MessageDict = {
   'filters.sortRating': '評価（デフォルト）',
   'filters.sortFairness': 'A/B の公平さ',
   'filters.sortHint': '公平さは、二人の距離差が小さい店を優先します。',
+  'filters.openNow': '営業中のみ',
+  'filters.openNowShort': '営業中',
+  'filters.openNowHint': '閉店中や営業時間不明のお店を除外します。',
   'filters.keywordPlaceholderCafe': '例：エスプレッソ、ブランチ、ロースター',
   'filters.keywordHintCafe':
     '任意。各語が店名に含まれるものだけ残します（地図 API は自由テキスト検索に非対応）。空欄または「coffee」で近くのカフェすべて。',
@@ -578,6 +584,9 @@ export const zh: MessageDict = {
   'filters.sortRating': '评分（默认）',
   'filters.sortFairness': 'A/B 公平度',
   'filters.sortHint': '公平度会优先显示两人距离差更小的店。',
+  'filters.openNow': '仅显示营业中',
+  'filters.openNowShort': '营业中',
+  'filters.openNowHint': '隐藏已打烊或营业时间未知的店。',
   'filters.keywordPlaceholderCafe': '例如：espresso、brunch、手冲',
   'filters.keywordHintCafe':
     '可选。每个词都需在店名中出现（地图接口不支持自由文本搜索）。留空或填 coffee 表示不按名字筛选。',

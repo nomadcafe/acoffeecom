@@ -140,6 +140,11 @@ export function VisitedPlacesMenu() {
     return () => window.clearTimeout(id);
   }, [shareStatus]);
 
+  // First-run clean surface: hide the trigger entirely until the user has
+  // marked at least one café as visited. Reappears as soon as they do.
+  // Placed after all hooks so render order stays stable.
+  if (count === 0) return null;
+
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <button
