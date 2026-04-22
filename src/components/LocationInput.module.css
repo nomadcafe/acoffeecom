@@ -1,9 +1,9 @@
 .container {
-  background: white;
+  background: var(--ac-surface);
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(111, 78, 55, 0.12);
+  box-shadow: var(--ac-shadow-card);
+  border: 1px solid var(--ac-border);
 }
 
 .title {

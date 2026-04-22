@@ -1,14 +1,15 @@
 .card {
-  background: white;
-  border-radius: 10px;
+  background: var(--ac-surface);
+  border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s;
+  box-shadow: var(--ac-shadow-card);
+  transition: box-shadow 0.2s, transform 0.15s ease;
   position: relative;
 }
 
 .card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ac-shadow-card-hover);
+  transform: translateY(-1px);
 }
 
 .card.starred {

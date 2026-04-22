@@ -1,8 +1,8 @@
 .container {
-  background: #f6f4f2;
+  background: var(--ac-surface-tinted);
   padding: 1rem 1.25rem;
   border-radius: 12px;
-  border: 1px solid #e8e4e0;
+  border: 1px solid var(--ac-border);
   box-shadow: none;
 }
 

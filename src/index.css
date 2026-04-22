@@ -3,6 +3,20 @@
     Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   line-height: 1.5;
   font-weight: 400;
+
+  /* Paper / cream palette — coffee brown is an accent, not a background. */
+  --ac-page-bg: #faf7f2;
+  --ac-surface: #ffffff;
+  --ac-surface-tinted: #f6f2ec;
+  --ac-border: #ece4db;
+  --ac-border-strong: #d6c7bb;
+  --ac-accent: #6f4e37;
+  --ac-accent-dark: #5a3f2d;
+  --ac-text: #2c1810;
+  --ac-text-muted: #6b5848;
+  --ac-shadow-card: 0 1px 3px rgba(111, 78, 55, 0.06), 0 4px 16px rgba(111, 78, 55, 0.05);
+  --ac-shadow-card-hover: 0 2px 6px rgba(111, 78, 55, 0.1), 0 8px 24px rgba(111, 78, 55, 0.08);
+  --ac-shadow-pop: 0 12px 40px rgba(44, 24, 16, 0.14);
 }
 
 * {
@@ -13,4 +27,5 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--ac-text);
 }
