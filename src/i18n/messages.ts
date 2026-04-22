@@ -50,6 +50,12 @@ export const en: MessageDict = {
   'location.templateToA': 'Use as A',
   'location.templateToB': 'Use as B',
   'location.removeTemplate': 'Remove',
+  'location.examplesTitle': 'Or try one of these:',
+
+  'hero.stepsLabel': 'How it works',
+  'hero.step1': 'Enter two places',
+  'hero.step2': 'We find the midpoint',
+  'hero.step3': 'Browse top-rated cafés',
 
   'list.loadingCoffee': 'Finding great coffee spots…',
   'list.loadingMeetup': 'Finding meetup spots…',
@@ -278,6 +284,12 @@ export const ja: MessageDict = {
   'location.templateToA': 'Aに使う',
   'location.templateToB': 'Bに使う',
   'location.removeTemplate': '削除',
+  'location.examplesTitle': 'こちらで試すこともできます：',
+
+  'hero.stepsLabel': '使い方',
+  'hero.step1': '2 か所を入力',
+  'hero.step2': '中間地点を計算',
+  'hero.step3': '高評価カフェを表示',
 
   'list.loadingCoffee': 'カフェを探しています…',
   'list.loadingMeetup': '待ち合わせ候補を探しています…',
@@ -498,6 +510,12 @@ export const zh: MessageDict = {
   'location.templateToA': '填入 A',
   'location.templateToB': '填入 B',
   'location.removeTemplate': '删除',
+  'location.examplesTitle': '或者试试：',
+
+  'hero.stepsLabel': '使用方法',
+  'hero.step1': '输入两个地点',
+  'hero.step2': '找到中点',
+  'hero.step3': '浏览高分咖啡店',
 
   'list.loadingCoffee': '正在查找咖啡好店…',
   'list.loadingMeetup': '正在查找会面地点…',

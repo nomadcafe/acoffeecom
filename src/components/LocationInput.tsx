@@ -3,10 +3,11 @@ import type { FormEvent } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { RichText } from './RichText';
+import { examplePairsByLocale } from '../i18n/examples';
 import styles from './LocationInput.module.css';
 
 export function LocationInput() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const {
     addressA,
     addressB,
@@ -22,6 +23,9 @@ export function LocationInput() {
     error,
     clearError,
   } = useApp();
+  // Only show demo pairs to first-time users — once they've run a real
+  // search (recentSearches populated), hide to reduce clutter.
+  const examplePairs = recentSearches.length === 0 ? examplePairsByLocale[locale] : [];
   const inputARef = useRef<HTMLInputElement | null>(null);
   const inputBRef = useRef<HTMLInputElement | null>(null);
 
@@ -212,6 +216,29 @@ export function LocationInput() {
       <button type="submit" className={styles.button} disabled={isLoading}>
         {isLoading ? t('location.searching') : t('location.findButton')}
       </button>
+
+      {examplePairs.length > 0 ? (
+        <div className={styles.examples}>
+          <p className={styles.examplesTitle}>{t('location.examplesTitle')}</p>
+          <div className={styles.examplesList}>
+            {examplePairs.map((pair) => (
+              <button
+                key={`${pair.a}|${pair.b}`}
+                type="button"
+                className={styles.exampleButton}
+                onClick={() => void searchWithAddresses(pair.a, pair.b)}
+                disabled={isLoading}
+              >
+                <span className={styles.exampleA}>{pair.a}</span>
+                <span className={styles.exampleArrow} aria-hidden>
+                  →
+                </span>
+                <span className={styles.exampleB}>{pair.b}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </form>
   );
 }
