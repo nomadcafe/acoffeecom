@@ -95,8 +95,8 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
                 className={styles.distance}
                 title={t('card.distanceYou')}
               >
-                <span className={styles.distanceMarker} style={{ backgroundColor: '#1a73e8' }}>
-                  •
+                <span className={styles.distanceMarker} style={{ color: '#1a73e8' }}>
+                  {t('card.distanceYouShort')}
                 </span>
                 {shop.distanceFromMidpoint != null ? formatDistance(shop.distanceFromMidpoint) : '—'}
               </span>
@@ -106,21 +106,27 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
                   className={styles.distance}
                   title={t('card.distanceA')}
                 >
-                  <span className={styles.distanceMarker} style={{ backgroundColor: '#4285f4' }}>A</span>
+                  <span className={styles.distanceMarker} style={{ color: '#4285f4' }}>A</span>
                   {shop.distanceFromA != null ? formatDistance(shop.distanceFromA) : '—'}
+                </span>
+                <span className={styles.distanceSep} aria-hidden>
+                  ·
                 </span>
                 <span
                   className={styles.distance}
                   title={t('card.distanceB')}
                 >
-                  <span className={styles.distanceMarker} style={{ backgroundColor: '#34a853' }}>B</span>
+                  <span className={styles.distanceMarker} style={{ color: '#34a853' }}>B</span>
                   {shop.distanceFromB != null ? formatDistance(shop.distanceFromB) : '—'}
+                </span>
+                <span className={styles.distanceSep} aria-hidden>
+                  ·
                 </span>
                 <span
                   className={styles.distance}
                   title={t('card.distanceM')}
                 >
-                  <span className={styles.distanceMarker} style={{ backgroundColor: '#ff9800' }}>M</span>
+                  <span className={styles.distanceMarker} style={{ color: '#ff9800' }}>M</span>
                   {shop.distanceFromMidpoint != null ? formatDistance(shop.distanceFromMidpoint) : '—'}
                 </span>
               </>

@@ -89,6 +89,7 @@ export const en: MessageDict = {
   'card.distanceB': 'Straight-line distance from location B',
   'card.distanceM': 'Distance from the meetup midpoint (search radius is measured from here)',
   'card.distanceYou': 'Straight-line distance from you',
+  'card.distanceYouShort': 'You',
   'card.distanceHint':
     'M = meetup midpoint (search center). A/B can be farther than your radius when the two addresses are far apart.',
   'card.fairnessGap': 'Fairness gap (|A-B|): {{gap}}',
@@ -323,6 +324,7 @@ export const ja: MessageDict = {
   'card.distanceB': '場所Bからの直線距離',
   'card.distanceM': '待ち合わせ中間地点からの距離（検索の基準はここです）',
   'card.distanceYou': '現在地からの直線距離',
+  'card.distanceYouShort': '現在地',
   'card.distanceHint':
     'M＝待ち合わせの中間地点（検索の中心）。A/Bは人それぞれの距離のため、二人が離れていると検索半径より大きく表示されることがあります。',
   'card.fairnessGap': '公平差（|A-B|）: {{gap}}',
@@ -550,6 +552,7 @@ export const zh: MessageDict = {
   'card.distanceB': '距 B 点的直线距离',
   'card.distanceM': '距会面中点的距离（搜索半径以此为准）',
   'card.distanceYou': '距你当前位置的直线距离',
+  'card.distanceYouShort': '你',
   'card.distanceHint': 'M = 会面中点（搜索中心）。当两人距离较远时，A/B 距离可能大于搜索半径。',
   'card.fairnessGap': '公平差（|A-B|）：{{gap}}',
   'card.openNow': '营业中',

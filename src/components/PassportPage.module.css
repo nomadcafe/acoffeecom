@@ -70,13 +70,16 @@
 
 .pageTitle {
   margin: 0 0 0.5rem 0;
-  font-size: 1.85rem;
-  font-weight: 700;
+  font-family: var(--ac-font-display);
+  font-size: 2.1rem;
+  font-weight: 600;
   color: var(--ac-text);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  font-variation-settings: 'opsz' 144;
 }
 
 .pageTitleGlyph {
@@ -318,7 +321,7 @@
 
 @media (min-width: 768px) {
   .pageTitle {
-    font-size: 2.2rem;
+    font-size: 2.6rem;
   }
 
   .main {

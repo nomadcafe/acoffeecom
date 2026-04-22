@@ -70,9 +70,11 @@ body {
 }
 
 .logoWordmark {
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-family: var(--ac-font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variation-settings: 'opsz' 30;
 }
 
 .logo:focus-visible {
@@ -129,7 +131,7 @@ body {
   }
 
   .logoWordmark {
-    font-size: 1.15rem;
+    font-size: 1.3rem;
   }
 
   .main {

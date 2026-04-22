@@ -69,18 +69,19 @@
 
 .name {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ac-text);
+  letter-spacing: -0.005em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .address {
-  margin: 0.25rem 0 0 0;
+  margin: 0.2rem 0 0 0;
   font-size: 0.8rem;
-  color: #777;
+  color: var(--ac-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -148,23 +149,26 @@
 }
 
 .distance {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8rem;
-  color: #555;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--ac-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .distanceMarker {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 0.6rem;
-  font-weight: bold;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  /* Colour is applied inline (A=blue, B=green, M=orange, You=blue). */
+}
+
+.distanceSep {
+  color: var(--ac-border-strong);
+  font-size: 0.75rem;
+  line-height: 1;
+  align-self: center;
 }
 
 .openStatus {

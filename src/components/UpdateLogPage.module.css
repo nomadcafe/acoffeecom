@@ -72,9 +72,13 @@
 
 .pageTitle {
   margin: 0 0 0.35rem 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #3d2e26;
+  font-family: var(--ac-font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--ac-text);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  font-variation-settings: 'opsz' 96;
 }
 
 .lead {
@@ -138,6 +142,6 @@
   }
 
   .pageTitle {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 }
