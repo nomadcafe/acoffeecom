@@ -57,7 +57,23 @@ export function Map() {
   } = useApp();
 
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const [browserLocation, setBrowserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [browserLocation, setBrowserLocation] = useState<{ lat: number; lng: number } | null>(() => {
+    try {
+      const raw = sessionStorage.getItem('ipLocation');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (
+        parsed &&
+        typeof parsed.lat === 'number' &&
+        typeof parsed.lng === 'number'
+      ) {
+        return { lat: parsed.lat, lng: parsed.lng };
+      }
+    } catch {
+      // ignore storage errors (private mode, quota, etc.)
+    }
+    return null;
+  });
   const [locating, setLocating] = useState(false);
   const [locateDenied, setLocateDenied] = useState(false);
   const [selectedSavedOnlyId, setSelectedSavedOnlyId] = useState<string | null>(null);
@@ -113,6 +129,40 @@ export function Map() {
     const z = map.getZoom();
     if (z != null && z < 15) map.setZoom(15);
   }, [selectedShop]);
+
+  useEffect(() => {
+    if (!isLoaded || hasMeetupContext || browserLocation) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5_000);
+    fetch('https://ipwho.is/', { signal: controller.signal })
+      .then((r) => r.json())
+      .then((data) => {
+        if (
+          data &&
+          data.success &&
+          typeof data.latitude === 'number' &&
+          typeof data.longitude === 'number'
+        ) {
+          const loc = { lat: data.latitude, lng: data.longitude };
+          setBrowserLocation(loc);
+          try {
+            sessionStorage.setItem('ipLocation', JSON.stringify(loc));
+          } catch {
+            // ignore
+          }
+        }
+      })
+      .catch(() => {
+        // silent — user can still click "My location" for precise
+      })
+      .finally(() => clearTimeout(timeout));
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [isLoaded, hasMeetupContext, browserLocation]);
 
   const handleLocateMe = useCallback(() => {
     if (!navigator.geolocation) {
