@@ -51,6 +51,7 @@ export const en: MessageDict = {
   'location.templateToB': 'Use as B',
   'location.removeTemplate': 'Remove',
   'location.examplesTitle': 'Or try one of these:',
+  'location.swap': 'Swap A and B',
 
   'hero.stepsLabel': 'How it works',
   'hero.step1': 'Enter two places',
@@ -285,6 +286,7 @@ export const ja: MessageDict = {
   'location.templateToB': 'Bに使う',
   'location.removeTemplate': '削除',
   'location.examplesTitle': 'こちらで試すこともできます：',
+  'location.swap': 'AとBを入れ替え',
 
   'hero.stepsLabel': '使い方',
   'hero.step1': '2 か所を入力',
@@ -511,6 +513,7 @@ export const zh: MessageDict = {
   'location.templateToB': '填入 B',
   'location.removeTemplate': '删除',
   'location.examplesTitle': '或者试试：',
+  'location.swap': '交换 A 和 B',
 
   'hero.stepsLabel': '使用方法',
   'hero.step1': '输入两个地点',
