@@ -1,29 +1,26 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
+import { useVisitedShops, visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
-import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
-import { formatRelativeTime, formatAbsoluteDate } from '../utils/relativeTime';
-import { computeStreak, streakFireEmoji } from '../utils/streak';
 import { buildHeatmap } from '../utils/heatmap';
 import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
+import { computeStreak, streakFireEmoji } from '../utils/streak';
+import { formatAbsoluteDate, formatRelativeTime } from '../utils/relativeTime';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
-import { PASSPORT_PATH } from '../routes';
 import { HeatmapGrid } from './HeatmapGrid';
-import styles from './VisitedPlacesMenu.module.css';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import styles from './PassportPage.module.css';
 
-export function VisitedPlacesMenu() {
+export function PassportPage() {
   const { t, locale } = useI18n();
-  const { visitedShops, removeVisited } = useApp();
-  const [open, setOpen] = useState(false);
+  const { visitedShops, removeVisited } = useVisitedShops();
+  const homeHref = buildLocalizedPathname('/', locale);
+
   const [sharing, setSharing] = useState(false);
   const [shareStatus, setShareStatus] = useState<
     { kind: 'error' | 'info'; message: string } | null
   >(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const menuId = useId();
+
   const count = visitedShops.length;
 
   const sortedVisited = useMemo(
@@ -55,35 +52,10 @@ export function VisitedPlacesMenu() {
   );
 
   useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open || !dropdownRef.current) return;
-    const focusable = dropdownRef.current.querySelector<HTMLElement>(
-      'a, button, input, [tabindex]:not([tabindex="-1"])',
-    );
-    (focusable ?? dropdownRef.current).focus();
-  }, [open]);
+    if (!shareStatus) return;
+    const id = window.setTimeout(() => setShareStatus(null), 5000);
+    return () => window.clearTimeout(id);
+  }, [shareStatus]);
 
   const onShare = async () => {
     if (sharing) return;
@@ -120,8 +92,7 @@ export function VisitedPlacesMenu() {
       });
       setShareStatus({
         kind: 'info',
-        message:
-          result === 'shared' ? t('visited.shareShared') : t('visited.shareDownloaded'),
+        message: result === 'shared' ? t('visited.shareShared') : t('visited.shareDownloaded'),
       });
     } catch (e) {
       console.error('Passport share failed:', e);
@@ -134,78 +105,80 @@ export function VisitedPlacesMenu() {
     }
   };
 
-  useEffect(() => {
-    if (!shareStatus) return;
-    const id = window.setTimeout(() => setShareStatus(null), 5000);
-    return () => window.clearTimeout(id);
-  }, [shareStatus]);
-
   return (
-    <div className={styles.wrap} ref={wrapRef}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className={`${styles.trigger} ${open ? styles.triggerOpen : ''}`}
-        aria-expanded={open}
-        aria-controls={menuId}
-        aria-haspopup="true"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span aria-hidden="true" className={styles.triggerIcon}>
-          ☕
-        </span>
-        <span>{t('visited.menuLabel')}</span>
-        {count > 0 ? <span className={styles.badge}>{count}</span> : null}
-        <span className={styles.chevron} aria-hidden>
-          {open ? '▾' : '▸'}
-        </span>
-      </button>
-      {open ? (
-        <div
-          id={menuId}
-          ref={dropdownRef}
-          tabIndex={-1}
-          className={styles.dropdown}
-          role="region"
-          aria-label={t('visited.title')}
-        >
-          <div className={styles.dropdownTitleRow}>
-            <h2 className={styles.dropdownTitle}>{t('visited.title')}</h2>
-            <a
-              className={styles.viewFullLink}
-              href={buildLocalizedPathname(PASSPORT_PATH, locale)}
-            >
-              {t('passport.viewFull')}
+    <div className={styles.app}>
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
+            <img src="/logo.png" alt="" className={styles.logoImage} width={40} height={40} />
+            <span className={styles.logoWordmark}>ACoffee</span>
+          </a>
+          <div className={styles.headerAside}>
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </header>
+
+      <main className={styles.main}>
+        <div className={styles.hero}>
+          <h1 className={styles.pageTitle}>
+            <span aria-hidden className={styles.pageTitleGlyph}>☕</span>
+            {t('passport.pageTitle')}
+          </h1>
+          <p className={styles.lead}>{t('passport.pageLead')}</p>
+        </div>
+
+        {count === 0 ? (
+          <div className={styles.emptyCard}>
+            <p className={styles.empty}>{t('visited.empty')}</p>
+            <a className={styles.emptyCta} href={homeHref}>
+              {t('passport.emptyCta')}
             </a>
           </div>
-          {count === 0 ? (
-            <p className={styles.empty}>{t('visited.empty')}</p>
-          ) : (
-            <>
-              <div className={styles.statsBar}>
-                <div className={styles.stats}>
-                  <div className={styles.statLine}>
-                    {t('visited.statPrimary', { count, visits: totalVisits })}
+        ) : (
+          <>
+            <section className={styles.statsGrid} aria-label={t('passport.statsLabel')}>
+              <div className={styles.statCard}>
+                <div className={styles.statValue}>{count}</div>
+                <div className={styles.statLabel}>{t('passport.statShops')}</div>
+              </div>
+              <div className={styles.statCard}>
+                <div className={styles.statValue}>{totalVisits}</div>
+                <div className={styles.statLabel}>{t('passport.statVisits')}</div>
+              </div>
+              {streak > 0 ? (
+                <div className={styles.statCard}>
+                  <div className={styles.statValue}>
+                    {streak}
+                    <span className={styles.statSuffix}>{streakFires}</span>
                   </div>
-                  {streak > 0 ? (
-                    <div className={styles.statStreak}>
-                      {t('visited.statStreak', { count: streak, fires: streakFires })}
-                    </div>
-                  ) : null}
-                  {firstVisitDate != null ? (
-                    <div className={styles.statSince}>
-                      {t('visited.statSince', { date: formatAbsoluteDate(firstVisitDate, locale) })}
-                    </div>
-                  ) : null}
+                  <div className={styles.statLabel}>{t('passport.statStreak')}</div>
                 </div>
+              ) : null}
+              {firstVisitDate != null ? (
+                <div className={styles.statCard}>
+                  <div className={styles.statValueSmall}>
+                    {formatAbsoluteDate(firstVisitDate, locale)}
+                  </div>
+                  <div className={styles.statLabel}>{t('passport.statSince')}</div>
+                </div>
+              ) : null}
+            </section>
+
+            <section className={styles.heatmapSection} aria-label={t('passport.heatmapTitle')}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>{t('passport.heatmapTitle')}</h2>
                 <button
                   type="button"
                   className={styles.shareButton}
-                  onClick={onShare}
+                  onClick={() => void onShare()}
                   disabled={sharing}
                 >
                   {sharing ? t('visited.sharing') : t('visited.share')}
                 </button>
+              </div>
+              <div className={styles.heatmapWrap}>
+                <HeatmapGrid timestamps={allTimestamps} days={90} />
               </div>
               {shareStatus ? (
                 <p
@@ -217,10 +190,12 @@ export function VisitedPlacesMenu() {
                   {shareStatus.message}
                 </p>
               ) : null}
-              <div className={styles.heatmapBlock}>
-                <div className={styles.heatmapTitle}>{t('passport.heatmapTitle')}</div>
-                <HeatmapGrid timestamps={allTimestamps} days={90} />
-              </div>
+            </section>
+
+            <section className={styles.listSection} aria-label={t('passport.listTitle')}>
+              <h2 className={styles.sectionTitle}>
+                {t('passport.listTitle', { count })}
+              </h2>
               <ul className={styles.list}>
                 {sortedVisited.map((snap) => {
                   const last = snap.visits[0];
@@ -268,10 +243,10 @@ export function VisitedPlacesMenu() {
                   );
                 })}
               </ul>
-            </>
-          )}
-        </div>
-      ) : null}
+            </section>
+          </>
+        )}
+      </main>
     </div>
   );
 }

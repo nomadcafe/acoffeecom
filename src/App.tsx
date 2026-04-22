@@ -11,11 +11,15 @@ import { SiteBottomNav } from './components/SiteBottomNav';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
+import { isPassportPath } from './routes';
 import './App.css';
 
 const Map = lazy(() => import('./components/Map').then((m) => ({ default: m.Map })));
 const UpdateLogPage = lazy(() =>
   import('./components/UpdateLogPage').then((m) => ({ default: m.UpdateLogPage })),
+);
+const PassportPage = lazy(() =>
+  import('./components/PassportPage').then((m) => ({ default: m.PassportPage })),
 );
 
 function AppShell() {
@@ -65,6 +69,17 @@ function AppRoute() {
       <>
         <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
           <UpdateLogPage />
+        </Suspense>
+        <SiteBottomNav />
+      </>
+    );
+  }
+
+  if (isPassportPath(logicalPath)) {
+    return (
+      <>
+        <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+          <PassportPage />
         </Suspense>
         <SiteBottomNav />
       </>

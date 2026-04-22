@@ -169,6 +169,16 @@ export const en: MessageDict = {
   'passport.heatmapLess': 'Less',
   'passport.heatmapMore': 'More',
   'passport.heatmapAria': 'Coffee visit heatmap, last 90 days',
+  'passport.pageTitle': 'Coffee Passport',
+  'passport.pageLead': 'Every café you marked as visited, collected in one place.',
+  'passport.statsLabel': 'Passport stats',
+  'passport.statShops': 'Cafés',
+  'passport.statVisits': 'Visits',
+  'passport.statStreak': 'Day streak',
+  'passport.statSince': 'First stamp',
+  'passport.listTitle': 'Visited cafés ({{count}})',
+  'passport.emptyCta': 'Find a café to visit',
+  'passport.viewFull': 'View full passport →',
   'visited.shareCardText':
     'My coffee passport — {{count}} cafés, {{visits}} visits. Built on acoffee.com.',
 
@@ -201,6 +211,7 @@ export const en: MessageDict = {
 
   'bottomNav.aria': 'Site',
   'bottomNav.home': 'Finder',
+  'bottomNav.passport': 'Passport',
   'bottomNav.bmacDisclaimer': 'ACoffee.com is not affiliated with buymeacoffee.com.',
 
   'share.title': 'Coffee meetup suggestions',
@@ -379,6 +390,16 @@ export const ja: MessageDict = {
   'passport.heatmapLess': '少',
   'passport.heatmapMore': '多',
   'passport.heatmapAria': '直近 90 日の来店ヒートマップ',
+  'passport.pageTitle': 'コーヒーパスポート',
+  'passport.pageLead': '来店済みにしたカフェをすべてまとめて表示します。',
+  'passport.statsLabel': 'パスポート統計',
+  'passport.statShops': 'カフェ',
+  'passport.statVisits': '来店回数',
+  'passport.statStreak': '連続日数',
+  'passport.statSince': '最初の来店',
+  'passport.listTitle': '来店したカフェ（{{count}}）',
+  'passport.emptyCta': 'カフェを探す',
+  'passport.viewFull': 'パスポート全体を見る →',
   'visited.shareCardText':
     'マイ・コーヒーパスポート — {{count}} 軒、{{visits}} 回。acoffee.com で作成。',
 
@@ -406,6 +427,7 @@ export const ja: MessageDict = {
 
   'bottomNav.aria': 'サイト内メニュー',
   'bottomNav.home': '検索',
+  'bottomNav.passport': 'パスポート',
   'bottomNav.bmacDisclaimer':
     'ACoffee.com は buymeacoffee.com とは無関係です。',
 
@@ -580,6 +602,16 @@ export const zh: MessageDict = {
   'passport.heatmapLess': '少',
   'passport.heatmapMore': '多',
   'passport.heatmapAria': '最近 90 天咖啡打卡热力图',
+  'passport.pageTitle': '咖啡护照',
+  'passport.pageLead': '你标记过的所有咖啡店，集中在一个页面。',
+  'passport.statsLabel': '护照统计',
+  'passport.statShops': '咖啡店',
+  'passport.statVisits': '到访次数',
+  'passport.statStreak': '连续天数',
+  'passport.statSince': '首次打卡',
+  'passport.listTitle': '已到访咖啡店（{{count}}）',
+  'passport.emptyCta': '去找一家咖啡店',
+  'passport.viewFull': '查看完整护照 →',
   'visited.shareCardText':
     '我的咖啡护照 — {{count}} 家店，{{visits}} 次访问。acoffee.com 生成。',
 
@@ -607,6 +639,7 @@ export const zh: MessageDict = {
 
   'bottomNav.aria': '站内导航',
   'bottomNav.home': '查找',
+  'bottomNav.passport': '护照',
   'bottomNav.bmacDisclaimer': 'ACoffee.com 与 buymeacoffee.com 无任何关联。',
 
   'share.title': '咖啡会面推荐',
