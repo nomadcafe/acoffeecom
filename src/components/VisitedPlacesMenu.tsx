@@ -4,7 +4,7 @@ import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { formatRelativeTime, formatAbsoluteDate } from '../utils/relativeTime';
-import { computeStreak } from '../utils/streak';
+import { computeStreak, streakFireEmoji } from '../utils/streak';
 import { buildHeatmap } from '../utils/heatmap';
 import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
 import { HeatmapGrid } from './HeatmapGrid';
@@ -45,6 +45,7 @@ export function VisitedPlacesMenu() {
   }, [visitedShops]);
 
   const streak = useMemo(() => computeStreak(visitedShops), [visitedShops]);
+  const streakFires = streakFireEmoji(streak);
 
   const allTimestamps = useMemo(
     () => visitedShops.flatMap((s) => s.visits),
@@ -100,7 +101,10 @@ export function VisitedPlacesMenu() {
           firstVisitDate != null
             ? t('visited.shareCardSinceLabel', { date: formatAbsoluteDate(firstVisitDate, locale) })
             : '',
-        streakLabel: streak > 0 ? t('visited.shareCardStreakLabel', { count: streak }) : '',
+        streakLabel:
+          streak > 0
+            ? t('visited.shareCardStreakLabel', { count: streak, fires: streakFires })
+            : '',
         topLabel: t('visited.shareCardTopLabel'),
         heatmapLabel: t('visited.shareCardHeatmapLabel'),
         brand: 'acoffee.com',
@@ -175,7 +179,7 @@ export function VisitedPlacesMenu() {
                   </div>
                   {streak > 0 ? (
                     <div className={styles.statStreak}>
-                      {t('visited.statStreak', { count: streak })}
+                      {t('visited.statStreak', { count: streak, fires: streakFires })}
                     </div>
                   ) : null}
                   {firstVisitDate != null ? (

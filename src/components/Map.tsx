@@ -4,6 +4,8 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { snapshotToCoffeeShop } from '../hooks/useStarredShops';
+import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
+import { formatRelativeTime } from '../utils/relativeTime';
 import styles from './Map.module.css';
 
 const libraries: ('places')[] = ['places'];
@@ -30,7 +32,7 @@ function hasCoordinates(lat: number, lng: number): boolean {
 }
 
 export function Map() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
@@ -42,9 +44,12 @@ export function Map() {
     midpoint,
     coffeeShops,
     starredShops,
+    visitedShops,
     setMapRef,
     isStarred,
     isVisited,
+    visitCount,
+    lastVisit,
     selectedCoffeeShopId,
     setSelectedCoffeeShopId,
     isLoading,
@@ -56,17 +61,34 @@ export function Map() {
   const [locating, setLocating] = useState(false);
   const [locateDenied, setLocateDenied] = useState(false);
   const [selectedSavedOnlyId, setSelectedSavedOnlyId] = useState<string | null>(null);
+  const [selectedVisitedOnlyId, setSelectedVisitedOnlyId] = useState<string | null>(null);
 
   const hasMeetupContext = !!(midpoint || locationA || locationB);
 
   const coffeeIds = useMemo(() => new Set(coffeeShops.map((s) => s.id)), [coffeeShops]);
 
+  const visitedNotInResults = useMemo(
+    () =>
+      visitedShops.filter(
+        (s) => !coffeeIds.has(s.id) && hasCoordinates(s.lat, s.lng),
+      ),
+    [visitedShops, coffeeIds],
+  );
+
+  const visitedNotInResultsIds = useMemo(
+    () => new Set(visitedNotInResults.map((s) => s.id)),
+    [visitedNotInResults],
+  );
+
   const savedNotInResults = useMemo(
     () =>
       starredShops.filter(
-        (s) => !coffeeIds.has(s.id) && hasCoordinates(s.lat, s.lng)
+        (s) =>
+          !coffeeIds.has(s.id) &&
+          !visitedNotInResultsIds.has(s.id) &&
+          hasCoordinates(s.lat, s.lng),
       ),
-    [starredShops, coffeeIds]
+    [starredShops, coffeeIds, visitedNotInResultsIds],
   );
 
   const selectedShop = useMemo(() => {
@@ -78,6 +100,11 @@ export function Map() {
     if (!selectedSavedOnlyId) return null;
     return savedNotInResults.find((s) => s.id === selectedSavedOnlyId) ?? null;
   }, [selectedSavedOnlyId, savedNotInResults]);
+
+  const selectedVisitedOnly = useMemo(() => {
+    if (!selectedVisitedOnlyId) return null;
+    return visitedNotInResults.find((s) => s.id === selectedVisitedOnlyId) ?? null;
+  }, [selectedVisitedOnlyId, visitedNotInResults]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -132,6 +159,7 @@ export function Map() {
 
   const onMapClick = useCallback(() => {
     setSelectedSavedOnlyId(null);
+    setSelectedVisitedOnlyId(null);
     setSelectedCoffeeShopId(null);
   }, [setSelectedCoffeeShopId]);
 
@@ -249,7 +277,26 @@ export function Map() {
             zIndex={selectedSavedOnlyId === snap.id ? google.maps.Marker.MAX_ZINDEX : 2}
             onClick={() => {
               setSelectedCoffeeShopId(null);
+              setSelectedVisitedOnlyId(null);
               setSelectedSavedOnlyId(snap.id);
+            }}
+          />
+        ))}
+
+        {visitedNotInResults.map((snap) => (
+          <Marker
+            key={`visited-${snap.id}`}
+            position={{ lat: snap.lat, lng: snap.lng }}
+            icon={{
+              url: 'https://maps.google.com/mapfiles/ms/icons/orange-dot.png',
+              scaledSize: new google.maps.Size(28, 28),
+            }}
+            title={t('map.visitedNotInResults')}
+            zIndex={selectedVisitedOnlyId === snap.id ? google.maps.Marker.MAX_ZINDEX : 2}
+            onClick={() => {
+              setSelectedCoffeeShopId(null);
+              setSelectedSavedOnlyId(null);
+              setSelectedVisitedOnlyId(snap.id);
             }}
           />
         ))}
@@ -273,6 +320,7 @@ export function Map() {
               zIndex={selectedCoffeeShopId === shop.id ? google.maps.Marker.MAX_ZINDEX + 1 : undefined}
               onClick={() => {
                 setSelectedSavedOnlyId(null);
+                setSelectedVisitedOnlyId(null);
                 setSelectedCoffeeShopId(shop.id);
               }}
             />
@@ -327,6 +375,47 @@ export function Map() {
               </p>
             </div>
           </InfoWindow>
+        ) : null}
+
+        {selectedVisitedOnly && !selectedShop && !selectedSavedOnly ? (
+          (() => {
+            const vc = visitCount(selectedVisitedOnly.id);
+            const lv = lastVisit(selectedVisitedOnly.id);
+            const stats =
+              lv != null
+                ? vc >= 2
+                  ? t('map.visitedInfoStatsMany', {
+                      count: vc,
+                      last: formatRelativeTime(lv, locale),
+                    })
+                  : t('map.visitedInfoStatsOnce', {
+                      last: formatRelativeTime(lv, locale),
+                    })
+                : null;
+            return (
+              <InfoWindow
+                position={{ lat: selectedVisitedOnly.lat, lng: selectedVisitedOnly.lng }}
+                onCloseClick={() => setSelectedVisitedOnlyId(null)}
+              >
+                <div className={styles.infoWindow}>
+                  <h4>{selectedVisitedOnly.name}</h4>
+                  {selectedVisitedOnly.address ? <p>{selectedVisitedOnly.address}</p> : null}
+                  {stats ? <p className={styles.savedHint}>{stats}</p> : null}
+                  <p className={styles.infoWindowMaps}>
+                    <a
+                      href={getOpenInGoogleMapsUrl(
+                        visitedSnapshotToCoffeeShop(selectedVisitedOnly),
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t('map.openMaps')}
+                    </a>
+                  </p>
+                </div>
+              </InfoWindow>
+            );
+          })()
         ) : null}
       </GoogleMap>
 

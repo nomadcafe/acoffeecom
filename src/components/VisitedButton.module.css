@@ -71,3 +71,30 @@
     transform: scale(1);
   }
 }
+
+.bubble {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b4423;
+  pointer-events: none;
+  animation: bubble 0.8s ease-out forwards;
+}
+
+@keyframes bubble {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -6px) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -22px) scale(1);
+  }
+}

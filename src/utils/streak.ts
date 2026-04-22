@@ -37,3 +37,18 @@ export function computeStreak(visitedShops: VisitedShopSnapshot[], now: number =
 export function isToday(ts: number, now: number = Date.now()): boolean {
   return toEpochDay(ts) === toEpochDay(now);
 }
+
+/**
+ * Flame count tier for a streak: 1 🔥 up to 6 days, then 2 / 3 / 4 at 7 / 30 / 100.
+ * Gives the streak label a visible upgrade at milestone thresholds.
+ */
+export function streakFireCount(streak: number): number {
+  if (streak >= 100) return 4;
+  if (streak >= 30) return 3;
+  if (streak >= 7) return 2;
+  return 1;
+}
+
+export function streakFireEmoji(streak: number): string {
+  return '🔥'.repeat(streakFireCount(streak));
+}

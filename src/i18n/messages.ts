@@ -125,6 +125,9 @@ export const en: MessageDict = {
   'map.searchingOnMapMeetup': 'Searching meetup spots…',
   'map.savedNotInResults': 'Saved — not in current results',
   'map.savedInfoHint': 'Saved café (open the list star to remove)',
+  'map.visitedNotInResults': 'Visited — not in current results',
+  'map.visitedInfoStatsOnce': 'Been here once · last {{last}}',
+  'map.visitedInfoStatsMany': 'Been here {{count}}× · last {{last}}',
 
   'star.add': 'Add to favorites',
   'star.remove': 'Remove from favorites',
@@ -138,7 +141,7 @@ export const en: MessageDict = {
   'visited.empty':
     'Tap the ☕ icon on a café card to stamp it here — each tap is one visit, so you can collect regulars.',
   'visited.statPrimary': '{{count}} cafés · {{visits}} visits',
-  'visited.statStreak': '🔥 {{count}}-day streak',
+  'visited.statStreak': '{{fires}} {{count}}-day streak',
   'visited.statSince': 'since {{date}}',
   'visited.rowMetaMany': '{{count}}× · last {{last}}',
   'visited.rowMetaOnce': 'last {{last}}',
@@ -151,7 +154,7 @@ export const en: MessageDict = {
   'visited.shareCardCountLabel': '{{count}} cafés',
   'visited.shareCardVisitsLabel': '{{count}} visits',
   'visited.shareCardSinceLabel': 'since {{date}}',
-  'visited.shareCardStreakLabel': '🔥 {{count}}-day streak',
+  'visited.shareCardStreakLabel': '{{fires}} {{count}}-day streak',
   'visited.shareCardTopLabel': 'Most visited',
   'visited.shareCardHeatmapLabel': 'Last 90 days',
 
@@ -326,6 +329,9 @@ export const ja: MessageDict = {
   'map.searchingOnMapMeetup': '候補を検索中…',
   'map.savedNotInResults': '保存済み（今の結果には含まれません）',
   'map.savedInfoHint': '保存したカフェ（一覧の星で解除）',
+  'map.visitedNotInResults': '来店済み（今の結果には含まれません）',
+  'map.visitedInfoStatsOnce': '1 回来店 · 最近 {{last}}',
+  'map.visitedInfoStatsMany': '{{count}} 回来店 · 最近 {{last}}',
 
   'star.add': 'お気に入りに追加',
   'star.remove': 'お気に入りから外す',
@@ -339,7 +345,7 @@ export const ja: MessageDict = {
   'visited.empty':
     'カフェカードの ☕ をタップするたびにスタンプが1つ増えます。常連になった店も可視化されます。',
   'visited.statPrimary': '{{count}} 軒 · {{visits}} 回',
-  'visited.statStreak': '🔥 連続 {{count}} 日',
+  'visited.statStreak': '{{fires}} 連続 {{count}} 日',
   'visited.statSince': '{{date}} から',
   'visited.rowMetaMany': '{{count}}回 · 最近 {{last}}',
   'visited.rowMetaOnce': '最近 {{last}}',
@@ -352,7 +358,7 @@ export const ja: MessageDict = {
   'visited.shareCardCountLabel': '{{count}} 軒',
   'visited.shareCardVisitsLabel': '{{count}} 回',
   'visited.shareCardSinceLabel': '{{date}} から',
-  'visited.shareCardStreakLabel': '🔥 連続 {{count}} 日',
+  'visited.shareCardStreakLabel': '{{fires}} 連続 {{count}} 日',
   'visited.shareCardTopLabel': '常連',
   'visited.shareCardHeatmapLabel': '直近 90 日',
 
@@ -519,6 +525,9 @@ export const zh: MessageDict = {
   'map.searchingOnMapMeetup': '正在搜索会面地点…',
   'map.savedNotInResults': '已收藏（不在当前结果中）',
   'map.savedInfoHint': '已收藏的店（可在列表中取消星标）',
+  'map.visitedNotInResults': '去过（不在当前结果中）',
+  'map.visitedInfoStatsOnce': '来过 1 次 · 最近 {{last}}',
+  'map.visitedInfoStatsMany': '来过 {{count}} 次 · 最近 {{last}}',
 
   'star.add': '加入收藏',
   'star.remove': '取消收藏',
@@ -531,7 +540,7 @@ export const zh: MessageDict = {
   'visited.title': '我的咖啡护照',
   'visited.empty': '每次去一家店就在它的卡片上点一下 ☕，印章会累加，慢慢看出你的常去店。',
   'visited.statPrimary': '{{count}} 家 · 共 {{visits}} 次',
-  'visited.statStreak': '🔥 连续打卡 {{count}} 天',
+  'visited.statStreak': '{{fires}} 连续打卡 {{count}} 天',
   'visited.statSince': '自 {{date}} 起',
   'visited.rowMetaMany': '{{count}} 次 · 最近 {{last}}',
   'visited.rowMetaOnce': '最近 {{last}}',
@@ -544,7 +553,7 @@ export const zh: MessageDict = {
   'visited.shareCardCountLabel': '{{count}} 家',
   'visited.shareCardVisitsLabel': '{{count}} 次访问',
   'visited.shareCardSinceLabel': '自 {{date}} 起',
-  'visited.shareCardStreakLabel': '🔥 连续打卡 {{count}} 天',
+  'visited.shareCardStreakLabel': '{{fires}} 连续打卡 {{count}} 天',
   'visited.shareCardTopLabel': '最常去',
   'visited.shareCardHeatmapLabel': '最近 90 天',
 
