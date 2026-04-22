@@ -18,6 +18,29 @@ export type ChangelogEntry = {
 export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   en: [
     {
+      isoDate: '2026-04-23',
+      title: 'Interface refresh and onboarding',
+      bullets: [
+        'Thin sticky header (logo + menus only) replaces the tall gradient banner; the title and tagline move into a first-run hero so they only take space when new visitors actually need them.',
+        'Paper / cream palette with warm card shadows — coffee brown is now an accent colour rather than a background.',
+        'Two-input area redesigned as a single "trip card" with a swap button so you can exchange A and B in one click if you typed them in the wrong order.',
+        'First-run onboarding: compact "Enter → Midpoint → Browse" 3-step strip, plus locale-aware one-tap example pairs that run a full demo search.',
+        'Filters collapse to a one-line summary (e.g. "Cafés · 4.0★ · 1.2km") so you see the active settings without having to expand the panel.',
+        'Fraunces serif display type on titles and a simplified A/B/M distance labelling on result cards for cleaner hierarchy.',
+      ],
+    },
+    {
+      isoDate: '2026-04-22',
+      title: 'Nearby mode, standalone Passport page, and installable PWA',
+      bullets: [
+        '"Show coffee near me" search lets you skip A and B entirely and search directly around your location — IP-based approximate location on first load, precise browser geolocation on tap.',
+        'Coffee Passport is now a full page at /passport with stat cards (cafés, visits, day streak, first stamp), a 90-day heatmap, and the existing shareable card. The header dropdown still works and links to the full page.',
+        'The app is installable as a PWA (manifest + service worker); the shell and Passport are available offline.',
+        'Filter state (radius, minimum rating, keyword, category, sort) now rides along in the URL, so a shared or bookmarked link reproduces the full search rather than just the two addresses.',
+        'Mobile layout rework: the map fills the viewport and a draggable bottom sheet (peek / half / full) carries the search and results — the shape native map apps use.',
+      ],
+    },
+    {
       isoDate: '2026-04-17',
       title: 'URL sharing, code quality, and bug fixes',
       bullets: [
@@ -60,6 +83,29 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   ],
   ja: [
     {
+      isoDate: '2026-04-23',
+      title: 'デザイン刷新とオンボーディング',
+      bullets: [
+        'ヘッダーを細いスティッキーバー（ロゴ + メニュー）に整理。タイトルとタグラインは初回訪問のヒーロー領域に移動し、必要なときだけスペースを使うようにしました。',
+        '全体の配色を紙のクリーム系に変更。暖かみのあるカードシャドウを採用し、ブラウンはアクセント色としてのみ使用します。',
+        '2 地点の入力欄を 1 つの「トリップカード」に統合し、A と B を 1 タップで入れ替えられるスワップボタンを追加しました。',
+        '初回訪問者向けに「2か所入力 → 中間地点 → カフェ選択」の 3 ステップ表示と、言語ごとのワンタップの地点ペア例を追加し、デモ検索をすぐ体験できます。',
+        'フィルターは折りたたみ時に要約行（例：「カフェ · 4.0★ · 1.2km」）を表示し、展開せずに現在の設定が確認できます。',
+        'タイトル類に Fraunces（セリフ）を採用。結果カードの距離表示を簡素化し、視覚的な階層を整理しました。',
+      ],
+    },
+    {
+      isoDate: '2026-04-22',
+      title: '「近くのカフェ」モード、パスポート独立ページ、PWA 対応',
+      bullets: [
+        '「近くのカフェを表示」ボタンで、A/B を入力せず現在地周辺だけを検索できます。初回表示は IP ベースの大まかな位置、タップで正確なブラウザ位置に切り替わります。',
+        'コーヒーパスポートを独立ページ（/passport）化し、統計カード（店舗数・来店回数・連続日数・初回来店）、90 日ヒートマップ、共有カードをまとめて表示します。ヘッダーのドロップダウンもそのまま使え、全体ページへのリンクが付きます。',
+        'PWA としてインストール可能に。マニフェスト + サービスワーカーを追加し、アプリシェルとパスポートはオフラインでも利用できます。',
+        'フィルター状態（半径・最低評価・キーワード・カテゴリ・並び順）を URL に反映。リンクを共有すると、受け取った側も完全な検索状態で開けます。',
+        'モバイルのレイアウトを刷新：地図を全画面化し、検索と結果をドラッグ可能なボトムシート（プレビュー / 半分 / 全画面）で表示します。ネイティブの地図アプリに近い操作感です。',
+      ],
+    },
+    {
       isoDate: '2026-04-17',
       title: 'URL 共有・コード品質改善・バグ修正',
       bullets: [
@@ -101,6 +147,29 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
     },
   ],
   zh: [
+    {
+      isoDate: '2026-04-23',
+      title: '界面刷新与引导优化',
+      bullets: [
+        '顶栏改为细高度粘性栏（Logo + 菜单），标题和 tagline 移至首次访问时的 hero 区域，只在需要时占用空间。',
+        '整体配色换为纸感米色，搭配暖色卡片阴影；咖啡棕只作为强调色使用，不再充斥页面底色。',
+        '两个地点的输入区域重新设计为一张"行程卡"，A 和 B 合并在同一个带边框的组内，中间增加一键交换按钮。',
+        '首次访问新增三步说明（输入 → 中点 → 咖啡店）和按语言定制的示例地点，一键即可触发完整的演示搜索。',
+        '筛选器折叠状态下直接显示当前参数摘要（例："咖啡店 · 4.0★ · 1.2km"），无需展开即可了解设置。',
+        '标题类字体改为 Fraunces 衬线字体，结果卡片上的 A/B/M 距离标签精简，视觉层次更清晰。',
+      ],
+    },
+    {
+      isoDate: '2026-04-22',
+      title: '"附近咖啡店"模式、护照独立页与 PWA',
+      bullets: [
+        '新增"显示附近咖啡店"一键搜索：无需输入 A/B 即可基于你的位置搜索。首次访问使用 IP 粗略定位，点击按钮后切换到浏览器精确定位。',
+        '咖啡护照升级为独立页面（/passport），包含统计卡片（咖啡店数、到访次数、连续天数、首次打卡）、90 天热力图与可分享的护照卡。顶栏下拉菜单仍可使用，并带到完整页面的入口。',
+        '支持 PWA 安装：添加 manifest 与 Service Worker，可从浏览器添加至主屏幕；应用外壳和护照数据支持离线访问。',
+        '筛选参数（半径、最低评分、关键词、分类、排序）现在会同步到 URL，分享或收藏的链接可完整还原搜索状态。',
+        '移动端布局调整：地图铺满视口，搜索和结果改由可拖拽的底部抽屉承载（收起 / 半屏 / 全屏），更接近原生地图应用的操作感。',
+      ],
+    },
     {
       isoDate: '2026-04-17',
       title: 'URL 分享、代码质量改善与问题修复',
