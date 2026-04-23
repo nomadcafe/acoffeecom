@@ -1,5 +1,3 @@
-import { createAnthropic } from '@ai-sdk/anthropic';
-import { generateObject } from 'ai';
 import { z } from 'zod';
 import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 
@@ -41,6 +39,30 @@ Rules:
 
 Never invent addresses that aren't in the user's text.`;
 
+// Hand-written JSON schema mirroring OutputSchema. Forcing tool_choice to this
+// single tool is how we get structured output without pulling in the AI SDK
+// (which fails to load in Cloudflare Pages Functions even with nodejs_compat).
+const TOOL_INPUT_SCHEMA = {
+  type: 'object',
+  properties: {
+    mode: { type: 'string', enum: ['meetup', 'nearby', 'unknown'] },
+    addressA: { type: 'string' },
+    addressB: { type: 'string' },
+    filters: {
+      type: 'object',
+      properties: {
+        openNow: { type: 'boolean' },
+        minRating: { type: 'number', minimum: 0, maximum: 5 },
+        priceLevelMax: { type: 'integer', minimum: 0, maximum: 4 },
+        radiusKm: { type: 'number', exclusiveMinimum: 0, maximum: 20 },
+      },
+    },
+    vibe: { type: 'string', maxLength: 60 },
+    confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+  },
+  required: ['mode', 'filters', 'confidence'],
+} as const;
+
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   if (!env.ANTHROPIC_API_KEY) {
     return jsonError('ANTHROPIC_API_KEY not configured', 500);
@@ -61,16 +83,54 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUnti
   }
 
   try {
-    const anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY });
-    const { object } = await generateObject({
-      model: anthropic(env.AI_PARSE_MODEL ?? 'claude-sonnet-4-6'),
-      schema: OutputSchema,
-      system: SYSTEM,
-      prompt: `User locale: ${input.locale}\nQuery: ${input.query}`,
-      temperature: 0.2,
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: env.AI_PARSE_MODEL ?? 'claude-sonnet-4-6',
+        max_tokens: 512,
+        temperature: 0.2,
+        system: SYSTEM,
+        tools: [
+          {
+            name: 'parse_query',
+            description: 'Emit the structured meetup search parameters for the user query.',
+            input_schema: TOOL_INPUT_SCHEMA,
+          },
+        ],
+        tool_choice: { type: 'tool', name: 'parse_query' },
+        messages: [
+          {
+            role: 'user',
+            content: `User locale: ${input.locale}\nQuery: ${input.query}`,
+          },
+        ],
+      }),
     });
 
-    return Response.json(object, {
+    if (!res.ok) {
+      const body = await res.text();
+      return jsonError(`Anthropic API ${res.status}: ${body.slice(0, 300)}`, 502);
+    }
+
+    const json = (await res.json()) as {
+      content?: Array<{ type: string; name?: string; input?: unknown }>;
+    };
+    const toolUse = json.content?.find((c) => c.type === 'tool_use');
+    if (!toolUse?.input) {
+      return jsonError('Claude returned no tool_use block', 502);
+    }
+
+    const parsed = OutputSchema.safeParse(toolUse.input);
+    if (!parsed.success) {
+      return jsonError(`Output schema mismatch: ${parsed.error.message}`, 502);
+    }
+
+    return Response.json(parsed.data, {
       headers: {
         'cache-control': 'no-store',
         'access-control-allow-origin': '*',
