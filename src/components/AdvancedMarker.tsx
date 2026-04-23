@@ -50,6 +50,8 @@ export function AdvancedMarker({
   const onClickRef = useRef(onClick);
   onClickRef.current = onClick;
 
+  const clickable = onClick != null;
+
   useEffect(() => {
     if (!map || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
 
@@ -59,20 +61,28 @@ export function AdvancedMarker({
       content: container,
       title: title ?? '',
       zIndex: zIndex ?? null,
+      // `gmpClickable` makes the marker focusable + fire gmp-click. Only enable
+      // when the caller actually handles clicks so non-interactive markers
+      // stay out of the keyboard tab order.
+      gmpClickable: clickable,
     });
     markerRef.current = marker;
 
-    const clickListener = marker.addListener('click', () => onClickRef.current?.());
+    // AdvancedMarkerElement uses 'gmp-click', not 'click'. Using 'click'
+    // produces a deprecation warning from the Maps runtime.
+    const clickListener = clickable
+      ? marker.addListener('gmp-click', () => onClickRef.current?.())
+      : null;
 
     return () => {
-      clickListener.remove();
+      clickListener?.remove();
       marker.map = null;
       markerRef.current = null;
     };
-    // Only (re)create the marker when the map reference changes. Position,
-    // title, zIndex are updated via the effects below without tearing down.
+    // Only (re)create the marker when the map reference or clickability
+    // changes. Position, title, zIndex are updated via the effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, container]);
+  }, [map, container, clickable]);
 
   useEffect(() => {
     if (markerRef.current) markerRef.current.position = position;
