@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { GoogleMap, useJsApiLoader, InfoWindow } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
@@ -330,6 +330,7 @@ export function Map() {
             <AdvancedMarker
               key={shop.id}
               position={{ lat: shop.lat, lng: shop.lng }}
+              title={shop.name}
               zIndex={selected ? SELECTED_Z + 1 : undefined}
               anchor={isTeardrop ? 'bottom' : 'center'}
               onClick={() => {
@@ -356,8 +357,7 @@ export function Map() {
             position={{ lat: selectedShop.lat, lng: selectedShop.lng }}
             onCloseClick={() => setSelectedCoffeeShopId(null)}
           >
-            <div className={styles.infoWindow}>
-              <h4>{selectedShop.name}</h4>
+            <InfoWindowBody key={selectedShop.id} titleText={selectedShop.name}>
               <p>{selectedShop.address}</p>
               <p>
                 {isStarred(selectedShop.id) ? '★ ' : ''}
@@ -375,7 +375,7 @@ export function Map() {
                   {t('map.openMaps')}
                 </a>
               </p>
-            </div>
+            </InfoWindowBody>
           </InfoWindow>
         )}
 
@@ -384,8 +384,7 @@ export function Map() {
             position={{ lat: selectedSavedOnly.lat, lng: selectedSavedOnly.lng }}
             onCloseClick={() => setSelectedSavedOnlyId(null)}
           >
-            <div className={styles.infoWindow}>
-              <h4>{selectedSavedOnly.name}</h4>
+            <InfoWindowBody key={selectedSavedOnly.id} titleText={selectedSavedOnly.name}>
               {selectedSavedOnly.address ? <p>{selectedSavedOnly.address}</p> : null}
               <p className={styles.savedHint}>{t('map.savedInfoHint')}</p>
               <p className={styles.infoWindowMaps}>
@@ -397,7 +396,7 @@ export function Map() {
                   {t('map.openMaps')}
                 </a>
               </p>
-            </div>
+            </InfoWindowBody>
           </InfoWindow>
         ) : null}
 
@@ -421,8 +420,10 @@ export function Map() {
                 position={{ lat: selectedVisitedOnly.lat, lng: selectedVisitedOnly.lng }}
                 onCloseClick={() => setSelectedVisitedOnlyId(null)}
               >
-                <div className={styles.infoWindow}>
-                  <h4>{selectedVisitedOnly.name}</h4>
+                <InfoWindowBody
+                  key={selectedVisitedOnly.id}
+                  titleText={selectedVisitedOnly.name}
+                >
                   {selectedVisitedOnly.address ? <p>{selectedVisitedOnly.address}</p> : null}
                   {stats ? <p className={styles.savedHint}>{stats}</p> : null}
                   <p className={styles.infoWindowMaps}>
@@ -436,7 +437,7 @@ export function Map() {
                       {t('map.openMaps')}
                     </a>
                   </p>
-                </div>
+                </InfoWindowBody>
               </InfoWindow>
             );
           })()
@@ -523,6 +524,33 @@ function PinImage({ src, size }: { src: string; size: number }) {
       draggable={false}
       style={{ display: 'block', userSelect: 'none' }}
     />
+  );
+}
+
+/**
+ * Accessible InfoWindow content: adds role="dialog" + aria-labelledby and
+ * moves keyboard focus to the heading on open. Callers should key this
+ * component by the selected item's id so it remounts (and re-focuses) when
+ * the user switches between markers. `preventScroll` keeps the map from
+ * jumping when focus lands on the heading.
+ */
+function InfoWindowBody({
+  titleText,
+  children,
+}: {
+  titleText: string;
+  children?: ReactNode;
+}) {
+  const titleId = useId();
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
+  useEffect(() => {
+    titleRef.current?.focus({ preventScroll: true });
+  }, []);
+  return (
+    <div className={styles.infoWindow} role="dialog" aria-labelledby={titleId}>
+      <h4 id={titleId} ref={titleRef} tabIndex={-1}>{titleText}</h4>
+      {children}
+    </div>
   );
 }
 
