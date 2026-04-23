@@ -5,6 +5,14 @@
 /ja/*  /index.html   200
 /zh/*  /index.html   200
 
+# Missing hashed assets (typical after a new deploy rotates chunk filenames)
+# must 404 instead of falling through to the SPA fallback below. Serving
+# index.html for a stale /assets/*.js request would make the browser load
+# HTML as a module and report "Expected a module, got text/html". Netlify
+# applies this rule only when the file is absent from the publish dir, so
+# real assets still serve normally.
+/assets/*  /assets/:splat  404
+
 # SPA fallback: any other path (e.g. bare /passport, /updatelog) is routed
 # client-side. Netlify evaluates rules top-down and skips this for real
 # files in the build output (assets, sitemap, manifest, sw), so hashed JS

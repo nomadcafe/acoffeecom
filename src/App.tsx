@@ -15,12 +15,34 @@ import { isUpdatesPath } from './i18n/changelog';
 import { isPassportPath } from './routes';
 import './App.css';
 
-const Map = lazy(() => import('./components/Map').then((m) => ({ default: m.Map })));
+/**
+ * Reload once when a dynamic chunk fails to load — almost always means the
+ * tab was opened before the latest deploy and the hashed file is gone. The
+ * session flag stops us from looping if the failure is something else.
+ */
+function reloadOnChunkError<T>(promise: Promise<T>): Promise<T> {
+  return promise.catch((err) => {
+    const flag = 'ac:reloaded-for-chunk-error';
+    if (typeof sessionStorage !== 'undefined' && !sessionStorage.getItem(flag)) {
+      sessionStorage.setItem(flag, '1');
+      window.location.reload();
+    }
+    throw err;
+  });
+}
+
+const Map = lazy(() =>
+  reloadOnChunkError(import('./components/Map').then((m) => ({ default: m.Map }))),
+);
 const UpdateLogPage = lazy(() =>
-  import('./components/UpdateLogPage').then((m) => ({ default: m.UpdateLogPage })),
+  reloadOnChunkError(
+    import('./components/UpdateLogPage').then((m) => ({ default: m.UpdateLogPage })),
+  ),
 );
 const PassportPage = lazy(() =>
-  import('./components/PassportPage').then((m) => ({ default: m.PassportPage })),
+  reloadOnChunkError(
+    import('./components/PassportPage').then((m) => ({ default: m.PassportPage })),
+  ),
 );
 
 function AppShell() {
