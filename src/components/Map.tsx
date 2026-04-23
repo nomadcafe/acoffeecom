@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { GoogleMap, useJsApiLoader, InfoWindow } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
@@ -323,25 +324,29 @@ export function Map() {
         {coffeeShops.map((shop) => {
           const starred = isStarred(shop.id);
           const visited = isVisited(shop.id);
+          const selected = selectedCoffeeShopId === shop.id;
+          const isTeardrop = visited || starred;
           return (
             <AdvancedMarker
               key={shop.id}
               position={{ lat: shop.lat, lng: shop.lng }}
-              zIndex={selectedCoffeeShopId === shop.id ? SELECTED_Z + 1 : undefined}
-              anchor={!visited && !starred ? 'center' : 'bottom'}
+              zIndex={selected ? SELECTED_Z + 1 : undefined}
+              anchor={isTeardrop ? 'bottom' : 'center'}
               onClick={() => {
                 setSelectedSavedOnlyId(null);
                 setSelectedVisitedOnlyId(null);
                 setSelectedCoffeeShopId(shop.id);
               }}
             >
-              {visited ? (
-                <PinImage src="https://maps.google.com/mapfiles/ms/icons/orange-dot.png" size={32} />
-              ) : starred ? (
-                <PinImage src="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png" size={32} />
-              ) : (
-                <CircleDot size={32} color="#6f4e37" label="☕" />
-              )}
+              <SelectionHalo selected={selected} anchor={isTeardrop ? 'bottom' : 'center'}>
+                {visited ? (
+                  <PinImage src="https://maps.google.com/mapfiles/ms/icons/orange-dot.png" size={32} />
+                ) : starred ? (
+                  <PinImage src="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png" size={32} />
+                ) : (
+                  <CircleDot size={32} color="#6f4e37" label="☕" />
+                )}
+              </SelectionHalo>
             </AdvancedMarker>
           );
         })}
@@ -518,5 +523,37 @@ function PinImage({ src, size }: { src: string; size: number }) {
       draggable={false}
       style={{ display: 'block', userSelect: 'none' }}
     />
+  );
+}
+
+/**
+ * Wraps a marker's visual with a scale-up + accent-colored glow when
+ * `selected`. `drop-shadow` follows the child's alpha channel so the glow
+ * traces the teardrop pin outline or the dot's circle automatically.
+ * `transform-origin` matches the AdvancedMarker anchor so the marker's
+ * geographical point stays put while the visual grows.
+ */
+function SelectionHalo({
+  selected,
+  anchor,
+  children,
+}: {
+  selected: boolean;
+  anchor: 'bottom' | 'center';
+  children: ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        transform: selected ? 'scale(1.25)' : 'scale(1)',
+        transformOrigin: anchor === 'bottom' ? 'center bottom' : 'center center',
+        filter: selected
+          ? 'drop-shadow(0 0 3px #6f4e37) drop-shadow(0 0 6px rgba(111, 78, 55, 0.55))'
+          : undefined,
+        transition: 'transform 140ms ease-out, filter 140ms ease-out',
+      }}
+    >
+      {children}
+    </div>
   );
 }
