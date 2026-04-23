@@ -86,6 +86,9 @@ export function AdvancedMarker({
 
   useEffect(() => {
     if (markerRef.current) markerRef.current.position = position;
+    // Depend on lat/lng primitives, not the `position` object — parents often
+    // pass a fresh object literal on every render, which would thrash this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position.lat, position.lng]);
 
   useEffect(() => {

@@ -65,6 +65,9 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
     if (summary.kind !== 'idle') return;
     const el = cardRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') {
+      // Fallback for environments without IntersectionObserver (old browsers /
+      // jsdom): load eagerly. Safe because this branch is rare and one-shot.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadSummary();
       return;
     }

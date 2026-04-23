@@ -270,10 +270,9 @@ function AddressField({
     return () => document.removeEventListener('mousedown', onDocDown);
   }, [open]);
 
-  // Keep highlight in range if the suggestion list shrinks.
-  useEffect(() => {
-    if (highlight >= suggestions.length) setHighlight(0);
-  }, [suggestions.length, highlight]);
+  // If the suggestion list shrinks while a stale highlight index points past
+  // the end, treat it as 0 at render time — no effect, no cascading render.
+  const effectiveHighlight = highlight >= suggestions.length ? 0 : highlight;
 
   const scheduleQuery = useCallback(
     (next: string) => {
@@ -307,7 +306,7 @@ function AddressField({
       e.preventDefault();
       setHighlight((h) => (h - 1 + suggestions.length) % suggestions.length);
     } else if (e.key === 'Enter') {
-      const picked = suggestions[highlight];
+      const picked = suggestions[effectiveHighlight];
       if (picked) {
         e.preventDefault();
         void handlePick(picked);
@@ -351,9 +350,9 @@ function AddressField({
               <li
                 key={p.placeId}
                 role="option"
-                aria-selected={i === highlight}
+                aria-selected={i === effectiveHighlight}
                 className={
-                  i === highlight
+                  i === effectiveHighlight
                     ? `${styles.suggestionItem} ${styles.suggestionItemActive}`
                     : styles.suggestionItem
                 }
