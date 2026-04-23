@@ -1,6 +1,11 @@
 import type { Locale } from '../i18n/messages';
 
-type CachedSummary = { summary: string; v: 1 };
+type CachedSummary = { summary: string; ts: number; v: 2 };
+
+// 7 days. Server KV cache is 30 days, so between 7 and 30 days we pay one
+// extra round-trip but skip the model call. Keep shorter than server so
+// genuinely stale summaries have a chance to refresh from KV.
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function cacheKey(placeId: string, locale: Locale): string {
   return `ac:ai-summary:${locale}:${placeId}`;
@@ -8,10 +13,20 @@ function cacheKey(placeId: string, locale: Locale): string {
 
 export function getCachedSummary(placeId: string, locale: Locale): string | null {
   try {
-    const raw = sessionStorage.getItem(cacheKey(placeId, locale));
+    const key = cacheKey(placeId, locale);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as CachedSummary;
-    return typeof parsed.summary === 'string' ? parsed.summary : null;
+    const parsed = JSON.parse(raw) as Partial<CachedSummary>;
+    if (parsed.v !== 2 || typeof parsed.summary !== 'string' || typeof parsed.ts !== 'number') {
+      // Stale shape (pre-v2) or corrupted — drop it.
+      localStorage.removeItem(key);
+      return null;
+    }
+    if (Date.now() - parsed.ts > CACHE_TTL_MS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return parsed.summary;
   } catch {
     return null;
   }
@@ -19,9 +34,11 @@ export function getCachedSummary(placeId: string, locale: Locale): string | null
 
 function setCachedSummary(placeId: string, locale: Locale, summary: string) {
   try {
-    sessionStorage.setItem(cacheKey(placeId, locale), JSON.stringify({ summary, v: 1 }));
+    const record: CachedSummary = { summary, ts: Date.now(), v: 2 };
+    localStorage.setItem(cacheKey(placeId, locale), JSON.stringify(record));
   } catch {
-    // Quota or disabled — ignore, we just won't cache.
+    // Quota or disabled (private mode, disabled storage) — ignore, we just
+    // won't cache this one. Next fetch will still hit the 30-day server KV.
   }
 }
 
