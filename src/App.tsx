@@ -9,6 +9,7 @@ import { SavedPlacesMenu } from './components/SavedPlacesMenu';
 import { VisitedPlacesMenu } from './components/VisitedPlacesMenu';
 import { SiteBottomNav } from './components/SiteBottomNav';
 import { BottomSheet } from './components/BottomSheet';
+import { AppHero } from './components/AppHero';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
@@ -64,9 +65,7 @@ function AppShell() {
         </div>
       </header>
 
-      <div className="hero">
-        <p className="heroTagline">{t('location.title')}</p>
-      </div>
+      <AppHero />
 
       <main className="main">
         <section className="map-section">

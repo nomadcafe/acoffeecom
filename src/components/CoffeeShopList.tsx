@@ -127,30 +127,6 @@ export function CoffeeShopList() {
     return (
       <div className={styles.container}>
         <div className={styles.placeholder}>
-          <h1 className={styles.heroTitle}>{t('app.title')}</h1>
-          <p className={styles.heroTagline}>{t('app.tagline')}</p>
-
-          <ol className={styles.steps} aria-label={t('hero.stepsLabel')}>
-            <li className={styles.step}>
-              <span className={styles.stepNum} aria-hidden>1</span>
-              <span className={styles.stepLabel}>{t('hero.step1')}</span>
-            </li>
-            <li className={styles.stepArrow} aria-hidden>
-              →
-            </li>
-            <li className={styles.step}>
-              <span className={styles.stepNum} aria-hidden>2</span>
-              <span className={styles.stepLabel}>{t('hero.step2')}</span>
-            </li>
-            <li className={styles.stepArrow} aria-hidden>
-              →
-            </li>
-            <li className={styles.step}>
-              <span className={styles.stepNum} aria-hidden>3</span>
-              <span className={styles.stepLabel}>{t('hero.step3')}</span>
-            </li>
-          </ol>
-
           <p className={styles.placeholderLead}>
             {t(
               searchPlaceCategory === 'cafe' ? 'list.placeholderCoffee' : 'list.placeholderMeetup'

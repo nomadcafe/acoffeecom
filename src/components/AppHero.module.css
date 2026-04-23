@@ -1,0 +1,115 @@
+.hero {
+  background: var(--ac-surface);
+  border-bottom: 1px solid var(--ac-border);
+  padding: 0.85rem 1rem 0.95rem;
+}
+
+.inner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 0.25rem 0;
+  font-family: var(--ac-font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ac-text);
+  line-height: 1.15;
+  font-variation-settings: 'opsz' 48;
+}
+
+.tagline {
+  margin: 0 0 0.7rem 0;
+  font-size: 0.85rem;
+  color: var(--ac-text-muted);
+  line-height: 1.4;
+}
+
+.steps {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0.55rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: var(--ac-surface-tinted);
+  border: 1px solid var(--ac-border);
+  border-radius: 10px;
+  max-width: 520px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+}
+
+.stepNum {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--ac-accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepLabel {
+  font-size: 0.68rem;
+  color: var(--ac-text);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+
+.stepArrow {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--ac-border-strong);
+  font-weight: 600;
+  margin-top: -0.3rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: 1.15rem 1.5rem 1.25rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .tagline {
+    font-size: 0.95rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .steps {
+    padding: 0.75rem 1rem;
+    gap: 0.6rem;
+    max-width: 620px;
+  }
+
+  .stepNum {
+    width: 1.65rem;
+    height: 1.65rem;
+    font-size: 0.85rem;
+  }
+
+  .stepLabel {
+    font-size: 0.78rem;
+  }
+}
