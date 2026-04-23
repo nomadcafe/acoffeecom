@@ -245,6 +245,12 @@ export function PassportPage() {
             </section>
           </>
         )}
+
+        <footer className={styles.pageFooter}>
+          <p className={styles.disclaimer} role="note">
+            {t('bottomNav.bmacDisclaimer')}
+          </p>
+        </footer>
       </main>
     </div>
   );

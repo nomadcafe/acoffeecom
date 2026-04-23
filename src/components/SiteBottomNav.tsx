@@ -59,12 +59,6 @@ export function SiteBottomNav() {
 
   return (
     <footer className={styles.bar}>
-      <div className={styles.disclaimerBand}>
-        <p className={styles.disclaimer} role="note">
-          {t('bottomNav.bmacDisclaimer')}
-        </p>
-      </div>
-
       <nav className={styles.tabNav} aria-label={t('bottomNav.aria')}>
         <div className={styles.tabInner}>
           <a
@@ -102,3 +96,4 @@ export function SiteBottomNav() {
     </footer>
   );
 }
+

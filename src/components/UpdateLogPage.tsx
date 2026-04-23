@@ -50,6 +50,12 @@ export function UpdateLogPage() {
             </article>
           ))}
         </div>
+
+        <footer className={styles.pageFooter}>
+          <p className={styles.disclaimer} role="note">
+            {t('bottomNav.bmacDisclaimer')}
+          </p>
+        </footer>
       </main>
     </div>
   );
