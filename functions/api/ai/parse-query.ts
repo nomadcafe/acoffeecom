@@ -1,6 +1,7 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import { z } from 'zod';
+import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 
 interface Env {
   ANTHROPIC_API_KEY: string;
@@ -40,10 +41,17 @@ Rules:
 
 Never invent addresses that aren't in the user's text.`;
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   if (!env.ANTHROPIC_API_KEY) {
     return jsonError('ANTHROPIC_API_KEY not configured', 500);
   }
+
+  const limit = await rateLimit(request, { waitUntil }, {
+    bucket: 'parse',
+    limit: 60,
+    windowSec: 60 * 60,
+  });
+  if (!limit.ok) return rateLimitResponse(limit);
 
   let input: z.infer<typeof InputSchema>;
   try {

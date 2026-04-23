@@ -1,6 +1,8 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { z } from 'zod';
+import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
+import { readSummaryCache, writeSummaryCache } from '../../_lib/summaryCache';
 
 interface Env {
   GOOGLE_GENERATIVE_AI_API_KEY: string;
@@ -8,6 +10,7 @@ interface Env {
 }
 
 const InputSchema = z.object({
+  placeId: z.string().min(1).max(200),
   placeName: z.string().min(1).max(200),
   reviews: z
     .array(
@@ -32,7 +35,7 @@ Style:
 
 Only state things grounded in the supplied reviews. If reviews disagree, prefer the most recent-sounding signal.`;
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   if (!env.GOOGLE_GENERATIVE_AI_API_KEY) {
     return jsonError('GOOGLE_GENERATIVE_AI_API_KEY not configured', 500);
   }
@@ -43,6 +46,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   } catch (err) {
     return jsonError(err instanceof Error ? err.message : 'Invalid request body', 400);
   }
+
+  // Cache hit — return without touching the model or the rate limiter.
+  const cached = await readSummaryCache(input.placeId, input.locale);
+  if (cached) {
+    return Response.json(
+      { summary: cached, cached: true },
+      { headers: ALLOW_CORS },
+    );
+  }
+
+  const limit = await rateLimit(request, { waitUntil }, {
+    bucket: 'summarize',
+    limit: 120,
+    windowSec: 60 * 60,
+  });
+  if (!limit.ok) return rateLimitResponse(limit);
 
   try {
     const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY });
@@ -58,13 +77,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       temperature: 0.4,
     });
 
+    const summary = text.trim();
+    writeSummaryCache(input.placeId, input.locale, summary, waitUntil);
+
     return Response.json(
-      { summary: text.trim() },
+      { summary, cached: false },
       {
         headers: {
-          // Summaries for a specific place_id are stable; a CDN layer can cache.
+          // Browser can also keep it around; server key is placeId+locale.
           'cache-control': 'public, max-age=2592000, s-maxage=2592000',
-          'access-control-allow-origin': '*',
+          ...ALLOW_CORS,
         },
       },
     );
@@ -72,6 +94,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return jsonError(err instanceof Error ? err.message : 'Upstream model error', 502);
   }
 };
+
+const ALLOW_CORS = { 'access-control-allow-origin': '*' } as const;
 
 export const onRequestOptions: PagesFunction = () =>
   new Response(null, {

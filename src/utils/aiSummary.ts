@@ -58,7 +58,7 @@ export async function fetchAiSummary(
   const res = await fetch('/api/ai/summarize', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ placeName, reviews, locale }),
+    body: JSON.stringify({ placeId, placeName, reviews, locale }),
   });
   if (!res.ok) {
     throw new Error(`HTTP_${res.status}`);
