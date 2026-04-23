@@ -1,5 +1,6 @@
 .hero {
-  background: var(--ac-surface);
+  /* Transparent so the page cream shows through; header stays white and
+     becomes visually distinct from the hero content zone. */
   border-bottom: 1px solid var(--ac-border);
   padding: 0.85rem 1rem 0.95rem;
 }
@@ -36,10 +37,11 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  background: var(--ac-surface-tinted);
+  background: var(--ac-surface);
   border: 1px solid var(--ac-border);
   border-radius: 10px;
   max-width: 520px;
+  box-shadow: var(--ac-shadow-card);
 }
 
 .step {
