@@ -1,14 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, InfoWindow } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { snapshotToCoffeeShop } from '../hooks/useStarredShops';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { formatRelativeTime } from '../utils/relativeTime';
+import { AdvancedMarker } from './AdvancedMarker';
 import styles from './Map.module.css';
 
-const libraries: ('places')[] = ['places'];
+const libraries: ('places' | 'marker')[] = ['places', 'marker'];
+
+// AdvancedMarkerElement requires a Map ID (Google Cloud Console → Maps → Map
+// IDs). Without it, markers render blank. Log once at startup if missing so
+// the symptom is easy to diagnose.
+const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
+if (!MAP_ID) {
+  console.warn('[map] VITE_GOOGLE_MAPS_MAP_ID not set — advanced markers will not render.');
+}
+
+// AdvancedMarkerElement zIndex is a plain number (no MAX_ZINDEX constant).
+// Use a value safely above any stacking we assign elsewhere.
+const SELECTED_Z = 1_000_000;
 
 const mapContainerStyle = {
   width: '100%',
@@ -25,6 +38,7 @@ const mapOptions: google.maps.MapOptions = {
   zoomControl: true,
   streetViewControl: false,
   mapTypeControl: false,
+  mapId: MAP_ID,
 };
 
 function hasCoordinates(lat: number, lng: number): boolean {
@@ -251,108 +265,59 @@ export function Map() {
         onClick={onMapClick}
       >
         {youDotPosition ? (
-          <Marker
-            position={youDotPosition}
-            icon={{
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 11,
-              fillColor: '#1a73e8',
-              fillOpacity: 0.9,
-              strokeColor: 'white',
-              strokeWeight: 2,
-            }}
-            title={t('map.youHere')}
-            zIndex={1}
-          />
+          <AdvancedMarker position={youDotPosition} title={t('map.youHere')} zIndex={1} anchor="center">
+            <CircleDot size={26} color="#1a73e8" opacity={0.9} />
+          </AdvancedMarker>
         ) : null}
 
         {locationA && (
-          <Marker
-            position={{ lat: locationA.lat, lng: locationA.lng }}
-            label={{
-              text: 'A',
-              color: 'white',
-              fontWeight: 'bold',
-            }}
-            icon={{
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 12,
-              fillColor: '#4285f4',
-              fillOpacity: 1,
-              strokeColor: 'white',
-              strokeWeight: 2,
-            }}
-          />
+          <AdvancedMarker position={{ lat: locationA.lat, lng: locationA.lng }} anchor="center">
+            <CircleDot size={28} color="#4285f4" label="A" />
+          </AdvancedMarker>
         )}
 
         {locationB && (
-          <Marker
-            position={{ lat: locationB.lat, lng: locationB.lng }}
-            label={{
-              text: 'B',
-              color: 'white',
-              fontWeight: 'bold',
-            }}
-            icon={{
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 12,
-              fillColor: '#34a853',
-              fillOpacity: 1,
-              strokeColor: 'white',
-              strokeWeight: 2,
-            }}
-          />
+          <AdvancedMarker position={{ lat: locationB.lat, lng: locationB.lng }} anchor="center">
+            <CircleDot size={28} color="#34a853" label="B" />
+          </AdvancedMarker>
         )}
 
         {midpoint && !isNearby && (
-          <Marker
-            position={midpoint}
-            icon={{
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: '#ff9800',
-              fillOpacity: 1,
-              strokeColor: 'white',
-              strokeWeight: 2,
-            }}
-            title={t('map.midpoint')}
-          />
+          <AdvancedMarker position={midpoint} title={t('map.midpoint')} anchor="center">
+            <CircleDot size={24} color="#ff9800" />
+          </AdvancedMarker>
         )}
 
         {savedNotInResults.map((snap) => (
-          <Marker
+          <AdvancedMarker
             key={`saved-${snap.id}`}
             position={{ lat: snap.lat, lng: snap.lng }}
-            icon={{
-              url: 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png',
-              scaledSize: new google.maps.Size(28, 28),
-            }}
             title={t('map.savedNotInResults')}
-            zIndex={selectedSavedOnlyId === snap.id ? google.maps.Marker.MAX_ZINDEX : 2}
+            zIndex={selectedSavedOnlyId === snap.id ? SELECTED_Z : 2}
             onClick={() => {
               setSelectedCoffeeShopId(null);
               setSelectedVisitedOnlyId(null);
               setSelectedSavedOnlyId(snap.id);
             }}
-          />
+          >
+            <PinImage src="https://maps.google.com/mapfiles/ms/icons/purple-dot.png" size={28} />
+          </AdvancedMarker>
         ))}
 
         {visitedNotInResults.map((snap) => (
-          <Marker
+          <AdvancedMarker
             key={`visited-${snap.id}`}
             position={{ lat: snap.lat, lng: snap.lng }}
-            icon={{
-              url: 'https://maps.google.com/mapfiles/ms/icons/orange-dot.png',
-              scaledSize: new google.maps.Size(28, 28),
-            }}
             title={t('map.visitedNotInResults')}
-            zIndex={selectedVisitedOnlyId === snap.id ? google.maps.Marker.MAX_ZINDEX : 2}
+            zIndex={selectedVisitedOnlyId === snap.id ? SELECTED_Z : 2}
             onClick={() => {
               setSelectedCoffeeShopId(null);
               setSelectedSavedOnlyId(null);
               setSelectedVisitedOnlyId(snap.id);
             }}
-          />
+          >
+            <PinImage src="https://maps.google.com/mapfiles/ms/icons/orange-dot.png" size={28} />
+          </AdvancedMarker>
         ))}
 
         {coffeeShops.map((shop) => {
@@ -364,20 +329,18 @@ export function Map() {
               ? 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
               : 'https://maps.google.com/mapfiles/ms/icons/coffee.png';
           return (
-            <Marker
+            <AdvancedMarker
               key={shop.id}
               position={{ lat: shop.lat, lng: shop.lng }}
-              icon={{
-                url: iconUrl,
-                scaledSize: new google.maps.Size(32, 32),
-              }}
-              zIndex={selectedCoffeeShopId === shop.id ? google.maps.Marker.MAX_ZINDEX + 1 : undefined}
+              zIndex={selectedCoffeeShopId === shop.id ? SELECTED_Z + 1 : undefined}
               onClick={() => {
                 setSelectedSavedOnlyId(null);
                 setSelectedVisitedOnlyId(null);
                 setSelectedCoffeeShopId(shop.id);
               }}
-            />
+            >
+              <PinImage src={iconUrl} size={32} />
+            </AdvancedMarker>
           );
         })}
 
@@ -503,5 +466,55 @@ export function Map() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function CircleDot({
+  size,
+  color,
+  label,
+  opacity = 1,
+}: {
+  size: number;
+  color: string;
+  label?: string;
+  opacity?: number;
+}) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: color,
+        opacity,
+        border: '2px solid white',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontWeight: 700,
+        fontSize: Math.round(size * 0.5),
+        lineHeight: 1,
+        boxSizing: 'border-box',
+        userSelect: 'none',
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
+function PinImage({ src, size }: { src: string; size: number }) {
+  return (
+    <img
+      src={src}
+      width={size}
+      height={size}
+      alt=""
+      draggable={false}
+      style={{ display: 'block', userSelect: 'none' }}
+    />
   );
 }
