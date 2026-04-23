@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { CoffeeShop } from '../types';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
@@ -7,6 +7,7 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { formatRelativeTime } from '../utils/relativeTime';
 import { isToday } from '../utils/streak';
+import { fetchAiSummary, getCachedSummary } from '../utils/aiSummary';
 import styles from './CoffeeShopCard.module.css';
 
 interface CoffeeShopCardProps {
@@ -28,9 +29,32 @@ function renderStars(rating: number): string {
   return stars;
 }
 
+type SummaryState =
+  | { kind: 'idle' }
+  | { kind: 'loading' }
+  | { kind: 'ok'; text: string }
+  | { kind: 'empty' }
+  | { kind: 'error' };
+
 export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
   const { t, locale } = useI18n();
   const { isStarred, isVisited, visitCount, lastVisit, searchSortMode, searchMode } = useApp();
+  const [summary, setSummary] = useState<SummaryState>(() => {
+    const cached = getCachedSummary(shop.id, locale);
+    return cached ? { kind: 'ok', text: cached } : { kind: 'idle' };
+  });
+
+  const loadSummary = useCallback(async () => {
+    if (summary.kind === 'loading') return;
+    setSummary({ kind: 'loading' });
+    try {
+      const text = await fetchAiSummary(shop.id, shop.name, locale);
+      setSummary({ kind: 'ok', text });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setSummary({ kind: msg === 'NO_REVIEWS' ? 'empty' : 'error' });
+    }
+  }, [summary.kind, shop.id, shop.name, locale]);
   const starred = isStarred(shop.id);
   const visited = isVisited(shop.id);
   const count = visitCount(shop.id);
@@ -146,6 +170,48 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
           </span>
         )}
       </div>
+
+      <AiSummary t={t} state={summary} onLoad={loadSummary} />
     </div>
   );
 });
+
+function AiSummary({
+  t,
+  state,
+  onLoad,
+}: {
+  t: (key: string) => string;
+  state: SummaryState;
+  onLoad: () => void;
+}) {
+  if (state.kind === 'idle') {
+    return (
+      <button type="button" className={styles.aiButton} onClick={onLoad}>
+        {t('card.aiSummary')}
+      </button>
+    );
+  }
+  if (state.kind === 'loading') {
+    return (
+      <p className={styles.aiSummaryLoading}>
+        <span className={styles.aiSpinner} aria-hidden />
+        {t('card.aiSummaryLoading')}
+      </p>
+    );
+  }
+  if (state.kind === 'ok') {
+    return <p className={styles.aiSummaryText}>{state.text}</p>;
+  }
+  if (state.kind === 'empty') {
+    return <p className={styles.aiSummaryEmpty}>{t('card.aiSummaryNoReviews')}</p>;
+  }
+  return (
+    <p className={styles.aiSummaryError}>
+      {t('card.aiSummaryError')}
+      <button type="button" className={styles.aiRetry} onClick={onLoad}>
+        {t('card.aiSummaryRetry')}
+      </button>
+    </p>
+  );
+}
