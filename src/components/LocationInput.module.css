@@ -6,20 +6,10 @@
   border: 1px solid var(--ac-border);
 }
 
+/* The app-wide hero strip above the map carries the tagline on both mobile
+   and desktop, so the form's own title would duplicate it. */
 .title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.35rem;
-  color: #222;
-  text-align: center;
-  line-height: 1.25;
-}
-
-/* Mobile: the app-wide hero strip above the map already shows this tagline,
-   so the sheet's title is redundant. Desktop sidebar keeps it. */
-@media (max-width: 767.98px) {
-  .title {
-    display: none;
-  }
+  display: none;
 }
 
 .subtitle {
