@@ -1,5 +1,6 @@
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { AppHeroSmartInput } from './AppHeroSmartInput';
 import styles from './AppHero.module.css';
 
 /**
@@ -47,6 +48,8 @@ export function AppHero() {
             <span className={styles.stepLabel}>{t('hero.step3')}</span>
           </li>
         </ol>
+
+        <AppHeroSmartInput />
       </div>
     </section>
   );
