@@ -49,6 +49,8 @@ interface AppContextType extends AppState {
   searchWithAddresses: (nextAddressA: string, nextAddressB: string) => Promise<void>;
   searchAround: (center: { lat: number; lng: number }) => Promise<void>;
   widenSearchParams: () => void;
+  widenAndResearch: () => void;
+  canWidenSearch: boolean;
   clearError: () => void;
 }
 
@@ -470,6 +472,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  // One-click recovery from an empty result set: widen the params AND
+  // re-run the last search. We can't just call findMeetupSpot/searchAround
+  // synchronously after the setters because those callbacks close over
+  // the *previous* radius/rating. The pending flag defers the re-search
+  // to the next render, where the search closures carry the new values.
+  const [pendingWidenResearch, setPendingWidenResearch] = useState(false);
+
+  const widenAndResearch = useCallback(() => {
+    widenSearchParams();
+    setPendingWidenResearch(true);
+  }, [widenSearchParams]);
+
+  useEffect(() => {
+    if (!pendingWidenResearch) return;
+    setPendingWidenResearch(false);
+    if (searchMode === 'nearby' && midpoint) {
+      void searchAround(midpoint);
+    } else if (addressA.trim() && addressB.trim()) {
+      void findMeetupSpot();
+    }
+  }, [pendingWidenResearch, searchMode, midpoint, addressA, addressB, searchAround, findMeetupSpot]);
+
+  const canWidenSearch =
+    searchRadiusMeters < SEARCH_RADIUS_MAX_M || searchMinRating > SEARCH_RATING_MIN;
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -505,6 +532,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSearchPlaceCategory,
       setSearchSortMode,
       widenSearchParams,
+      widenAndResearch,
+      canWidenSearch,
       clearError,
       findMeetupSpot,
       searchWithAddresses,
@@ -545,6 +574,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addressB,
       setSearchPlaceCategory,
       widenSearchParams,
+      widenAndResearch,
+      canWidenSearch,
       clearError,
       findMeetupSpot,
       searchWithAddresses,

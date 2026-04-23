@@ -21,6 +21,8 @@ export function CoffeeShopList() {
     searchMode,
     findMeetupSpot,
     searchAround,
+    widenAndResearch,
+    canWidenSearch,
     clearError,
   } = useApp();
   const [shareFeedback, setShareFeedback] = useState<'idle' | 'copied' | 'shared'>('idle');
@@ -92,6 +94,16 @@ export function CoffeeShopList() {
           <p>
             {t(searchPlaceCategory === 'cafe' ? 'list.emptyCoffee' : 'list.emptyMeetup')}
           </p>
+          {canWidenSearch ? (
+            <button
+              type="button"
+              className={styles.emptyWidenButton}
+              onClick={widenAndResearch}
+              disabled={isLoading}
+            >
+              {t('list.emptyWidenAction')}
+            </button>
+          ) : null}
           <p className={styles.hint}>{t('list.emptyHint')}</p>
         </div>
       </div>
