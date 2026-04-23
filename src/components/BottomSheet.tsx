@@ -40,9 +40,7 @@ function getSnapOffsetPx(snap: Snap, sheetH: number, viewportH: number): number 
 
 export function BottomSheet({ children }: Props) {
   const { t } = useI18n();
-  // Default to 'half' so first-time users see the A/B inputs and the Find button
-  // without needing to discover the drag affordance.
-  const [snap, setSnap] = useState<Snap>('half');
+  const [snap, setSnap] = useState<Snap>('peek');
   const [dragOffset, setDragOffset] = useState<number | null>(null);
   const dragStart = useRef<{
     y: number;
