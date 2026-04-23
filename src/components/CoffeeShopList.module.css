@@ -141,13 +141,6 @@
   padding: 2rem 1rem;
 }
 
-.placeholderLead {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #888;
-  line-height: 1.5;
-}
-
 .hint {
   font-size: 0.85rem;
   color: #999;
@@ -155,7 +148,6 @@
 }
 
 .nearMeButton {
-  margin-top: 1.25rem;
   padding: 0.7rem 1.2rem;
   font-size: 0.95rem;
   font-weight: 600;
@@ -180,14 +172,6 @@
   margin: 0.75rem 0 0 0;
   font-size: 0.8rem;
   color: #c62828;
-}
-
-.placeholderDivider {
-  margin: 1rem 0 0.75rem 0;
-  font-size: 0.8rem;
-  color: #b8a99a;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .loadMoreRow {

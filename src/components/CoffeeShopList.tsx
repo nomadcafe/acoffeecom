@@ -127,12 +127,6 @@ export function CoffeeShopList() {
     return (
       <div className={styles.container}>
         <div className={styles.placeholder}>
-          <p className={styles.placeholderLead}>
-            {t(
-              searchPlaceCategory === 'cafe' ? 'list.placeholderCoffee' : 'list.placeholderMeetup'
-            )}
-          </p>
-          <p className={styles.placeholderDivider}>{t('list.or')}</p>
           <button
             type="button"
             className={styles.nearMeButton}
