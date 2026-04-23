@@ -25,8 +25,6 @@ export function CoffeeShopList() {
   } = useApp();
   const [shareFeedback, setShareFeedback] = useState<'idle' | 'copied' | 'shared'>('idle');
   const feedbackTimerRef = useRef<number | null>(null);
-  const [nearLoading, setNearLoading] = useState(false);
-  const [nearError, setNearError] = useState<string | null>(null);
 
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -83,63 +81,9 @@ export function CoffeeShopList() {
     );
   }
 
-  if (!midpoint) {
-    const handleNearMe = async () => {
-      setNearError(null);
-      setNearLoading(true);
-
-      const precise = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
-        if (!navigator.geolocation) return resolve(null);
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          () => resolve(null),
-          { enableHighAccuracy: true, maximumAge: 60_000, timeout: 10_000 },
-        );
-      });
-
-      let loc = precise;
-      if (!loc) {
-        try {
-          const raw = sessionStorage.getItem('ipLocation');
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (
-              parsed &&
-              typeof parsed.lat === 'number' &&
-              typeof parsed.lng === 'number'
-            ) {
-              loc = { lat: parsed.lat, lng: parsed.lng };
-            }
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      setNearLoading(false);
-      if (!loc) {
-        setNearError(t('list.nearMeUnavailable'));
-        return;
-      }
-      await searchAround(loc);
-    };
-
-    return (
-      <div className={styles.container}>
-        <div className={styles.placeholder}>
-          <button
-            type="button"
-            className={styles.nearMeButton}
-            onClick={() => void handleNearMe()}
-            disabled={nearLoading}
-          >
-            {nearLoading ? t('list.nearMeLoading') : t('list.nearMe')}
-          </button>
-          {nearError ? <p className={styles.nearMeError}>{nearError}</p> : null}
-        </div>
-      </div>
-    );
-  }
+  // Pre-search state: the hero owns the call-to-action (smart input + "near me"
+  // button), so the list just stays empty until a search runs.
+  if (!midpoint) return null;
 
   if (coffeeShops.length === 0) {
     return (
