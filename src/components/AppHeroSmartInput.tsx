@@ -24,7 +24,7 @@ type Status =
   | { kind: 'lowConfidence'; vibe?: string }
   | { kind: 'nearbyHint' }
   | { kind: 'unknown' }
-  | { kind: 'error' };
+  | { kind: 'error'; detail?: string };
 
 export function AppHeroSmartInput() {
   const { t, locale } = useI18n();
@@ -84,13 +84,17 @@ export function AppHeroSmartInput() {
           body: JSON.stringify({ query: trimmed, locale }),
         });
         if (!res.ok) {
-          setStatus({ kind: 'error' });
+          const detail = await readErrorDetail(res);
+          console.error('[ai/parse-query]', res.status, detail);
+          setStatus({ kind: 'error', detail: `${res.status}: ${detail}` });
           return;
         }
         const parsed = (await res.json()) as ParseResponse;
         apply(parsed);
-      } catch {
-        setStatus({ kind: 'error' });
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err);
+        console.error('[ai/parse-query]', detail);
+        setStatus({ kind: 'error', detail });
       }
     },
     [query, locale, status.kind, apply],
@@ -152,10 +156,27 @@ function StatusLine({
   };
 
   const vibe = 'vibe' in status ? status.vibe : undefined;
+  const detail = status.kind === 'error' ? status.detail : undefined;
   return (
     <p className={`${styles.status} ${tone[status.kind]}`}>
       {t(messageKey[status.kind])}
       {vibe ? <span className={styles.vibe}>{vibe}</span> : null}
+      {detail ? <span className={styles.detail}>{detail}</span> : null}
     </p>
   );
+}
+
+async function readErrorDetail(res: Response): Promise<string> {
+  try {
+    const body = await res.clone().json();
+    if (body && typeof body.error === 'string') return body.error;
+  } catch {
+    // Not JSON — try text.
+  }
+  try {
+    const text = await res.text();
+    return text.slice(0, 200);
+  } catch {
+    return res.statusText || 'unknown error';
+  }
 }

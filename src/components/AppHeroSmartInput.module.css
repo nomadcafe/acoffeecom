@@ -94,6 +94,15 @@
   color: var(--ac-text-muted);
 }
 
+.detail {
+  flex-basis: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  color: var(--ac-text-muted);
+  opacity: 0.85;
+  word-break: break-word;
+}
+
 @media (min-width: 768px) {
   .form {
     margin-top: 0.9rem;
