@@ -1,0 +1,13 @@
+# Copy to .dev.vars (git-ignored) and fill in real keys for `wrangler pages dev`.
+# In production these are set via the Cloudflare Pages dashboard (Settings →
+# Environment variables → Add).
+
+# Claude (used by /api/ai/parse-query — natural-language search parsing)
+ANTHROPIC_API_KEY=
+
+# Google Generative AI (used by /api/ai/summarize — café review summaries)
+GOOGLE_GENERATIVE_AI_API_KEY=
+
+# Optional model overrides (defaults baked in):
+#   AI_PARSE_MODEL=claude-sonnet-4-6
+#   AI_SUMMARY_MODEL=gemini-2.5-flash
