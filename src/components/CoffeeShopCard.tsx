@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { CoffeeShop } from '../types';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
@@ -43,6 +43,7 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
     const cached = getCachedSummary(shop.id, locale);
     return cached ? { kind: 'ok', text: cached } : { kind: 'idle' };
   });
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
   const loadSummary = useCallback(async () => {
     if (summary.kind === 'loading') return;
@@ -55,6 +56,30 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
       setSummary({ kind: msg === 'NO_REVIEWS' ? 'empty' : 'error' });
     }
   }, [summary.kind, shop.id, shop.name, locale]);
+
+  // Auto-fetch the summary when the card first scrolls into view. Cards the
+  // user never looks at never trigger a Places Details call. IntersectionObserver
+  // is a one-shot: we disconnect after the first hit so errors don't re-fire,
+  // and so subsequent scroll passes are free.
+  useEffect(() => {
+    if (summary.kind !== 'idle') return;
+    const el = cardRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      loadSummary();
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          observer.disconnect();
+          loadSummary();
+        }
+      },
+      { rootMargin: '200px 0px', threshold: 0.01 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [summary.kind, loadSummary]);
   const starred = isStarred(shop.id);
   const visited = isVisited(shop.id);
   const count = visitCount(shop.id);
@@ -78,6 +103,7 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
 
   return (
     <div
+      ref={cardRef}
       className={`${styles.card} ${starred ? styles.starred : ''} ${visited ? styles.visited : ''}`}
     >
       {starred && <div className={styles.favoriteBadge}>{t('card.favorite')}</div>}
@@ -186,11 +212,8 @@ function AiSummary({
   onLoad: () => void;
 }) {
   if (state.kind === 'idle') {
-    return (
-      <button type="button" className={styles.aiButton} onClick={onLoad}>
-        {t('card.aiSummary')}
-      </button>
-    );
+    // IntersectionObserver will trigger the fetch once the card scrolls in.
+    return null;
   }
   if (state.kind === 'loading') {
     return (
