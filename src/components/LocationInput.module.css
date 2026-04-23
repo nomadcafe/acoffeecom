@@ -55,6 +55,49 @@
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+  position: relative;
+}
+
+.suggestionList {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: -0.5rem;
+  right: -0.5rem;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid rgba(44, 24, 16, 0.1);
+  border-radius: 0.6rem;
+  box-shadow: 0 8px 24px rgba(44, 24, 16, 0.12);
+  z-index: 20;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.suggestionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--ac-text);
+}
+
+.suggestionItemActive {
+  background: rgba(44, 24, 16, 0.06);
+}
+
+.suggestionMain {
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.suggestionSecondary {
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  line-height: 1.2;
 }
 
 .tripLabel {

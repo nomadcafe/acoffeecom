@@ -1,9 +1,13 @@
-import { useEffect, useRef } from 'react';
-import type { FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { FormEvent, RefObject } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { RichText } from './RichText';
 import { examplePairsByLocale } from '../i18n/examples';
+import {
+  useAddressAutocomplete,
+  type UseAddressAutocomplete,
+} from '../hooks/useAddressAutocomplete';
 import styles from './LocationInput.module.css';
 
 export function LocationInput() {
@@ -23,59 +27,13 @@ export function LocationInput() {
     error,
     clearError,
   } = useApp();
-  // Only show demo pairs to first-time users — once they've run a real
-  // search (recentSearches populated), hide to reduce clutter.
   const examplePairs = recentSearches.length === 0 ? examplePairsByLocale[locale] : [];
   const inputARef = useRef<HTMLInputElement | null>(null);
   const inputBRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const listeners: google.maps.MapsEventListener[] = [];
-
-    const setupAutocomplete = () => {
-      if (cancelled) return true;
-      if (!inputARef.current || !inputBRef.current) return false;
-      if (!window.google?.maps?.places?.Autocomplete) return false;
-
-      const options: google.maps.places.AutocompleteOptions = {
-        fields: ['formatted_address'],
-      };
-      const acA = new google.maps.places.Autocomplete(inputARef.current, options);
-      const acB = new google.maps.places.Autocomplete(inputBRef.current, options);
-
-      listeners.push(
-        acA.addListener('place_changed', () => {
-          const place = acA.getPlace();
-          if (place.formatted_address) setAddressA(place.formatted_address);
-        })
-      );
-      listeners.push(
-        acB.addListener('place_changed', () => {
-          const place = acB.getPlace();
-          if (place.formatted_address) setAddressB(place.formatted_address);
-        })
-      );
-
-      return true;
-    };
-
-    if (!setupAutocomplete()) {
-      const timer = window.setInterval(() => {
-        if (setupAutocomplete()) window.clearInterval(timer);
-      }, 400);
-      return () => {
-        cancelled = true;
-        window.clearInterval(timer);
-        listeners.forEach((l) => l.remove());
-      };
-    }
-
-    return () => {
-      cancelled = true;
-      listeners.forEach((l) => l.remove());
-    };
-  }, [setAddressA, setAddressB]);
+  const acLanguage = locale === 'zh' ? 'zh-CN' : locale;
+  const autoA = useAddressAutocomplete(acLanguage);
+  const autoB = useAddressAutocomplete(acLanguage);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -104,21 +62,16 @@ export function LocationInput() {
           <span className={styles.tripMarker} style={{ backgroundColor: '#4285f4' }} aria-hidden>
             A
           </span>
-          <div className={styles.tripField}>
-            <label htmlFor="locationA" className={styles.tripLabel}>
-              {t('location.yourLocation')}
-            </label>
-            <input
-              ref={inputARef}
-              id="locationA"
-              type="text"
-              className={styles.tripInput}
-              placeholder={t('location.placeholderA')}
-              value={addressA}
-              onChange={(e) => setAddressA(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
+          <AddressField
+            id="locationA"
+            inputRef={inputARef}
+            label={t('location.yourLocation')}
+            placeholder={t('location.placeholderA')}
+            value={addressA}
+            onChange={setAddressA}
+            disabled={isLoading}
+            autocomplete={autoA}
+          />
         </div>
 
         <div className={styles.tripDivider}>
@@ -147,21 +100,16 @@ export function LocationInput() {
           <span className={styles.tripMarker} style={{ backgroundColor: '#34a853' }} aria-hidden>
             B
           </span>
-          <div className={styles.tripField}>
-            <label htmlFor="locationB" className={styles.tripLabel}>
-              {t('location.friendLocation')}
-            </label>
-            <input
-              ref={inputBRef}
-              id="locationB"
-              type="text"
-              className={styles.tripInput}
-              placeholder={t('location.placeholderB')}
-              value={addressB}
-              onChange={(e) => setAddressB(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
+          <AddressField
+            id="locationB"
+            inputRef={inputBRef}
+            label={t('location.friendLocation')}
+            placeholder={t('location.placeholderB')}
+            value={addressB}
+            onChange={setAddressB}
+            disabled={isLoading}
+            autocomplete={autoB}
+          />
         </div>
       </div>
 
@@ -280,5 +228,153 @@ export function LocationInput() {
         </div>
       ) : null}
     </form>
+  );
+}
+
+interface AddressFieldProps {
+  id: string;
+  inputRef: RefObject<HTMLInputElement | null>;
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (next: string) => void;
+  disabled?: boolean;
+  autocomplete: UseAddressAutocomplete;
+}
+
+function AddressField({
+  id,
+  inputRef,
+  label,
+  placeholder,
+  value,
+  onChange,
+  disabled,
+  autocomplete,
+}: AddressFieldProps) {
+  const { suggestions, query, pick, clear } = autocomplete;
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const debounceRef = useRef<number | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  // Close the dropdown when the user clicks anywhere outside this field.
+  useEffect(() => {
+    if (!open) return;
+    const onDocDown = (e: MouseEvent) => {
+      if (!wrapperRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocDown);
+    return () => document.removeEventListener('mousedown', onDocDown);
+  }, [open]);
+
+  // Keep highlight in range if the suggestion list shrinks.
+  useEffect(() => {
+    if (highlight >= suggestions.length) setHighlight(0);
+  }, [suggestions.length, highlight]);
+
+  const scheduleQuery = useCallback(
+    (next: string) => {
+      if (debounceRef.current != null) window.clearTimeout(debounceRef.current);
+      debounceRef.current = window.setTimeout(() => query(next), 200);
+    },
+    [query]
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = e.target.value;
+    onChange(next);
+    setOpen(true);
+    setHighlight(0);
+    scheduleQuery(next);
+  };
+
+  const handlePick = async (suggestion: google.maps.places.AutocompleteSuggestion) => {
+    const addr = await pick(suggestion);
+    if (addr) onChange(addr);
+    setOpen(false);
+    if (debounceRef.current != null) window.clearTimeout(debounceRef.current);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlight((h) => (h + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlight((h) => (h - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === 'Enter') {
+      const picked = suggestions[highlight];
+      if (picked) {
+        e.preventDefault();
+        void handlePick(picked);
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+      clear();
+    }
+  };
+
+  return (
+    <div ref={wrapperRef} className={styles.tripField}>
+      <label htmlFor={id} className={styles.tripLabel}>
+        {label}
+      </label>
+      <input
+        ref={inputRef}
+        id={id}
+        type="text"
+        className={styles.tripInput}
+        placeholder={placeholder}
+        value={value}
+        onChange={handleChange}
+        onFocus={() => {
+          if (suggestions.length > 0) setOpen(true);
+        }}
+        onKeyDown={handleKeyDown}
+        disabled={disabled}
+        autoComplete="off"
+        role="combobox"
+        aria-expanded={open && suggestions.length > 0}
+        aria-autocomplete="list"
+        aria-controls={`${id}-suggestions`}
+      />
+      {open && suggestions.length > 0 ? (
+        <ul id={`${id}-suggestions`} role="listbox" className={styles.suggestionList}>
+          {suggestions.map((s, i) => {
+            const p = s.placePrediction;
+            if (!p) return null;
+            return (
+              <li
+                key={p.placeId}
+                role="option"
+                aria-selected={i === highlight}
+                className={
+                  i === highlight
+                    ? `${styles.suggestionItem} ${styles.suggestionItemActive}`
+                    : styles.suggestionItem
+                }
+                onMouseDown={(e) => {
+                  // Prevent input blur from firing before our click handler.
+                  e.preventDefault();
+                  void handlePick(s);
+                }}
+                onMouseEnter={() => setHighlight(i)}
+              >
+                <span className={styles.suggestionMain}>
+                  {p.mainText?.text ?? p.text.text}
+                </span>
+                {p.secondaryText?.text ? (
+                  <span className={styles.suggestionSecondary}>{p.secondaryText.text}</span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
   );
 }
