@@ -20,14 +20,8 @@ export function UpdateLogPage() {
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <div className={styles.brandRow}>
-            <a className={styles.logo} href={homeHref}>
-              <img
-                src="/logo.png"
-                alt={t('app.logoAlt')}
-                className={styles.logoImage}
-                width={460}
-                height={130}
-              />
+            <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
+              <span className={styles.logoWordmark}>ACoffee</span>
             </a>
           </div>
           <div className={styles.headerAside}>

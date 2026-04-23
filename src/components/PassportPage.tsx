@@ -110,7 +110,6 @@ export function PassportPage() {
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
-            <img src="/logo.png" alt="" className={styles.logoImage} width={40} height={40} />
             <span className={styles.logoWordmark}>ACoffee</span>
           </a>
           <div className={styles.headerAside}>

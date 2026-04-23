@@ -32,7 +32,7 @@
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  line-height: 0;
+  color: inherit;
   transition: opacity 0.15s ease;
 }
 
@@ -40,12 +40,12 @@
   opacity: 0.88;
 }
 
-.logoImage {
-  display: block;
-  height: 3rem;
-  width: auto;
-  max-width: 10rem;
-  object-fit: contain;
+.logoWordmark {
+  font-family: var(--ac-font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variation-settings: 'opsz' 30;
 }
 
 .logo:focus-visible {
@@ -136,9 +136,8 @@
 }
 
 @media (min-width: 768px) {
-  .logoImage {
-    height: 3.5rem;
-    max-width: 12rem;
+  .logoWordmark {
+    font-size: 1.85rem;
   }
 
   .pageTitle {

@@ -62,13 +62,6 @@ body {
   opacity: 0.85;
 }
 
-.logoImage {
-  display: block;
-  width: 2rem;
-  height: 2rem;
-  object-fit: contain;
-}
-
 .logoWordmark {
   font-family: var(--ac-font-display);
   font-size: 1.2rem;
@@ -123,11 +116,6 @@ body {
 @media (min-width: 768px) {
   .header {
     padding: 0.55rem 1.5rem;
-  }
-
-  .logoImage {
-    width: 2.25rem;
-    height: 2.25rem;
   }
 
   .logoWordmark {

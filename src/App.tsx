@@ -32,7 +32,6 @@ function AppShell() {
       <header className="header">
         <div className="headerInner">
           <a className="logo" href={homeHref} aria-label={t('app.logoAlt')}>
-            <img src="/logo.png" alt="" className="logoImage" width={40} height={40} />
             <span className="logoWordmark">ACoffee</span>
           </a>
           <div className="headerAside headerAsideBar">
