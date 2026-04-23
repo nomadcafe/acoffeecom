@@ -20,7 +20,7 @@ export function stripLocalePrefix(pathname: string): string {
 
 export function buildLocalizedPathname(pathname: string, locale: Locale): string {
   const base = stripLocalePrefix(pathname);
-  return base === '/' ? `/${locale}` : `/${locale}${base}`;
+  return base === '/' ? `/${locale}/` : `/${locale}${base}`;
 }
 
 /** Reads saved preference, otherwise maps navigator.language to en | ja | zh. */

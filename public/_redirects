@@ -1,6 +1,10 @@
-/en    /index.html   200
-/ja    /index.html   200
-/zh    /index.html   200
+# Normalize bare locale paths to trailing-slash canonical form so search
+# engines crawling /en (which Cloudflare Pages otherwise 308s to /) land on
+# the actual locale home instead of the root fallback.
+/en    /en/   301
+/ja    /ja/   301
+/zh    /zh/   301
+
 /en/*  /index.html   200
 /ja/*  /index.html   200
 /zh/*  /index.html   200

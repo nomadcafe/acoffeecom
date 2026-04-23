@@ -130,7 +130,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       const hreflang = code === 'zh' ? 'zh-CN' : code;
       upsertLinkRel('alternate', href, hreflang);
     }
-    upsertLinkRel('alternate', `${origin}/en`, 'x-default');
+    upsertLinkRel('alternate', `${origin}/en/`, 'x-default');
 
     const schemaScript = document.head.querySelector(
       'script[type="application/ld+json"]'

@@ -12,7 +12,7 @@ export const en: MessageDict = {
   'seo.description':
     'Enter two addresses, see the midpoint on a map, and discover highly rated coffee shops nearby. Plan an easy meetup at a café that works for both of you.',
   'seo.keywords':
-    'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, coffee shop near me, two addresses, Google Maps, meetup planner, brunch spot',
+    'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, meet halfway, halfway between two addresses, cafe between two locations, equidistant cafe, meeting point finder, coffee date spot, first date cafe, top rated coffee shops, coffee shop near me, specialty coffee, cafe map, meetup planner, friends meetup, business meeting cafe',
   'seo.ogTitle': 'A Coffee Meetup Finder | Cafés halfway between two places',
   'seo.ogDescription':
     'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
@@ -263,7 +263,7 @@ export const ja: MessageDict = {
   'seo.description':
     '2つの住所を入力すると中間地点を地図で表示し、その周辺の高評価カフェを見つけられます。待ち合わせ場所を簡単に決められます。',
   'seo.keywords':
-    'カフェ 待ち合わせ, 中間地点, コーヒーショップ, 地図, 2地点, meet in the middle, Google Maps',
+    'カフェ 待ち合わせ, 待ち合わせ場所, 中間地点, 中点, 合流場所, 中間 カフェ, 2地点の中間, 2人の中間, デート カフェ, 初デート カフェ, 打ち合わせ カフェ, 商談 カフェ, 駅近 カフェ, 人気カフェ, 高評価 カフェ, おすすめ カフェ, コーヒーショップ 検索, カフェ 地図, カフェ検索, meet in the middle, acoffee',
   'seo.ogTitle': 'A Coffee Meetup Finder | 2地点の中間カフェ検索',
   'seo.ogDescription':
     '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
@@ -509,7 +509,7 @@ export const zh: MessageDict = {
   'seo.description':
     '输入两个地址，在地图上查看中点并找到附近高评分咖啡店，快速决定双方都方便的会面地点。',
   'seo.keywords':
-    '咖啡 见面, 中间点, 咖啡店, 地图, 两个地址, meet in the middle, Google Maps',
+    '咖啡 见面, 咖啡馆, 咖啡店 推荐, 中间点, 中点 咖啡, 中间位置, 两地之间, 两人中间, 见面地点, 约会地点, 约会 咖啡, 相亲 咖啡, 朋友见面, 商务会面, 会面地点, 高评分 咖啡店, 附近 咖啡店, 地铁站 咖啡, 咖啡馆 地图, 找咖啡, meet in the middle, acoffee',
   'seo.ogTitle': 'A Coffee Meetup Finder | 两地中点咖啡店',
   'seo.ogDescription': '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
   'seo.ogLocale': 'zh_CN',
