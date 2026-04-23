@@ -1,7 +1,11 @@
-# Cloudflare Pages configuration. Kept minimal — the project name and
-# environment secrets are managed in the Pages dashboard; this file only
-# pins runtime compatibility so Pages Functions can load Node-flavoured
-# modules (needed by the @ai-sdk/anthropic, @ai-sdk/google, and ai packages).
+# Cloudflare Pages configuration. Secrets (ANTHROPIC_API_KEY etc.) are still
+# set via the Pages dashboard — this file only pins runtime compatibility
+# so Pages Functions can load Node-flavoured modules (needed by the
+# @ai-sdk/anthropic, @ai-sdk/google, and ai packages).
+#
+# "name" must match the Pages project slug shown in the Cloudflare dashboard
+# (Workers & Pages → your project). Update if it differs.
+name = "acoffeemeetup"
 compatibility_date = "2026-04-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
