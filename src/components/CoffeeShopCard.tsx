@@ -34,7 +34,8 @@ type SummaryState =
   | { kind: 'loading' }
   | { kind: 'ok'; text: string }
   | { kind: 'empty' }
-  | { kind: 'error' };
+  | { kind: 'error' }
+  | { kind: 'rateLimited'; retryAfterSec: number };
 
 export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
   const { t, locale } = useI18n();
@@ -44,16 +45,35 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
     return cached ? { kind: 'ok', text: cached } : { kind: 'idle' };
   });
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Abort any in-flight summarize request on unmount. Without this, a user
+  // who re-runs the search while summaries are still loading would leave
+  // orphan fetches running — wasted Places Details calls, wasted model
+  // tokens, and wasted rate-limit budget.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const loadSummary = useCallback(async () => {
     if (summary.kind === 'loading') return;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setSummary({ kind: 'loading' });
     try {
-      const text = await fetchAiSummary(shop.id, shop.name, locale);
+      const text = await fetchAiSummary(shop.id, shop.name, locale, controller.signal);
+      if (controller.signal.aborted) return;
       setSummary({ kind: 'ok', text });
     } catch (err) {
+      if (controller.signal.aborted) return;
       const msg = err instanceof Error ? err.message : '';
-      setSummary({ kind: msg === 'NO_REVIEWS' ? 'empty' : 'error' });
+      if (msg === 'NO_REVIEWS') {
+        setSummary({ kind: 'empty' });
+      } else if (msg.startsWith('RATE_LIMITED:')) {
+        const retryAfterSec = Number(msg.slice('RATE_LIMITED:'.length)) || 60;
+        setSummary({ kind: 'rateLimited', retryAfterSec });
+      } else {
+        setSummary({ kind: 'error' });
+      }
     }
   }, [summary.kind, shop.id, shop.name, locale]);
 
@@ -210,7 +230,7 @@ function AiSummary({
   state,
   onLoad,
 }: {
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
   state: SummaryState;
   onLoad: () => void;
 }) {
@@ -231,6 +251,14 @@ function AiSummary({
   }
   if (state.kind === 'empty') {
     return <p className={styles.aiSummaryEmpty}>{t('card.aiSummaryNoReviews')}</p>;
+  }
+  if (state.kind === 'rateLimited') {
+    // No Retry button — an immediate retry would just hit the limiter again.
+    return (
+      <p className={styles.aiSummaryEmpty}>
+        {t('card.aiSummaryRateLimited', { seconds: state.retryAfterSec })}
+      </p>
+    );
   }
   return (
     <p className={styles.aiSummaryError}>

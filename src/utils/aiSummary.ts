@@ -29,11 +29,19 @@ function setCachedSummary(placeId: string, locale: Locale, summary: string) {
  * Fetch reviews via Places API (New) and summarize them through the backend.
  * Throws if reviews are unavailable (empty or Places failed); caller should
  * surface the empty case as a friendly message.
+ *
+ * Pass `signal` to cancel the summarize fetch. The Places `fetchFields` call
+ * can't be aborted (no SDK support), but we short-circuit after it resolves
+ * so state never updates on an unmounted card.
+ *
+ * On HTTP 429 throws `RATE_LIMITED:<retryAfterSec>` so the caller can show
+ * a specific cooldown message instead of a generic error.
  */
 export async function fetchAiSummary(
   placeId: string,
   placeName: string,
   locale: Locale,
+  signal?: AbortSignal,
 ): Promise<string> {
   const cached = getCachedSummary(placeId, locale);
   if (cached) return cached;
@@ -41,6 +49,7 @@ export async function fetchAiSummary(
   const lib = (await google.maps.importLibrary('places')) as google.maps.PlacesLibrary;
   const place = new lib.Place({ id: placeId });
   await place.fetchFields({ fields: ['reviews'] });
+  if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
 
   const rawReviews = place.reviews ?? [];
   const reviews = rawReviews
@@ -59,7 +68,12 @@ export async function fetchAiSummary(
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ placeId, placeName, reviews, locale }),
+    signal,
   });
+  if (res.status === 429) {
+    const retryAfter = Number(res.headers.get('retry-after')) || 60;
+    throw new Error(`RATE_LIMITED:${retryAfter}`);
+  }
   if (!res.ok) {
     throw new Error(`HTTP_${res.status}`);
   }
