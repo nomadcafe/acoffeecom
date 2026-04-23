@@ -19,6 +19,8 @@
   transform: translateY(calc(90dvh - 136px));
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   will-change: transform;
+  /* At peek/half the whole sheet drags; at full the content scrolls natively. */
+  touch-action: none;
 }
 
 .snap_peek {
@@ -33,11 +35,12 @@
 
 .snap_full {
   transform: translateY(0);
+  touch-action: pan-y;
 }
 
 .handle {
   flex-shrink: 0;
-  padding: 0.7rem 1rem 0.45rem;
+  padding: 0.85rem 1rem 0.7rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -57,8 +60,8 @@
 }
 
 .handleBar {
-  width: 44px;
-  height: 5px;
+  width: 52px;
+  height: 6px;
   background: var(--ac-border-strong);
   border-radius: 3px;
   transition: background 0.15s ease;
@@ -76,7 +79,8 @@
   padding: 0 1rem 1.5rem;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  touch-action: pan-y;
+  /* touch-action is inherited from the sheet: none at peek/half (JS handles drag),
+     pan-y at full (native content scroll). */
 }
 
 .srOnly {

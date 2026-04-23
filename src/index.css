@@ -27,6 +27,12 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  /* Stop browser pull-to-refresh / rubber-band from swallowing sheet drags. */
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   min-width: 320px;

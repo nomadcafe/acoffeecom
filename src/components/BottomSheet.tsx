@@ -14,16 +14,18 @@ type Snap = 'peek' | 'half' | 'full';
 
 const SNAP_ORDER: Snap[] = ['peek', 'half', 'full'];
 
-interface Props {
-  children: ReactNode;
-}
-
 /** Visible portion of the sheet when peeked (handle + one line of content). */
 const PEEK_PX = 136;
 /** Fraction of viewport visible at half snap. */
 const HALF_FRACTION = 0.52;
 /** Drag distance in px that triggers a snap even if the absolute position is closer to the previous snap. */
 const VELOCITY_TRIGGER_PX = 60;
+/** Movement under this is treated as a tap, not a drag. */
+const DRAG_THRESHOLD_PX = 6;
+
+interface Props {
+  children: ReactNode;
+}
 
 /**
  * @param snap target snap point
@@ -38,23 +40,37 @@ function getSnapOffsetPx(snap: Snap, sheetH: number, viewportH: number): number 
 
 export function BottomSheet({ children }: Props) {
   const { t } = useI18n();
-  const [snap, setSnap] = useState<Snap>('peek');
+  // Default to 'half' so first-time users see the A/B inputs and the Find button
+  // without needing to discover the drag affordance.
+  const [snap, setSnap] = useState<Snap>('half');
   const [dragOffset, setDragOffset] = useState<number | null>(null);
-  const dragStart = useRef<{ y: number; offset: number } | null>(null);
+  const dragStart = useRef<{
+    y: number;
+    offset: number;
+    pointerId: number;
+    captured: boolean;
+    onHandle: boolean;
+  } | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
   const labelId = useId();
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!sheetRef.current) return;
-      e.currentTarget.setPointerCapture(e.pointerId);
-      const sheetH = sheetRef.current.offsetHeight;
+      const target = e.target as Node;
+      const onHandle = handleRef.current?.contains(target) ?? false;
+      // At full snap, pointer on content should scroll natively; only drag-on-handle collapses.
+      if (snap === 'full' && !onHandle) return;
+
       dragStart.current = {
         y: e.clientY,
-        offset: getSnapOffsetPx(snap, sheetH, window.innerHeight),
+        offset: getSnapOffsetPx(snap, sheetRef.current.offsetHeight, window.innerHeight),
+        pointerId: e.pointerId,
+        captured: false,
+        onHandle,
       };
-      setDragOffset(dragStart.current.offset);
     },
     [snap],
   );
@@ -62,6 +78,15 @@ export function BottomSheet({ children }: Props) {
   const onPointerMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragStart.current || !sheetRef.current) return;
     const dy = e.clientY - dragStart.current.y;
+
+    // Defer pointer capture until movement exceeds the tap threshold so button
+    // clicks inside the sheet keep working.
+    if (!dragStart.current.captured) {
+      if (Math.abs(dy) < DRAG_THRESHOLD_PX) return;
+      e.currentTarget.setPointerCapture(dragStart.current.pointerId);
+      dragStart.current.captured = true;
+    }
+
     const sheetH = sheetRef.current.offsetHeight;
     const next = Math.max(0, Math.min(sheetH, dragStart.current.offset + dy));
     setDragOffset(next);
@@ -69,13 +94,29 @@ export function BottomSheet({ children }: Props) {
 
   const onPointerEnd = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
-      if (!dragStart.current || !sheetRef.current) return;
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        e.currentTarget.releasePointerCapture(e.pointerId);
+      const start = dragStart.current;
+      if (!start || !sheetRef.current) {
+        setDragOffset(null);
+        return;
       }
+      if (e.currentTarget.hasPointerCapture(start.pointerId)) {
+        e.currentTarget.releasePointerCapture(start.pointerId);
+      }
+
+      if (!start.captured) {
+        // No drag happened. Tapping the handle cycles snap (peek → half → full → peek).
+        if (start.onHandle) {
+          const idx = SNAP_ORDER.indexOf(snap);
+          setSnap(idx === SNAP_ORDER.length - 1 ? 'peek' : SNAP_ORDER[idx + 1]);
+        }
+        dragStart.current = null;
+        setDragOffset(null);
+        return;
+      }
+
       const sheetH = sheetRef.current.offsetHeight;
-      const currentOffset = dragOffset ?? dragStart.current.offset;
-      const startOffset = dragStart.current.offset;
+      const currentOffset = dragOffset ?? start.offset;
+      const startOffset = start.offset;
       const dragged = currentOffset - startOffset;
       dragStart.current = null;
       setDragOffset(null);
@@ -143,13 +184,14 @@ export function BottomSheet({ children }: Props) {
       style={transformStyle}
       role="region"
       aria-labelledby={labelId}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
     >
       <div
+        ref={handleRef}
         className={styles.handle}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
         onKeyDown={onHandleKeyDown}
         role="button"
         tabIndex={0}
