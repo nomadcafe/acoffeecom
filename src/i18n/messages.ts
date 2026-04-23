@@ -26,7 +26,7 @@ export const en: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee Agent',
-  'app.tagline': 'Meet in the middle, over coffee.',
+  'app.tagline': 'Top-rated cafés at your meetup midpoint.',
 
   'lang.selectAria': 'Language',
   'lang.en': 'English',
@@ -276,7 +276,7 @@ export const ja: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee Agent',
-  'app.tagline': '中点で、コーヒーを。',
+  'app.tagline': '待ち合わせの中点で、高評価カフェを。',
 
   'lang.selectAria': '言語',
   'lang.en': 'English',
@@ -518,7 +518,7 @@ export const zh: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee Agent',
-  'app.tagline': '中点见，喝杯咖啡。',
+  'app.tagline': '在中点，为你挑一家好咖啡。',
 
   'lang.selectAria': '语言',
   'lang.en': 'English',

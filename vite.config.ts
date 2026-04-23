@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo.png', 'robots.txt'],
       manifest: {
-        name: 'ACoffee Agent — Meet in the middle, over coffee',
+        name: 'ACoffee Agent — Top-rated cafés at your meetup midpoint',
         short_name: 'ACoffee',
         description:
           'Find highly-rated coffee shops near the midpoint between two places, or near you.',
