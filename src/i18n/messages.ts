@@ -25,8 +25,8 @@ export const en: MessageDict = {
     'Find highly rated coffee shops near the geographic midpoint between two addresses using an interactive map.',
 
   'app.logoAlt': 'A Coffee',
-  'app.title': 'A Coffee Meetup Finder',
-  'app.tagline': 'Find the perfect coffee spot between you and a friend',
+  'app.title': 'ACoffee Agent',
+  'app.tagline': 'Meet in the middle, over coffee.',
 
   'lang.selectAria': 'Language',
   'lang.en': 'English',
@@ -275,8 +275,8 @@ export const ja: MessageDict = {
     '2つの住所の中間地点近くで、高評価のカフェを地図から探せるWebアプリです。',
 
   'app.logoAlt': 'A Coffee',
-  'app.title': 'A Coffee Meetup Finder',
-  'app.tagline': '二人のちょうどいい場所で、カフェを見つけよう',
+  'app.title': 'ACoffee Agent',
+  'app.tagline': '中点で、コーヒーを。',
 
   'lang.selectAria': '言語',
   'lang.en': 'English',
@@ -517,8 +517,8 @@ export const zh: MessageDict = {
   'seo.schemaDescription': '帮助两个人根据中间地点快速找到合适咖啡店的 Web 应用。',
 
   'app.logoAlt': 'A Coffee',
-  'app.title': 'A Coffee Meetup Finder',
-  'app.tagline': '在你和朋友之间找到最合适的咖啡地点',
+  'app.title': 'ACoffee Agent',
+  'app.tagline': '中点见，喝杯咖啡。',
 
   'lang.selectAria': '语言',
   'lang.en': 'English',
