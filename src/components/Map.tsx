@@ -323,23 +323,25 @@ export function Map() {
         {coffeeShops.map((shop) => {
           const starred = isStarred(shop.id);
           const visited = isVisited(shop.id);
-          const iconUrl = visited
-            ? 'https://maps.google.com/mapfiles/ms/icons/orange-dot.png'
-            : starred
-              ? 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
-              : 'https://maps.google.com/mapfiles/ms/icons/coffee.png';
           return (
             <AdvancedMarker
               key={shop.id}
               position={{ lat: shop.lat, lng: shop.lng }}
               zIndex={selectedCoffeeShopId === shop.id ? SELECTED_Z + 1 : undefined}
+              anchor={!visited && !starred ? 'center' : 'bottom'}
               onClick={() => {
                 setSelectedSavedOnlyId(null);
                 setSelectedVisitedOnlyId(null);
                 setSelectedCoffeeShopId(shop.id);
               }}
             >
-              <PinImage src={iconUrl} size={32} />
+              {visited ? (
+                <PinImage src="https://maps.google.com/mapfiles/ms/icons/orange-dot.png" size={32} />
+              ) : starred ? (
+                <PinImage src="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png" size={32} />
+              ) : (
+                <CircleDot size={32} color="#6f4e37" label="☕" />
+              )}
             </AdvancedMarker>
           );
         })}
