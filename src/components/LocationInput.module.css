@@ -14,6 +14,14 @@
   line-height: 1.25;
 }
 
+/* Mobile: the app-wide hero strip above the map already shows this tagline,
+   so the sheet's title is redundant. Desktop sidebar keeps it. */
+@media (max-width: 767.98px) {
+  .title {
+    display: none;
+  }
+}
+
 .subtitle {
   margin: 0 0 1.25rem 0;
   font-size: 0.875rem;

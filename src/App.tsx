@@ -42,6 +42,10 @@ function AppShell() {
         </div>
       </header>
 
+      <div className="hero">
+        <p className="heroTagline">{t('location.title')}</p>
+      </div>
+
       <main className="main">
         <section className="map-section">
           <Suspense fallback={<div className="mapFallback" aria-hidden="true" />}>
