@@ -211,6 +211,11 @@ export const en: MessageDict = {
   'visited.shareCardText':
     'My coffee passport — {{count}} cafés, {{visits}} visits. Built on acoffee.com.',
 
+  'share.meetup': 'Share meetup',
+  'share.meetupTitle': 'Coffee meetup: {{name}}',
+  'share.meetupText': "Let's meet at {{name}} ☕",
+  'share.error': "Couldn't share link",
+
   'saved.title': 'Saved cafés',
   'saved.menuLabel': 'Saved',
   'saved.count': '{{count}} saved',
@@ -467,6 +472,11 @@ export const ja: MessageDict = {
   'visited.shareCardText':
     'マイ・コーヒーパスポート — {{count}} 軒、{{visits}} 回。acoffee.com で作成。',
 
+  'share.meetup': 'シェア',
+  'share.meetupTitle': 'コーヒーミート：{{name}}',
+  'share.meetupText': '{{name}} で会いましょう ☕',
+  'share.error': 'リンクを共有できませんでした',
+
   'saved.title': '保存したカフェ',
   'saved.count': '{{count}} 件',
   'saved.empty': '下の検索結果で星をタップすると、ここに保存され、すぐに地図へ飛べます。',
@@ -713,6 +723,11 @@ export const zh: MessageDict = {
   'passport.viewFull': '查看完整护照 →',
   'visited.shareCardText':
     '我的咖啡护照 — {{count}} 家店，{{visits}} 次访问。acoffee.com 生成。',
+
+  'share.meetup': '分享这家',
+  'share.meetupTitle': '咖啡约见：{{name}}',
+  'share.meetupText': '我们约在 {{name}} 吧 ☕',
+  'share.error': '无法分享链接',
 
   'saved.title': '已保存咖啡店',
   'saved.menuLabel': '已保存',

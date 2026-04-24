@@ -312,6 +312,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
         setRawShops(shops);
 
+        // Deep-link: if the URL named a specific café (?c=<placeId>) and it's
+        // in this result set, highlight it. Use the raw state setter so the
+        // auto-select doesn't fire cafe_opened (that event is for user clicks).
+        const preselect = new URLSearchParams(window.location.search).get('c');
+        if (preselect && shops.some((s) => s.id === preselect)) {
+          setSelectedCoffeeShopIdState(preselect);
+        }
+
         // Reflect the search in the URL so it can be bookmarked or shared.
         // Preserve filter params (r/mr/q/cat/sort) that the sync effect manages.
         const params = new URLSearchParams(window.location.search);
@@ -391,6 +399,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           searchOpenNow
         );
         setRawShops(shops);
+
+        const preselect = new URLSearchParams(window.location.search).get('c');
+        if (preselect && shops.some((s) => s.id === preselect)) {
+          setSelectedCoffeeShopIdState(preselect);
+        }
 
         const params = new URLSearchParams(window.location.search);
         params.set('near', `${center.lat.toFixed(5)},${center.lng.toFixed(5)}`);

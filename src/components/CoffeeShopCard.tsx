@@ -3,6 +3,7 @@ import type { CoffeeShop } from '../types';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
 import { VisitedButton } from './VisitedButton';
+import { ShareButton } from './ShareButton';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { formatRelativeTime } from '../utils/relativeTime';
@@ -151,6 +152,7 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
         <div className={styles.actions}>
           <VisitedButton shop={shop} />
           <StarButton shop={shop} />
+          <ShareButton shop={shop} />
         </div>
       </div>
 
