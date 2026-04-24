@@ -14,6 +14,7 @@ import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
 import { isPassportPath } from './routes';
+import { useTrackPageViews } from './utils/analytics';
 import './App.css';
 
 /**
@@ -89,6 +90,7 @@ function AppShell() {
 
 function AppRoute() {
   const pathname = usePathname();
+  useTrackPageViews(pathname);
   const logicalPath = stripLocalePrefix(pathname);
 
   if (isUpdatesPath(logicalPath)) {

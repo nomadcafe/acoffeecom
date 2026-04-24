@@ -1,4 +1,5 @@
 import type { Locale } from '../i18n/messages';
+import { track } from './analytics';
 
 type CachedSummary = { summary: string; ts: number; v: 2 };
 
@@ -81,6 +82,7 @@ export async function fetchAiSummary(
     throw new Error('NO_REVIEWS');
   }
 
+  track('ai_summary_requested', { placeId, locale });
   const res = await fetch('/api/ai/summarize', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

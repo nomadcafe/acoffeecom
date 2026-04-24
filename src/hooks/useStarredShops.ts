@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CoffeeShop, StarredShopSnapshot } from '../types';
+import { track } from '../utils/analytics';
 
 const STORAGE_KEY = 'ACoffee-meetup-starred-shops';
 
@@ -84,24 +85,29 @@ export function useStarredShops(): {
 
   const starredShopIds = useMemo(() => starredShops.map((s) => s.id), [starredShops]);
 
-  const toggleStar = useCallback((shop: CoffeeShop) => {
-    setStarredShops((prev) => {
-      const exists = prev.some((s) => s.id === shop.id);
-      if (exists) {
-        return prev.filter((s) => s.id !== shop.id);
-      }
-      const snap: StarredShopSnapshot = {
-        id: shop.id,
-        name: shop.name,
-        address: shop.address,
-        lat: shop.lat,
-        lng: shop.lng,
-        googleMapsUri: shop.googleMapsUri,
-        note: prev.find((s) => s.id === shop.id)?.note,
-      };
-      return [snap, ...prev.filter((s) => s.id !== shop.id)];
-    });
-  }, []);
+  const toggleStar = useCallback(
+    (shop: CoffeeShop) => {
+      const wasStarred = starredShopIds.includes(shop.id);
+      setStarredShops((prev) => {
+        const exists = prev.some((s) => s.id === shop.id);
+        if (exists) {
+          return prev.filter((s) => s.id !== shop.id);
+        }
+        const snap: StarredShopSnapshot = {
+          id: shop.id,
+          name: shop.name,
+          address: shop.address,
+          lat: shop.lat,
+          lng: shop.lng,
+          googleMapsUri: shop.googleMapsUri,
+          note: prev.find((s) => s.id === shop.id)?.note,
+        };
+        return [snap, ...prev.filter((s) => s.id !== shop.id)];
+      });
+      if (!wasStarred) track('place_starred', { placeId: shop.id });
+    },
+    [starredShopIds],
+  );
 
   const updateStarredNote = useCallback((shopId: string, note: string) => {
     setStarredShops((prev) =>

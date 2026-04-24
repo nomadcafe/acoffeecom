@@ -14,6 +14,7 @@ import { useStarredShops } from '../hooks/useStarredShops';
 import { useVisitedShops } from '../hooks/useVisitedShops';
 import { geocodeAddress } from '../utils/geocoding';
 import { calculateMidpoint } from '../utils/midpoint';
+import { track } from '../utils/analytics';
 import {
   searchCoffeeShops,
   SEARCH_RADIUS_MAX_M,
@@ -156,7 +157,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [locationB, setLocationB] = useState<Location | null>(null);
   const [midpoint, setMidpoint] = useState<{ lat: number; lng: number } | null>(null);
   const [rawShops, setRawShops] = useState<CoffeeShop[]>([]);
-  const [selectedCoffeeShopId, setSelectedCoffeeShopId] = useState<string | null>(null);
+  const [selectedCoffeeShopId, setSelectedCoffeeShopIdState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchMinRating, setSearchMinRating] = useState(() =>
@@ -253,6 +254,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIsMapReady(!!map);
   }, []);
 
+  const setSelectedCoffeeShopId = useCallback((id: string | null) => {
+    if (id) track('cafe_opened', { placeId: id });
+    setSelectedCoffeeShopIdState(id);
+  }, []);
+
   const searchWithAddresses = useCallback(
     async (nextAddressA: string, nextAddressB: string) => {
       const a = nextAddressA.trim();
@@ -273,7 +279,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       setRawShops([]);
-      setSelectedCoffeeShopId(null);
+      setSelectedCoffeeShopIdState(null);
+      track('search_submitted', { mode: 'meetup' });
 
       try {
         // Geocode both addresses in parallel
@@ -368,7 +375,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       setRawShops([]);
-      setSelectedCoffeeShopId(null);
+      setSelectedCoffeeShopIdState(null);
+      track('search_submitted', { mode: 'nearby' });
 
       try {
         const { shops } = await searchCoffeeShops(
@@ -591,6 +599,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       visitCount,
       lastVisit,
       setMapRef,
+      setSelectedCoffeeShopId,
     ],
   );
 

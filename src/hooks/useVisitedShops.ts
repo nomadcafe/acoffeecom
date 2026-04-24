@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CoffeeShop, VisitedShopSnapshot } from '../types';
+import { track } from '../utils/analytics';
 
 const STORAGE_KEY = 'ACoffee-meetup-visited-shops';
 /** Taps within this window count as one stamp (prevents accidental double-taps). */
@@ -82,31 +83,40 @@ export function useVisitedShops(): {
 
   const visitedShopIds = useMemo(() => visitedShops.map((s) => s.id), [visitedShops]);
 
-  const addVisit = useCallback((shop: CoffeeShop) => {
-    const now = Date.now();
-    setVisitedShops((prev) => {
-      const existing = prev.find((s) => s.id === shop.id);
-      if (existing) {
-        // Debounce: ignore taps within DEBOUNCE_MS of the last visit for this shop.
-        if (existing.visits[0] != null && now - existing.visits[0] < DEBOUNCE_MS) {
-          return prev;
+  const addVisit = useCallback(
+    (shop: CoffeeShop) => {
+      const now = Date.now();
+      const existing = visitedShops.find((s) => s.id === shop.id);
+      const lastTap = existing?.visits[0];
+      const isDebounced = lastTap != null && now - lastTap < DEBOUNCE_MS;
+      setVisitedShops((prev) => {
+        const prevExisting = prev.find((s) => s.id === shop.id);
+        if (prevExisting) {
+          // Debounce: ignore taps within DEBOUNCE_MS of the last visit for this shop.
+          if (prevExisting.visits[0] != null && now - prevExisting.visits[0] < DEBOUNCE_MS) {
+            return prev;
+          }
+          return prev.map((s) =>
+            s.id === shop.id ? { ...s, visits: [now, ...s.visits] } : s,
+          );
         }
-        return prev.map((s) =>
-          s.id === shop.id ? { ...s, visits: [now, ...s.visits] } : s,
-        );
+        const snap: VisitedShopSnapshot = {
+          id: shop.id,
+          name: shop.name,
+          address: shop.address,
+          lat: shop.lat,
+          lng: shop.lng,
+          googleMapsUri: shop.googleMapsUri,
+          visits: [now],
+        };
+        return [snap, ...prev];
+      });
+      if (!isDebounced) {
+        track('place_visited', { placeId: shop.id, isNew: !existing });
       }
-      const snap: VisitedShopSnapshot = {
-        id: shop.id,
-        name: shop.name,
-        address: shop.address,
-        lat: shop.lat,
-        lng: shop.lng,
-        googleMapsUri: shop.googleMapsUri,
-        visits: [now],
-      };
-      return [snap, ...prev];
-    });
-  }, []);
+    },
+    [visitedShops],
+  );
 
   const removeVisited = useCallback((shopId: string) => {
     setVisitedShops((prev) => prev.filter((s) => s.id !== shopId));

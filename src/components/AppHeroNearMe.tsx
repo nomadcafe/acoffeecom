@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { track } from '../utils/analytics';
 import styles from './AppHeroNearMe.module.css';
 
 /**
@@ -15,6 +16,7 @@ export function AppHeroNearMe() {
   const [error, setError] = useState<string | null>(null);
 
   const handle = async () => {
+    track('near_me_clicked');
     setError(null);
     setLoading(true);
 
