@@ -7,6 +7,7 @@ import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
 import { computeStreak, streakFireEmoji } from '../utils/streak';
 import { formatAbsoluteDate, formatRelativeTime } from '../utils/relativeTime';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
+import { track } from '../utils/analytics';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import styles from './PassportPage.module.css';
@@ -51,6 +52,21 @@ export function PassportPage() {
     [visitedShops],
   );
 
+  // Aggregate visited cafés by city → sorted desc by café count. Empty/unknown
+  // cities are bucketed under a single "Unknown" label so the nomad picture
+  // stays meaningful when a few addresses don't parse cleanly.
+  const citiesByCount = useMemo(() => {
+    const unknownLabel = t('passport.citiesUnknown');
+    const counts = new Map<string, number>();
+    for (const s of visitedShops) {
+      const key = s.city && s.city.trim() ? s.city : unknownLabel;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [visitedShops, t]);
+
   useEffect(() => {
     if (!shareStatus) return;
     const id = window.setTimeout(() => setShareStatus(null), 5000);
@@ -66,6 +82,8 @@ export function PassportPage() {
         .sort((a, b) => b.visits.length - a.visits.length)
         .slice(0, 3)
         .map((s) => ({ name: s.name, visits: s.visits.length }));
+      // ≥2 cities → show cities section on the card instead of top shops.
+      const topCities = citiesByCount.length >= 2 ? citiesByCount.slice(0, 3) : [];
       const heatmap = buildHeatmap(allTimestamps, 90);
       const blob = await renderPassportCard({
         title: t('visited.shareCardTitle'),
@@ -80,9 +98,11 @@ export function PassportPage() {
             ? t('visited.shareCardStreakLabel', { count: streak, fires: streakFires })
             : '',
         topLabel: t('visited.shareCardTopLabel'),
+        citiesLabel: t('visited.shareCardCitiesLabel'),
         heatmapLabel: t('visited.shareCardHeatmapLabel'),
         brand: 'acoffee.com',
         topShops,
+        topCities,
         heatmap,
       });
       const result = await sharePassportCard(blob, {
@@ -90,12 +110,25 @@ export function PassportPage() {
         text: t('visited.shareCardText', { count, visits: totalVisits }),
         fileName: 'my-coffee-passport.png',
       });
+      track('passport_shared', {
+        result,
+        shopCount: count,
+        cityCount: citiesByCount.length,
+        variant: topCities.length > 0 ? 'cities' : 'shops',
+        surface: 'page',
+      });
       setShareStatus({
         kind: 'info',
         message: result === 'shared' ? t('visited.shareShared') : t('visited.shareDownloaded'),
       });
     } catch (e) {
       console.error('Passport share failed:', e);
+      track('passport_shared', {
+        result: 'error',
+        shopCount: count,
+        cityCount: citiesByCount.length,
+        surface: 'page',
+      });
       setShareStatus({
         kind: 'error',
         message: e instanceof Error ? e.message : t('visited.shareError'),
@@ -163,6 +196,22 @@ export function PassportPage() {
                 </div>
               ) : null}
             </section>
+
+            {citiesByCount.length >= 2 ? (
+              <section className={styles.citiesSection} aria-label={t('passport.citiesTitle')}>
+                <h2 className={styles.sectionTitle}>{t('passport.citiesTitle')}</h2>
+                <ul className={styles.citiesList}>
+                  {citiesByCount.map((c) => (
+                    <li key={c.name} className={styles.cityPill}>
+                      <span className={styles.cityPillName}>{c.name}</span>
+                      <span className={styles.cityPillCount}>
+                        {t('passport.cityCount', { count: c.count })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
 
             <section className={styles.heatmapSection} aria-label={t('passport.heatmapTitle')}>
               <div className={styles.sectionHeader}>

@@ -9,6 +9,7 @@ import { buildHeatmap } from '../utils/heatmap';
 import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { PASSPORT_PATH } from '../routes';
+import { track } from '../utils/analytics';
 import { HeatmapGrid } from './HeatmapGrid';
 import styles from './VisitedPlacesMenu.module.css';
 
@@ -54,6 +55,20 @@ export function VisitedPlacesMenu() {
     [visitedShops],
   );
 
+  // Same aggregation as PassportPage so the header-menu share card matches
+  // the full page's nomad variant exactly.
+  const citiesByCount = useMemo(() => {
+    const unknownLabel = t('passport.citiesUnknown');
+    const counts = new Map<string, number>();
+    for (const s of visitedShops) {
+      const key = s.city && s.city.trim() ? s.city : unknownLabel;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [visitedShops, t]);
+
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
@@ -94,6 +109,7 @@ export function VisitedPlacesMenu() {
         .sort((a, b) => b.visits.length - a.visits.length)
         .slice(0, 3)
         .map((s) => ({ name: s.name, visits: s.visits.length }));
+      const topCities = citiesByCount.length >= 2 ? citiesByCount.slice(0, 3) : [];
       const heatmap = buildHeatmap(allTimestamps, 90);
       const blob = await renderPassportCard({
         title: t('visited.shareCardTitle'),
@@ -108,15 +124,24 @@ export function VisitedPlacesMenu() {
             ? t('visited.shareCardStreakLabel', { count: streak, fires: streakFires })
             : '',
         topLabel: t('visited.shareCardTopLabel'),
+        citiesLabel: t('visited.shareCardCitiesLabel'),
         heatmapLabel: t('visited.shareCardHeatmapLabel'),
         brand: 'acoffee.com',
         topShops,
+        topCities,
         heatmap,
       });
       const result = await sharePassportCard(blob, {
         title: t('visited.shareCardTitle'),
         text: t('visited.shareCardText', { count, visits: totalVisits }),
         fileName: 'my-coffee-passport.png',
+      });
+      track('passport_shared', {
+        result,
+        shopCount: count,
+        cityCount: citiesByCount.length,
+        variant: topCities.length > 0 ? 'cities' : 'shops',
+        surface: 'menu',
       });
       setShareStatus({
         kind: 'info',
@@ -125,6 +150,12 @@ export function VisitedPlacesMenu() {
       });
     } catch (e) {
       console.error('Passport share failed:', e);
+      track('passport_shared', {
+        result: 'error',
+        shopCount: count,
+        cityCount: citiesByCount.length,
+        surface: 'menu',
+      });
       setShareStatus({
         kind: 'error',
         message: e instanceof Error ? e.message : t('visited.shareError'),

@@ -342,3 +342,41 @@
   line-height: 1.45;
   color: var(--ac-text-muted);
 }
+
+.citiesSection {
+  background: var(--ac-surface);
+  border-radius: 14px;
+  box-shadow: var(--ac-shadow-card);
+  padding: 1.25rem;
+}
+
+.citiesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+
+.cityPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--ac-surface-tinted);
+  border: 1px solid var(--ac-border);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.cityPillName {
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.cityPillCount {
+  color: var(--ac-text-muted);
+  font-variant-numeric: tabular-nums;
+}

@@ -12,9 +12,12 @@ export interface PassportCardData {
   sinceLabel: string;
   streakLabel: string;
   topLabel: string;
+  citiesLabel: string;
   heatmapLabel: string;
   brand: string;
   topShops: { name: string; visits: number }[];
+  /** When provided and non-empty, renders in place of topShops — the "nomad" variant. */
+  topCities: { name: string; count: number }[];
   heatmap: HeatmapGrid | null;
 }
 
@@ -73,17 +76,23 @@ export async function renderPassportCard(data: PassportCardData): Promise<Blob> 
     ctx.fillText(data.streakLabel, SIZE / 2, 560);
   }
 
-  // Top shops section (compacted so heatmap below has room).
-  if (data.topShops.length > 0) {
+  // Middle section: "Top Cities" for nomad users (≥2 cities), otherwise
+  // "Top Shops". Same layout geometry so heatmap below doesn't shift.
+  const useCities = data.topCities.length > 0;
+  const rows = useCities
+    ? data.topCities.slice(0, 3).map((c) => ({ name: c.name, suffix: `×${c.count}` }))
+    : data.topShops.slice(0, 3).map((s) => ({ name: s.name, suffix: `×${s.visits}` }));
+
+  if (rows.length > 0) {
     ctx.fillStyle = 'rgba(255, 229, 184, 0.9)';
     ctx.font = '600 22px "Helvetica Neue", Arial, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(data.topLabel.toUpperCase(), SIZE / 2, 618);
+    ctx.fillText((useCities ? data.citiesLabel : data.topLabel).toUpperCase(), SIZE / 2, 618);
 
     const listStartY = 668;
     const rowH = 48;
     const maxNameWidth = SIZE - 300;
-    data.topShops.forEach((shop, i) => {
+    rows.forEach((row, i) => {
       const y = listStartY + i * rowH;
       ctx.beginPath();
       ctx.arc(160, y - 9, 18, 0, Math.PI * 2);
@@ -99,12 +108,12 @@ export async function renderPassportCard(data: PassportCardData): Promise<Blob> 
       ctx.fillStyle = '#fff';
       ctx.font = '500 28px "Helvetica Neue", Arial, sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(truncate(ctx, shop.name, maxNameWidth), 188, y);
+      ctx.fillText(truncate(ctx, row.name, maxNameWidth), 188, y);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       ctx.font = '400 24px "Helvetica Neue", Arial, sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(`×${shop.visits}`, SIZE - 160, y);
+      ctx.fillText(row.suffix, SIZE - 160, y);
     });
   }
 

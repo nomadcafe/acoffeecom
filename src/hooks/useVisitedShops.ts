@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CoffeeShop, VisitedShopSnapshot } from '../types';
 import { track } from '../utils/analytics';
+import { extractCity } from '../utils/city';
 
 const STORAGE_KEY = 'ACoffee-meetup-visited-shops';
 /** Taps within this window count as one stamp (prevents accidental double-taps). */
@@ -21,14 +22,18 @@ function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
         (n): n is number => typeof n === 'number' && Number.isFinite(n),
       );
       if (visits.length === 0) return null;
+      const address = typeof s.address === 'string' ? s.address : '';
+      const storedCity = typeof s.city === 'string' && s.city.trim() ? s.city : undefined;
       return {
         id: s.id,
         name: s.name || 'Visited café',
-        address: typeof s.address === 'string' ? s.address : '',
+        address,
         lat: typeof s.lat === 'number' ? s.lat : 0,
         lng: typeof s.lng === 'number' ? s.lng : 0,
         googleMapsUri: typeof s.googleMapsUri === 'string' ? s.googleMapsUri : undefined,
         visits: [...visits].sort((a, b) => b - a),
+        // Lazy backfill: older records saved before we tracked city get it on load.
+        city: storedCity ?? extractCity(address) ?? undefined,
       };
     })
     .filter((x): x is VisitedShopSnapshot => x != null);
@@ -108,6 +113,7 @@ export function useVisitedShops(): {
           lng: shop.lng,
           googleMapsUri: shop.googleMapsUri,
           visits: [now],
+          city: extractCity(shop.address) ?? undefined,
         };
         return [snap, ...prev];
       });

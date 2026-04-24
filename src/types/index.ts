@@ -42,6 +42,8 @@ export interface VisitedShopSnapshot {
   googleMapsUri?: string;
   /** Ordered newest-first list of visit timestamps (ms). A passport-style stamp log. */
   visits: number[];
+  /** Derived from `address` via extractCity(); lazily backfilled on load for older records. */
+  city?: string;
 }
 
 export type SearchSortMode = 'rating' | 'fairness';
