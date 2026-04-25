@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem 0.9rem;
+  padding: 0.85rem 0.9rem;
 }
 
 .tripMarker {
@@ -140,8 +140,8 @@
   top: 50%;
   right: 0;
   transform: translateY(-50%);
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--ac-surface);
   border: 1px solid var(--ac-border-strong);
@@ -154,11 +154,13 @@
   box-shadow: 0 1px 3px rgba(111, 78, 55, 0.08);
 }
 
-.swapButton:hover:not(:disabled) {
-  background: var(--ac-accent);
-  border-color: var(--ac-accent);
-  color: #fff;
-  transform: translateY(-50%) rotate(180deg);
+@media (hover: hover) {
+  .swapButton:hover:not(:disabled) {
+    background: var(--ac-accent);
+    border-color: var(--ac-accent);
+    color: #fff;
+    transform: translateY(-50%) rotate(180deg);
+  }
 }
 
 .swapButton:focus-visible {
@@ -192,9 +194,11 @@
   margin-top: 0.5rem;
 }
 
-.button:hover:not(:disabled) {
-  background: var(--ac-accent-dark);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    background: var(--ac-accent-dark);
+    transform: translateY(-1px);
+  }
 }
 
 .button:active:not(:disabled) {
@@ -394,10 +398,12 @@
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
-.exampleButton:hover:not(:disabled) {
-  background: #fff;
-  border-color: var(--ac-accent);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .exampleButton:hover:not(:disabled) {
+    background: #fff;
+    border-color: var(--ac-accent);
+    transform: translateY(-1px);
+  }
 }
 
 .exampleButton:active:not(:disabled) {

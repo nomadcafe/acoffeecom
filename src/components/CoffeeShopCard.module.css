@@ -7,9 +7,13 @@
   position: relative;
 }
 
-.card:hover {
-  box-shadow: var(--ac-shadow-card-hover);
-  transform: translateY(-1px);
+/* Touch devices report (hover: none) and (any-pointer: coarse). Skip the lift
+   there — iOS otherwise leaves the card stuck in :hover after a tap. */
+@media (hover: hover) {
+  .card:hover {
+    box-shadow: var(--ac-shadow-card-hover);
+    transform: translateY(-1px);
+  }
 }
 
 .card.starred {
@@ -73,9 +77,14 @@
   font-weight: 700;
   color: var(--ac-text);
   letter-spacing: -0.005em;
+  /* Wrap up to 2 lines so long café names stay readable; ellipsis after.
+     -webkit-line-clamp is the cross-browser-accepted form (also Firefox). */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-word;
 }
 
 .address {

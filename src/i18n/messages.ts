@@ -58,6 +58,9 @@ export const en: MessageDict = {
   'hero.step2': 'We find the midpoint',
   'hero.step3': 'Browse top-rated cafés',
 
+  'hero.samplesTitle': 'Try a sample search:',
+  'hero.samplesLabel': 'Sample searches',
+
   'hero.or': 'or',
 
   'list.loadingCoffee': 'Finding great coffee spots…',
@@ -347,6 +350,9 @@ export const ja: MessageDict = {
   'hero.step2': '中間地点を計算',
   'hero.step3': '高評価カフェを表示',
 
+  'hero.samplesTitle': 'サンプル検索を試す：',
+  'hero.samplesLabel': 'サンプル検索',
+
   'hero.or': 'または',
 
   'list.loadingCoffee': 'カフェを探しています…',
@@ -627,6 +633,9 @@ export const zh: MessageDict = {
   'hero.step1': '输入两个地点',
   'hero.step2': '找到中点',
   'hero.step3': '浏览高分咖啡店',
+
+  'hero.samplesTitle': '试一下示例搜索：',
+  'hero.samplesLabel': '示例搜索',
 
   'hero.or': '或',
 
