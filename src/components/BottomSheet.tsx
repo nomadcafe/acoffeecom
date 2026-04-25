@@ -7,6 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
+import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import styles from './BottomSheet.module.css';
 
@@ -169,6 +170,21 @@ export function BottomSheet({ children }: Props) {
       contentRef.current.scrollTop = 0;
     }
   }, [snap]);
+
+  // Auto-promote peek → half on mobile when a search completes, so users on
+  // small screens don't have to fish for the handle to see results. CSS
+  // overrides snap classes on desktop, so the state change is harmless there.
+  // Compares current vs prior isLoading via state per the React docs pattern
+  // for "react to a prop change" — avoids the cascading-render concern that
+  // an effect-with-setState would raise.
+  const { isLoading } = useApp();
+  const [prevIsLoading, setPrevIsLoading] = useState(isLoading);
+  if (prevIsLoading !== isLoading) {
+    setPrevIsLoading(isLoading);
+    if (prevIsLoading && !isLoading && snap === 'peek') {
+      setSnap('half');
+    }
+  }
 
   const transformStyle =
     dragOffset != null
