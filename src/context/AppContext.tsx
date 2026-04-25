@@ -21,13 +21,18 @@ import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
 import {
   claimPassport,
   deleteVisitedShop,
-  pushVisitedShop,
+  pushVisitedShopWire,
+  toWire as visitedToWire,
+  type VisitedShopWire,
 } from '../utils/passportSync';
 import {
   claimStarred,
   deleteStarredShop,
-  pushStarredShop,
+  pushStarredShopWire,
+  toWire as starredToWire,
+  type StarredShopWire,
 } from '../utils/starredSync';
+import { drain as drainQueue, enqueue as enqueueMutation, type QueueEntry } from '../utils/syncQueue';
 import type { StarredShopSnapshot, VisitedShopSnapshot } from '../types';
 import {
   searchCoffeeShops,
@@ -345,6 +350,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => cancelIdleTimer(), [cancelIdleTimer]);
 
+  // Queue handler for one mutation entry. Returns true if the API accepted it
+  // (so the queue can drop the entry); false leaves it for the next drain.
+  const runMutation = useCallback(async (entry: QueueEntry): Promise<boolean> => {
+    if (entry.op === 'upsert') {
+      if (entry.kind === 'visited') return pushVisitedShopWire(entry.payload as VisitedShopWire);
+      if (entry.kind === 'starred') return pushStarredShopWire(entry.payload as StarredShopWire);
+    }
+    if (entry.op === 'delete') {
+      if (entry.kind === 'visited') return deleteVisitedShop(entry.placeId, entry.ts);
+      if (entry.kind === 'starred') return deleteStarredShop(entry.placeId, entry.ts);
+    }
+    return false;
+  }, []);
+
+  // Drain pending mutations against the API. Wraps beginSync/endSync so the
+  // SyncIndicator reflects flush activity. Idempotent — safe to call repeatedly.
+  const flushQueue = useCallback(async () => {
+    if (!sessionUserId) return;
+    beginSync();
+    try {
+      const { failed } = await drainQueue(runMutation);
+      endSync(failed === 0);
+    } catch {
+      endSync(false);
+    }
+  }, [sessionUserId, beginSync, endSync, runMutation]);
+
   useEffect(() => {
     if (!sessionUserId) {
       // Logged out / disabled — reset, do nothing else.
@@ -352,10 +384,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     if (lastSyncedRef.current === null) {
-      // First sync after login: claim merges localStorage with server, server returns canonical.
+      // First sync after login: drain any pending offline mutations first so
+      // local-only changes get to the server with their original timestamps,
+      // *then* claim merges everything else and the server returns canonical.
       let cancelled = false;
       beginSync();
       void (async () => {
+        await drainQueue(runMutation);
         const merged = await claimPassport(visitedShops);
         if (cancelled) return;
         if (merged == null) {
@@ -370,29 +405,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
         cancelled = true;
       };
     }
-    // Steady state: diff against last-synced snapshot, push only what changed.
+    // Steady state: diff against last-synced snapshot, enqueue only what changed.
+    // Direct fetches were brittle when offline; the queue retries on reconnect.
     const prev = lastSyncedRef.current;
     const prevById = new Map(prev.map((s) => [s.id, s]));
     const currById = new Map(visitedShops.map((s) => [s.id, s]));
+    let pending = 0;
     for (const id of prevById.keys()) {
       if (!currById.has(id)) {
-        beginSync();
-        void deleteVisitedShop(id).then(endSync);
+        pending++;
+        void enqueueMutation({ kind: 'visited', op: 'delete', placeId: id, ts: Date.now() });
       }
     }
     for (const [id, shop] of currById) {
       const prevShop = prevById.get(id);
       const changed =
         !prevShop ||
-        prevShop.visits.length !== shop.visits.length ||
-        (prevShop.visits[0] ?? 0) !== (shop.visits[0] ?? 0);
+        prevShop.updatedAt !== shop.updatedAt ||
+        prevShop.visits.length !== shop.visits.length;
       if (changed) {
-        beginSync();
-        void pushVisitedShop(shop).then(endSync);
+        pending++;
+        void enqueueMutation({
+          kind: 'visited',
+          op: 'upsert',
+          placeId: id,
+          payload: visitedToWire(shop),
+        });
       }
     }
     lastSyncedRef.current = visitedShops;
-  }, [visitedShops, sessionUserId, replaceVisited, beginSync, endSync]);
+    if (pending > 0) void flushQueue();
+  }, [visitedShops, sessionUserId, replaceVisited, beginSync, endSync, runMutation, flushQueue]);
 
   // Parallel sync for starred shops. Same state machine as visited (claim once on
   // session change, then diff-push on local changes), but change detection looks at
@@ -408,6 +451,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       let cancelled = false;
       beginSync();
       void (async () => {
+        await drainQueue(runMutation);
         const merged = await claimStarred(starredShops);
         if (cancelled) return;
         if (merged == null) {
@@ -425,22 +469,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const prev = lastSyncedStarredRef.current;
     const prevById = new Map(prev.map((s) => [s.id, s]));
     const currById = new Map(starredShops.map((s) => [s.id, s]));
+    let pending = 0;
     for (const id of prevById.keys()) {
       if (!currById.has(id)) {
-        beginSync();
-        void deleteStarredShop(id).then(endSync);
+        pending++;
+        void enqueueMutation({ kind: 'starred', op: 'delete', placeId: id, ts: Date.now() });
       }
     }
     for (const [id, shop] of currById) {
       const prevShop = prevById.get(id);
-      const changed = !prevShop || prevShop.note !== shop.note;
+      const changed = !prevShop || prevShop.updatedAt !== shop.updatedAt;
       if (changed) {
-        beginSync();
-        void pushStarredShop(shop).then(endSync);
+        pending++;
+        void enqueueMutation({
+          kind: 'starred',
+          op: 'upsert',
+          placeId: id,
+          payload: starredToWire(shop),
+        });
       }
     }
     lastSyncedStarredRef.current = starredShops;
-  }, [starredShops, sessionUserId, replaceStarred, beginSync, endSync]);
+    if (pending > 0) void flushQueue();
+  }, [starredShops, sessionUserId, replaceStarred, beginSync, endSync, runMutation, flushQueue]);
+
+  // Drain on connectivity / visibility changes so offline-queued mutations
+  // catch up automatically without the user having to do anything.
+  useEffect(() => {
+    if (!sessionUserId) return;
+    const onResume = () => {
+      if (document.visibilityState === 'visible') void flushQueue();
+    };
+    const onOnline = () => void flushQueue();
+    window.addEventListener('online', onOnline);
+    document.addEventListener('visibilitychange', onResume);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      document.removeEventListener('visibilitychange', onResume);
+    };
+  }, [sessionUserId, flushQueue]);
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const coffeeShops = useMemo(

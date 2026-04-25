@@ -10,6 +10,8 @@ export interface VisitedShopWire {
   googleMapsUri?: string;
   city?: string;
   visits: number[];
+  updatedAt: number;
+  deleted?: boolean;
 }
 
 export function toWire(s: VisitedShopSnapshot): VisitedShopWire {
@@ -22,6 +24,7 @@ export function toWire(s: VisitedShopSnapshot): VisitedShopWire {
     googleMapsUri: s.googleMapsUri,
     city: s.city,
     visits: s.visits,
+    updatedAt: s.updatedAt,
   };
 }
 
@@ -35,6 +38,7 @@ export function fromWire(w: VisitedShopWire): VisitedShopSnapshot {
     googleMapsUri: w.googleMapsUri,
     city: w.city,
     visits: w.visits,
+    updatedAt: w.updatedAt,
   };
 }
 
@@ -59,12 +63,12 @@ export async function claimPassport(
   }
 }
 
-export async function pushVisitedShop(shop: VisitedShopSnapshot): Promise<boolean> {
+export async function pushVisitedShopWire(wire: VisitedShopWire): Promise<boolean> {
   try {
     const res = await fetch('/api/passport/visited-shops', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(toWire(shop)),
+      body: JSON.stringify(wire),
     });
     if (!res.ok) console.error('passport push failed:', res.status);
     return res.ok;
@@ -74,11 +78,10 @@ export async function pushVisitedShop(shop: VisitedShopSnapshot): Promise<boolea
   }
 }
 
-export async function deleteVisitedShop(placeId: string): Promise<boolean> {
+export async function deleteVisitedShop(placeId: string, ts: number): Promise<boolean> {
   try {
-    const res = await fetch(`/api/passport/visited-shops/${encodeURIComponent(placeId)}`, {
-      method: 'DELETE',
-    });
+    const url = `/api/passport/visited-shops/${encodeURIComponent(placeId)}?ts=${ts}`;
+    const res = await fetch(url, { method: 'DELETE' });
     if (!res.ok) console.error('passport delete failed:', res.status);
     return res.ok;
   } catch (e) {

@@ -13,6 +13,7 @@ function isRecord(x: unknown): x is Record<string, unknown> {
 
 function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
   if (!Array.isArray(raw)) return [];
+  const legacyTs = Date.now();
   return raw
     .filter(isRecord)
     .map((s): VisitedShopSnapshot | null => {
@@ -32,8 +33,9 @@ function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
         lng: typeof s.lng === 'number' ? s.lng : 0,
         googleMapsUri: typeof s.googleMapsUri === 'string' ? s.googleMapsUri : undefined,
         visits: [...visits].sort((a, b) => b - a),
-        // Lazy backfill: older records saved before we tracked city get it on load.
         city: storedCity ?? extractCity(address) ?? undefined,
+        // Pre-sync schema had no updatedAt; backfill once on read so LWW has a key.
+        updatedAt: typeof s.updatedAt === 'number' ? s.updatedAt : legacyTs,
       };
     })
     .filter((x): x is VisitedShopSnapshot => x != null);
@@ -104,7 +106,9 @@ export function useVisitedShops(): {
             return prev;
           }
           return prev.map((s) =>
-            s.id === shop.id ? { ...s, visits: [now, ...s.visits] } : s,
+            s.id === shop.id
+              ? { ...s, visits: [now, ...s.visits], updatedAt: now }
+              : s,
           );
         }
         const snap: VisitedShopSnapshot = {
@@ -116,6 +120,7 @@ export function useVisitedShops(): {
           googleMapsUri: shop.googleMapsUri,
           visits: [now],
           city: extractCity(shop.address) ?? undefined,
+          updatedAt: now,
         };
         return [snap, ...prev];
       });

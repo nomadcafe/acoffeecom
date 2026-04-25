@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { type AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { starredShops } from '../../_lib/db/schema';
@@ -13,7 +13,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
   const rows = await db
     .select()
     .from(starredShops)
-    .where(eq(starredShops.userId, user.id));
+    .where(and(eq(starredShops.userId, user.id), eq(starredShops.deleted, false)));
 
   return Response.json({ shops: rows.map(rowToWire) });
 };

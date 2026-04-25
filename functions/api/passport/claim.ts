@@ -7,7 +7,7 @@ import {
   VisitedShopWireSchema,
   getSessionUser,
   jsonError,
-  mergeVisits,
+  mergeVisitedRow,
   rowToWire,
 } from '../../_lib/passport';
 
@@ -27,10 +27,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   }
 
   const db = getDb(env);
-  const now = new Date();
 
-  // Pull existing rows for the placeIds being claimed, so we can union visits
-  // rather than overwrite. Empty `shops` → still return the user's full state.
   const incomingIds = input.shops.map((s) => s.id);
   const existing = incomingIds.length
     ? await db
@@ -44,22 +41,22 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
 
   for (const shop of input.shops) {
     const prev = existingByPlaceId.get(shop.id);
-    const mergedVisits = mergeVisits(shop.visits, prev ? rowToWire(prev).visits : []);
-    if (mergedVisits.length === 0) continue; // never insert a stamp-less row
+    const merged = mergeVisitedRow(prev, shop);
+    if (!prev && merged.visits.length === 0 && !merged.deleted) continue;
 
     if (prev) {
-      // Keep server's name/address if client sent something blanker; otherwise prefer client.
       await db
         .update(visitedShops)
         .set({
-          name: shop.name || prev.name,
-          address: shop.address || prev.address,
-          lat: shop.lat,
-          lng: shop.lng,
-          googleMapsUri: shop.googleMapsUri ?? prev.googleMapsUri,
-          city: shop.city ?? prev.city,
-          visits: JSON.stringify(mergedVisits),
-          updatedAt: now,
+          name: merged.name,
+          address: merged.address,
+          lat: merged.lat,
+          lng: merged.lng,
+          googleMapsUri: merged.googleMapsUri,
+          city: merged.city,
+          visits: JSON.stringify(merged.visits),
+          updatedAt: merged.updatedAt,
+          deleted: merged.deleted,
         })
         .where(
           and(eq(visitedShops.userId, user.id), eq(visitedShops.placeId, shop.id)),
@@ -68,14 +65,15 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       await db.insert(visitedShops).values({
         userId: user.id,
         placeId: shop.id,
-        name: shop.name,
-        address: shop.address,
-        lat: shop.lat,
-        lng: shop.lng,
-        googleMapsUri: shop.googleMapsUri,
-        city: shop.city,
-        visits: JSON.stringify(mergedVisits),
-        updatedAt: now,
+        name: merged.name,
+        address: merged.address,
+        lat: merged.lat,
+        lng: merged.lng,
+        googleMapsUri: merged.googleMapsUri,
+        city: merged.city,
+        visits: JSON.stringify(merged.visits),
+        updatedAt: merged.updatedAt,
+        deleted: merged.deleted,
       });
     }
   }
@@ -83,7 +81,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   const all = await db
     .select()
     .from(visitedShops)
-    .where(eq(visitedShops.userId, user.id));
+    .where(and(eq(visitedShops.userId, user.id), eq(visitedShops.deleted, false)));
 
   return Response.json({ shops: all.map(rowToWire) });
 };

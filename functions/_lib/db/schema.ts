@@ -74,6 +74,9 @@ export const visitedShops = sqliteTable(
     city: text('city'),
     visits: text('visits').notNull(),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+    /* Tombstone for offline delete. We keep the row so a stale upsert from
+       another device with an older updatedAt loses LWW and doesn't resurrect. */
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.placeId] }),
@@ -97,6 +100,8 @@ export const starredShops = sqliteTable(
     googleMapsUri: text('google_maps_uri'),
     note: text('note'),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+    /* Tombstone — see visited_shops.deleted comment. */
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.placeId] }),

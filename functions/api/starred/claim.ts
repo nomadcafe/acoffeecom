@@ -4,7 +4,7 @@ import { type AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { starredShops } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
-import { StarredShopWireSchema, pickNote, rowToWire } from '../../_lib/starred';
+import { StarredShopWireSchema, mergeStarredRow, rowToWire } from '../../_lib/starred';
 
 const InputSchema = z.object({
   shops: z.array(StarredShopWireSchema).max(1000),
@@ -22,7 +22,6 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   }
 
   const db = getDb(env);
-  const now = new Date();
 
   const incomingIds = input.shops.map((s) => s.id);
   const existing = incomingIds.length
@@ -37,17 +36,20 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
 
   for (const shop of input.shops) {
     const prev = existingByPlaceId.get(shop.id);
+    const merged = mergeStarredRow(prev, shop);
+
     if (prev) {
       await db
         .update(starredShops)
         .set({
-          name: shop.name || prev.name,
-          address: shop.address || prev.address,
-          lat: shop.lat,
-          lng: shop.lng,
-          googleMapsUri: shop.googleMapsUri ?? prev.googleMapsUri,
-          note: pickNote(shop.note, prev.note),
-          updatedAt: now,
+          name: merged.name,
+          address: merged.address,
+          lat: merged.lat,
+          lng: merged.lng,
+          googleMapsUri: merged.googleMapsUri,
+          note: merged.note,
+          updatedAt: merged.updatedAt,
+          deleted: merged.deleted,
         })
         .where(
           and(eq(starredShops.userId, user.id), eq(starredShops.placeId, shop.id)),
@@ -56,13 +58,14 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       await db.insert(starredShops).values({
         userId: user.id,
         placeId: shop.id,
-        name: shop.name,
-        address: shop.address,
-        lat: shop.lat,
-        lng: shop.lng,
-        googleMapsUri: shop.googleMapsUri,
-        note: shop.note,
-        updatedAt: now,
+        name: merged.name,
+        address: merged.address,
+        lat: merged.lat,
+        lng: merged.lng,
+        googleMapsUri: merged.googleMapsUri,
+        note: merged.note,
+        updatedAt: merged.updatedAt,
+        deleted: merged.deleted,
       });
     }
   }
@@ -70,7 +73,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   const all = await db
     .select()
     .from(starredShops)
-    .where(eq(starredShops.userId, user.id));
+    .where(and(eq(starredShops.userId, user.id), eq(starredShops.deleted, false)));
 
   return Response.json({ shops: all.map(rowToWire) });
 };

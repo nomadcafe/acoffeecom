@@ -9,6 +9,8 @@ export interface StarredShopWire {
   lng: number;
   googleMapsUri?: string;
   note?: string;
+  updatedAt: number;
+  deleted?: boolean;
 }
 
 export function toWire(s: StarredShopSnapshot): StarredShopWire {
@@ -20,6 +22,7 @@ export function toWire(s: StarredShopSnapshot): StarredShopWire {
     lng: s.lng,
     googleMapsUri: s.googleMapsUri,
     note: s.note,
+    updatedAt: s.updatedAt,
   };
 }
 
@@ -32,6 +35,7 @@ export function fromWire(w: StarredShopWire): StarredShopSnapshot {
     lng: w.lng,
     googleMapsUri: w.googleMapsUri,
     note: w.note,
+    updatedAt: w.updatedAt,
   };
 }
 
@@ -56,12 +60,12 @@ export async function claimStarred(
   }
 }
 
-export async function pushStarredShop(shop: StarredShopSnapshot): Promise<boolean> {
+export async function pushStarredShopWire(wire: StarredShopWire): Promise<boolean> {
   try {
     const res = await fetch('/api/starred/shops', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(toWire(shop)),
+      body: JSON.stringify(wire),
     });
     if (!res.ok) console.error('starred push failed:', res.status);
     return res.ok;
@@ -71,11 +75,10 @@ export async function pushStarredShop(shop: StarredShopSnapshot): Promise<boolea
   }
 }
 
-export async function deleteStarredShop(placeId: string): Promise<boolean> {
+export async function deleteStarredShop(placeId: string, ts: number): Promise<boolean> {
   try {
-    const res = await fetch(`/api/starred/shops/${encodeURIComponent(placeId)}`, {
-      method: 'DELETE',
-    });
+    const url = `/api/starred/shops/${encodeURIComponent(placeId)}?ts=${ts}`;
+    const res = await fetch(url, { method: 'DELETE' });
     if (!res.ok) console.error('starred delete failed:', res.status);
     return res.ok;
   } catch (e) {

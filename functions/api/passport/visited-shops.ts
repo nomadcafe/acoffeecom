@@ -6,7 +6,7 @@ import {
   VisitedShopWireSchema,
   getSessionUser,
   jsonError,
-  mergeVisits,
+  mergeVisitedRow,
   rowToWire,
 } from '../../_lib/passport';
 
@@ -21,46 +21,43 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return jsonError(err instanceof Error ? err.message : 'Invalid request body', 400);
   }
 
-  if (shop.visits.length === 0) {
-    return jsonError('Cannot upsert a shop with no visits — use DELETE to remove', 400);
-  }
-
   const db = getDb(env);
-  const now = new Date();
 
   const [prev] = await db
     .select()
     .from(visitedShops)
     .where(and(eq(visitedShops.userId, user.id), eq(visitedShops.placeId, shop.id)));
 
-  const mergedVisits = mergeVisits(shop.visits, prev ? rowToWire(prev).visits : []);
+  const merged = mergeVisitedRow(prev, shop);
 
   if (prev) {
     await db
       .update(visitedShops)
       .set({
-        name: shop.name || prev.name,
-        address: shop.address || prev.address,
-        lat: shop.lat,
-        lng: shop.lng,
-        googleMapsUri: shop.googleMapsUri ?? prev.googleMapsUri,
-        city: shop.city ?? prev.city,
-        visits: JSON.stringify(mergedVisits),
-        updatedAt: now,
+        name: merged.name,
+        address: merged.address,
+        lat: merged.lat,
+        lng: merged.lng,
+        googleMapsUri: merged.googleMapsUri,
+        city: merged.city,
+        visits: JSON.stringify(merged.visits),
+        updatedAt: merged.updatedAt,
+        deleted: merged.deleted,
       })
       .where(and(eq(visitedShops.userId, user.id), eq(visitedShops.placeId, shop.id)));
   } else {
     await db.insert(visitedShops).values({
       userId: user.id,
       placeId: shop.id,
-      name: shop.name,
-      address: shop.address,
-      lat: shop.lat,
-      lng: shop.lng,
-      googleMapsUri: shop.googleMapsUri,
-      city: shop.city,
-      visits: JSON.stringify(mergedVisits),
-      updatedAt: now,
+      name: merged.name,
+      address: merged.address,
+      lat: merged.lat,
+      lng: merged.lng,
+      googleMapsUri: merged.googleMapsUri,
+      city: merged.city,
+      visits: JSON.stringify(merged.visits),
+      updatedAt: merged.updatedAt,
+      deleted: merged.deleted,
     });
   }
 

@@ -16,6 +16,8 @@ function isSnapshot(x: unknown): x is StarredShopSnapshot {
 function normalizeStored(raw: unknown): StarredShopSnapshot[] {
   if (!Array.isArray(raw) || raw.length === 0) return [];
   const first = raw[0];
+  // Pre-sync schema had no updatedAt; backfill once on read so LWW has a key.
+  const legacyTs = Date.now();
   if (typeof first === 'string') {
     return (raw as string[]).map((id) => ({
       id,
@@ -23,6 +25,7 @@ function normalizeStored(raw: unknown): StarredShopSnapshot[] {
       address: '',
       lat: 0,
       lng: 0,
+      updatedAt: legacyTs,
     }));
   }
   return (raw as unknown[])
@@ -35,6 +38,7 @@ function normalizeStored(raw: unknown): StarredShopSnapshot[] {
       lng: typeof s.lng === 'number' ? s.lng : 0,
       googleMapsUri: s.googleMapsUri,
       note: typeof s.note === 'string' ? s.note : undefined,
+      updatedAt: typeof s.updatedAt === 'number' ? s.updatedAt : legacyTs,
     }));
 }
 
@@ -103,6 +107,7 @@ export function useStarredShops(): {
           lng: shop.lng,
           googleMapsUri: shop.googleMapsUri,
           note: prev.find((s) => s.id === shop.id)?.note,
+          updatedAt: Date.now(),
         };
         return [snap, ...prev.filter((s) => s.id !== shop.id)];
       });
@@ -113,7 +118,11 @@ export function useStarredShops(): {
 
   const updateStarredNote = useCallback((shopId: string, note: string) => {
     setStarredShops((prev) =>
-      prev.map((s) => (s.id === shopId ? { ...s, note: note.trim() ? note : undefined } : s))
+      prev.map((s) =>
+        s.id === shopId
+          ? { ...s, note: note.trim() ? note : undefined, updatedAt: Date.now() }
+          : s,
+      ),
     );
   }, []);
 

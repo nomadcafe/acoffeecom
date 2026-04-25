@@ -30,6 +30,8 @@ export interface StarredShopSnapshot {
   lng: number;
   googleMapsUri?: string;
   note?: string;
+  /** ms — last local mutation. LWW key for cloud sync. Filled on read for legacy records. */
+  updatedAt: number;
 }
 
 /** Persisted when user marks a shop as visited — powers the "Coffee Passport" count + list. */
@@ -44,6 +46,8 @@ export interface VisitedShopSnapshot {
   visits: number[];
   /** Derived from `address` via extractCity(); lazily backfilled on load for older records. */
   city?: string;
+  /** ms — last local mutation. LWW key for cloud sync. Filled on read for legacy records. */
+  updatedAt: number;
 }
 
 export type SearchSortMode = 'rating' | 'fairness';
