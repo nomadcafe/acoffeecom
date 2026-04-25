@@ -7,6 +7,7 @@ import { SearchFilters } from './components/SearchFilters';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { AccountMenu } from './components/AccountMenu';
+import { SyncIndicator } from './components/SyncIndicator';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
 import { VisitedPlacesMenu } from './components/VisitedPlacesMenu';
 import { SiteBottomNav } from './components/SiteBottomNav';
@@ -64,7 +65,12 @@ function AppShell() {
             <VisitedPlacesMenu />
             <SavedPlacesMenu />
             <LanguageSwitcher />
-            {import.meta.env.VITE_AUTH_ENABLED === 'true' && <AccountMenu />}
+            {import.meta.env.VITE_AUTH_ENABLED === 'true' && (
+              <>
+                <SyncIndicator />
+                <AccountMenu />
+              </>
+            )}
           </div>
         </div>
       </header>

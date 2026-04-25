@@ -1,0 +1,67 @@
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  user-select: none;
+  transition: opacity 200ms ease, background-color 200ms ease, color 200ms ease;
+}
+
+.syncing {
+  color: var(--ac-text-muted, #6c5d50);
+  background: var(--ac-surface-tinted, #f4ede5);
+}
+
+.synced {
+  color: #2e7d32;
+  background: rgba(46, 125, 50, 0.08);
+}
+
+.error {
+  color: #c62828;
+  background: rgba(198, 40, 40, 0.08);
+  cursor: help;
+}
+
+.glyph {
+  display: inline-flex;
+  width: 0.85rem;
+  height: 0.85rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.spinner {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ac-sync-spin 0.85s linear infinite;
+}
+
+@keyframes ac-sync-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.label {
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .label {
+    display: none;
+  }
+  .indicator {
+    padding: 0.3rem 0.4rem;
+  }
+}

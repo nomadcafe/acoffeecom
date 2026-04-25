@@ -59,16 +59,30 @@ export async function claimPassport(
   }
 }
 
-export function pushVisitedShop(shop: VisitedShopSnapshot): void {
-  fetch('/api/passport/visited-shops', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(toWire(shop)),
-  }).catch((e) => console.error('passport push failed:', e));
+export async function pushVisitedShop(shop: VisitedShopSnapshot): Promise<boolean> {
+  try {
+    const res = await fetch('/api/passport/visited-shops', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(toWire(shop)),
+    });
+    if (!res.ok) console.error('passport push failed:', res.status);
+    return res.ok;
+  } catch (e) {
+    console.error('passport push error:', e);
+    return false;
+  }
 }
 
-export function deleteVisitedShop(placeId: string): void {
-  fetch(`/api/passport/visited-shops/${encodeURIComponent(placeId)}`, {
-    method: 'DELETE',
-  }).catch((e) => console.error('passport delete failed:', e));
+export async function deleteVisitedShop(placeId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/passport/visited-shops/${encodeURIComponent(placeId)}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) console.error('passport delete failed:', res.status);
+    return res.ok;
+  } catch (e) {
+    console.error('passport delete error:', e);
+    return false;
+  }
 }

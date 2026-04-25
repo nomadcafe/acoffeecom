@@ -56,16 +56,30 @@ export async function claimStarred(
   }
 }
 
-export function pushStarredShop(shop: StarredShopSnapshot): void {
-  fetch('/api/starred/shops', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(toWire(shop)),
-  }).catch((e) => console.error('starred push failed:', e));
+export async function pushStarredShop(shop: StarredShopSnapshot): Promise<boolean> {
+  try {
+    const res = await fetch('/api/starred/shops', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(toWire(shop)),
+    });
+    if (!res.ok) console.error('starred push failed:', res.status);
+    return res.ok;
+  } catch (e) {
+    console.error('starred push error:', e);
+    return false;
+  }
 }
 
-export function deleteStarredShop(placeId: string): void {
-  fetch(`/api/starred/shops/${encodeURIComponent(placeId)}`, {
-    method: 'DELETE',
-  }).catch((e) => console.error('starred delete failed:', e));
+export async function deleteStarredShop(placeId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/starred/shops/${encodeURIComponent(placeId)}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) console.error('starred delete failed:', res.status);
+    return res.ok;
+  } catch (e) {
+    console.error('starred delete error:', e);
+    return false;
+  }
 }

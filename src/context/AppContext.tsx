@@ -35,7 +35,10 @@ import {
   SEARCH_RATING_MIN,
 } from '../utils/places';
 
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+
 interface AppContextType extends AppState {
+  syncStatus: SyncStatus;
   setAddressA: (address: string) => void;
   setAddressB: (address: string) => void;
   addressA: string;
@@ -267,6 +270,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
     authEnabled && !sessionLoading && session?.user?.id ? session.user.id : null;
   const lastSyncedRef = useRef<VisitedShopSnapshot[] | null>(null);
 
+  // Sync status: aggregates passport + starred sync activity. `inFlight` counts
+  // concurrent ops; `idleTimer` clears the visible 'synced'/'error' badge after
+  // a short delay so the indicator doesn't get stuck.
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const inFlightRef = useRef(0);
+  const idleTimerRef = useRef<number | null>(null);
+
+  const cancelIdleTimer = useCallback(() => {
+    if (idleTimerRef.current != null) {
+      window.clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+  }, []);
+
+  const beginSync = useCallback(() => {
+    inFlightRef.current += 1;
+    cancelIdleTimer();
+    setSyncStatus('syncing');
+  }, [cancelIdleTimer]);
+
+  const endSync = useCallback(
+    (ok: boolean) => {
+      inFlightRef.current = Math.max(0, inFlightRef.current - 1);
+      if (inFlightRef.current > 0) {
+        if (!ok) setSyncStatus('error');
+        return;
+      }
+      const next: SyncStatus = ok ? 'synced' : 'error';
+      setSyncStatus(next);
+      cancelIdleTimer();
+      idleTimerRef.current = window.setTimeout(
+        () => {
+          if (inFlightRef.current === 0) setSyncStatus('idle');
+          idleTimerRef.current = null;
+        },
+        ok ? 2000 : 8000,
+      );
+    },
+    [cancelIdleTimer],
+  );
+
+  // Reset on sign-out so the badge doesn't linger from a previous session.
+  useEffect(() => {
+    if (sessionUserId) return;
+    cancelIdleTimer();
+    inFlightRef.current = 0;
+    setSyncStatus('idle');
+  }, [sessionUserId, cancelIdleTimer]);
+
+  useEffect(() => () => cancelIdleTimer(), [cancelIdleTimer]);
+
   useEffect(() => {
     if (!sessionUserId) {
       // Logged out / disabled — reset, do nothing else.
@@ -276,11 +330,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (lastSyncedRef.current === null) {
       // First sync after login: claim merges localStorage with server, server returns canonical.
       let cancelled = false;
+      beginSync();
       void (async () => {
         const merged = await claimPassport(visitedShops);
-        if (cancelled || merged == null) return;
+        if (cancelled) return;
+        if (merged == null) {
+          endSync(false);
+          return;
+        }
         lastSyncedRef.current = merged;
         replaceVisited(merged);
+        endSync(true);
       })();
       return () => {
         cancelled = true;
@@ -291,7 +351,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const prevById = new Map(prev.map((s) => [s.id, s]));
     const currById = new Map(visitedShops.map((s) => [s.id, s]));
     for (const id of prevById.keys()) {
-      if (!currById.has(id)) deleteVisitedShop(id);
+      if (!currById.has(id)) {
+        beginSync();
+        void deleteVisitedShop(id).then(endSync);
+      }
     }
     for (const [id, shop] of currById) {
       const prevShop = prevById.get(id);
@@ -299,10 +362,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         !prevShop ||
         prevShop.visits.length !== shop.visits.length ||
         (prevShop.visits[0] ?? 0) !== (shop.visits[0] ?? 0);
-      if (changed) pushVisitedShop(shop);
+      if (changed) {
+        beginSync();
+        void pushVisitedShop(shop).then(endSync);
+      }
     }
     lastSyncedRef.current = visitedShops;
-  }, [visitedShops, sessionUserId, replaceVisited]);
+  }, [visitedShops, sessionUserId, replaceVisited, beginSync, endSync]);
 
   // Parallel sync for starred shops. Same state machine as visited (claim once on
   // session change, then diff-push on local changes), but change detection looks at
@@ -316,11 +382,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     if (lastSyncedStarredRef.current === null) {
       let cancelled = false;
+      beginSync();
       void (async () => {
         const merged = await claimStarred(starredShops);
-        if (cancelled || merged == null) return;
+        if (cancelled) return;
+        if (merged == null) {
+          endSync(false);
+          return;
+        }
         lastSyncedStarredRef.current = merged;
         replaceStarred(merged);
+        endSync(true);
       })();
       return () => {
         cancelled = true;
@@ -330,15 +402,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const prevById = new Map(prev.map((s) => [s.id, s]));
     const currById = new Map(starredShops.map((s) => [s.id, s]));
     for (const id of prevById.keys()) {
-      if (!currById.has(id)) deleteStarredShop(id);
+      if (!currById.has(id)) {
+        beginSync();
+        void deleteStarredShop(id).then(endSync);
+      }
     }
     for (const [id, shop] of currById) {
       const prevShop = prevById.get(id);
       const changed = !prevShop || prevShop.note !== shop.note;
-      if (changed) pushStarredShop(shop);
+      if (changed) {
+        beginSync();
+        void pushStarredShop(shop).then(endSync);
+      }
     }
     lastSyncedStarredRef.current = starredShops;
-  }, [starredShops, sessionUserId, replaceStarred]);
+  }, [starredShops, sessionUserId, replaceStarred, beginSync, endSync]);
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const coffeeShops = useMemo(
@@ -640,6 +718,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       selectedCoffeeShopId,
       starredShops,
       visitedShops,
+      syncStatus,
       isLoading,
       error,
       searchMinRating,
@@ -689,6 +768,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       selectedCoffeeShopId,
       starredShops,
       visitedShops,
+      syncStatus,
       isLoading,
       error,
       searchMinRating,

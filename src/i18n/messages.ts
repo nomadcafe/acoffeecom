@@ -242,6 +242,11 @@ export const en: MessageDict = {
   'auth.savePassportCtaBody': "Sign in to save your passport across devices — you won't lose it when the browser forgets.",
   'auth.savePassportCtaDismiss': 'Not now',
 
+  'sync.syncing': 'Syncing…',
+  'sync.synced': 'Synced',
+  'sync.error': 'Sync failed',
+  'sync.errorTooltip': "Couldn't reach the cloud. Your changes are saved locally and will retry on the next change.",
+
   'share.meetup': 'Share meetup',
   'share.meetupTitle': 'Coffee meetup: {{name}}',
   'share.meetupText': "Let's meet at {{name}} ☕",
@@ -534,6 +539,11 @@ export const ja: MessageDict = {
   'auth.savePassportCtaBody': 'サインインすれば端末間で同期され、ブラウザを変えても失われません。',
   'auth.savePassportCtaDismiss': '後で',
 
+  'sync.syncing': '同期中…',
+  'sync.synced': '同期完了',
+  'sync.error': '同期失敗',
+  'sync.errorTooltip': 'クラウドに接続できませんでした。変更は端末に保存されており、次の変更で再試行します。',
+
   'share.meetup': 'シェア',
   'share.meetupTitle': 'コーヒーミート：{{name}}',
   'share.meetupText': '{{name}} で会いましょう ☕',
@@ -814,6 +824,11 @@ export const zh: MessageDict = {
   'auth.savePassportCtaTitle': '你已经打卡了 {{count}} 家咖啡店',
   'auth.savePassportCtaBody': '登录后跨设备同步打卡数据，换浏览器或清缓存都不会丢。',
   'auth.savePassportCtaDismiss': '稍后',
+
+  'sync.syncing': '同步中…',
+  'sync.synced': '已同步',
+  'sync.error': '同步失败',
+  'sync.errorTooltip': '云端连接失败。改动已保存在本地，下次变动时会重试。',
 
   'share.meetup': '分享这家',
   'share.meetupTitle': '咖啡约见：{{name}}',
