@@ -30,18 +30,27 @@
 }
 
 .steps {
-  list-style: none;
-  margin: 0 auto;
-  padding: 0.55rem 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  border-radius: 10px;
-  max-width: 520px;
-  box-shadow: var(--ac-shadow-card);
+  /* Hidden on mobile: the LocationInput / Near-me CTA are self-explanatory and
+     the steps card was eating ~80px of vertical space, squeezing the map.
+     Re-shown as a visual aid on tablet+ where there's room to spare. */
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .steps {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0.55rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: var(--ac-surface);
+    border: 1px solid var(--ac-border);
+    border-radius: 10px;
+    max-width: 520px;
+    box-shadow: var(--ac-shadow-card);
+  }
 }
 
 .step {

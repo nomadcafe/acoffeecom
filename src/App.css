@@ -94,11 +94,12 @@ body {
 }
 
 .map-section {
-  /* Mobile: flex-fill whatever the header + AppHero didn't take. Hero is
-     conditional (shows only before a search), so we avoid hard-coded calc
-     and let flex adapt. The BottomSheet overlays the lower portion. */
+  /* Mobile: flex-fill whatever the header + AppHero didn't take. The
+     BottomSheet at peek covers ~136px of the bottom, so guarantee enough
+     vertical room above it for the map to actually be visible. Hero hides
+     post-search, at which point flex:1 lets the map expand to fill. */
   flex: 1;
-  min-height: 0;
+  min-height: 35vh;
   border-radius: 0;
   overflow: hidden;
 }

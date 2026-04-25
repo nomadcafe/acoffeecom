@@ -2,15 +2,11 @@
 # In production these are set via the Cloudflare Pages dashboard (Settings ->
 # Environment variables -> Add).
 
-# Claude (used by /api/ai/parse-query - natural-language search parsing)
-ANTHROPIC_API_KEY=
-
 # DeepSeek (used by /api/ai/summarize - cafe review summaries).
 # Get a key from https://platform.deepseek.com/api_keys.
 DEEPSEEK_API_KEY=
 
-# Optional model overrides (defaults baked in):
-#   AI_PARSE_MODEL=claude-sonnet-4-6
+# Optional model override (default baked in):
 #   AI_SUMMARY_MODEL=deepseek-v4-flash
 
 # --- Auth (Phase 0: email magic link via Better Auth) ---

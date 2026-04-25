@@ -83,8 +83,8 @@ export function CoffeeShopList() {
     );
   }
 
-  // Pre-search state: the hero owns the call-to-action (smart input + "near me"
-  // button), so the list just stays empty until a search runs.
+  // Pre-search state: the hero owns the call-to-action ("near me" button), so
+  // the list just stays empty until a search runs.
   if (!midpoint) return null;
 
   if (coffeeShops.length === 0) {

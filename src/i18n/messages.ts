@@ -58,15 +58,6 @@ export const en: MessageDict = {
   'hero.step2': 'We find the midpoint',
   'hero.step3': 'Browse top-rated cafés',
 
-  'hero.smartLabel': 'Or just describe your meetup:',
-  'hero.smartPlaceholder': 'e.g. coffee with Alice between Shibuya and Ebisu, quiet for 2h work',
-  'hero.smartSubmit': '✨ Plan with AI',
-  'hero.smartBusy': 'Thinking…',
-  'hero.smartApplied': 'Filled in from your description — review and hit Find.',
-  'hero.smartLowConfidence': 'Partial match — check the details before searching.',
-  'hero.smartNearbyHint': 'Sounds like a nearby search — tap the button below.',
-  'hero.smartUnknown': "Couldn't extract locations. Try including two place names.",
-  'hero.smartError': 'AI request failed. Enter locations manually below.',
   'hero.or': 'or',
 
   'list.loadingCoffee': 'Finding great coffee spots…',
@@ -356,15 +347,6 @@ export const ja: MessageDict = {
   'hero.step2': '中間地点を計算',
   'hero.step3': '高評価カフェを表示',
 
-  'hero.smartLabel': '一言で伝えてもOK：',
-  'hero.smartPlaceholder': '例：渋谷と恵比寿の間で、2時間作業できる静かなカフェ',
-  'hero.smartSubmit': '✨ AIに頼む',
-  'hero.smartBusy': '解析中…',
-  'hero.smartApplied': '入力しました。内容を確認して検索してください。',
-  'hero.smartLowConfidence': '部分的に認識しました。内容を確認してから検索してください。',
-  'hero.smartNearbyHint': '近くの検索のようです。下のボタンをお使いください。',
-  'hero.smartUnknown': '場所を抽出できませんでした。2 か所の地名を含めてみてください。',
-  'hero.smartError': 'AIリクエストに失敗しました。下で手動入力してください。',
   'hero.or': 'または',
 
   'list.loadingCoffee': 'カフェを探しています…',
@@ -646,15 +628,6 @@ export const zh: MessageDict = {
   'hero.step2': '找到中点',
   'hero.step3': '浏览高分咖啡店',
 
-  'hero.smartLabel': '也可以用一句话描述：',
-  'hero.smartPlaceholder': '例如：我和朋友在中野和涩谷之间，想找一家安静、适合工作 2 小时的咖啡店',
-  'hero.smartSubmit': '✨ 让 AI 帮我',
-  'hero.smartBusy': '解析中…',
-  'hero.smartApplied': '已填入地点，确认后点击查找。',
-  'hero.smartLowConfidence': '部分识别成功，请确认信息后再查找。',
-  'hero.smartNearbyHint': '似乎是附近搜索，请点下方按钮。',
-  'hero.smartUnknown': '没能识别出地点，请包含两个地名再试。',
-  'hero.smartError': 'AI 请求失败，请在下方手动输入。',
   'hero.or': '或',
 
   'list.loadingCoffee': '正在查找咖啡好店…',

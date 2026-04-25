@@ -1,6 +1,5 @@
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { AppHeroSmartInput } from './AppHeroSmartInput';
 import { AppHeroNearMe } from './AppHeroNearMe';
 import styles from './AppHero.module.css';
 
@@ -50,7 +49,6 @@ export function AppHero() {
           </li>
         </ol>
 
-        <AppHeroSmartInput />
         <AppHeroNearMe />
       </div>
     </section>
