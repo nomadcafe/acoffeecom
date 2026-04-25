@@ -52,7 +52,7 @@ export function CoffeeShopList() {
       }
     };
     return (
-      <div className={styles.container}>
+      <div className={styles.container} data-results-anchor>
         <div className={styles.error} role="alert">
           <p className={styles.errorMessage}>{error}</p>
           <div className={styles.errorActions}>
@@ -70,7 +70,7 @@ export function CoffeeShopList() {
 
   if (isLoading) {
     return (
-      <div className={styles.container}>
+      <div className={styles.container} data-results-anchor>
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
           <p>
@@ -89,7 +89,7 @@ export function CoffeeShopList() {
 
   if (coffeeShops.length === 0) {
     return (
-      <div className={styles.container}>
+      <div className={styles.container} data-results-anchor>
         <div className={styles.empty}>
           <p>
             {t(searchPlaceCategory === 'cafe' ? 'list.emptyCoffee' : 'list.emptyMeetup')}
@@ -149,7 +149,7 @@ export function CoffeeShopList() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-results-anchor>
       <div className={styles.headerRow}>
         <h3 className={styles.title}>{listTitle}</h3>
         <button type="button" className={styles.shareButton} onClick={handleShare}>

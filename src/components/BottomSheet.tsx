@@ -171,20 +171,38 @@ export function BottomSheet({ children }: Props) {
     }
   }, [snap]);
 
-  // Auto-promote peek → half on mobile when a search completes, so users on
-  // small screens don't have to fish for the handle to see results. CSS
-  // overrides snap classes on desktop, so the state change is harmless there.
-  // Compares current vs prior isLoading via state per the React docs pattern
-  // for "react to a prop change" — avoids the cascading-render concern that
-  // an effect-with-setState would raise.
+  // When a search completes on mobile, the sheet sitting at peek hides the
+  // results entirely; even at half the form occupies the visible area while
+  // the actual list is below the fold. Auto-promote peek → half AND scroll
+  // the inner content to the results anchor so users see results without
+  // hunting. CSS overrides snap classes on desktop and contentRef there has
+  // overflow:visible, so the scroll is gated to mobile via viewport width.
   const { isLoading } = useApp();
   const [prevIsLoading, setPrevIsLoading] = useState(isLoading);
+  const [searchDoneCount, setSearchDoneCount] = useState(0);
   if (prevIsLoading !== isLoading) {
     setPrevIsLoading(isLoading);
-    if (prevIsLoading && !isLoading && snap === 'peek') {
-      setSnap('half');
+    if (prevIsLoading && !isLoading) {
+      if (snap === 'peek') setSnap('half');
+      setSearchDoneCount((c) => c + 1);
     }
   }
+
+  useEffect(() => {
+    if (searchDoneCount === 0) return;
+    if (window.innerWidth >= 768) return;
+    // Wait for the snap transition (CSS: 300ms) before scrolling so the
+    // contentRef has its final scroll height.
+    const id = window.setTimeout(() => {
+      const content = contentRef.current;
+      if (!content) return;
+      const anchor = content.querySelector<HTMLElement>('[data-results-anchor]');
+      if (!anchor) return;
+      const delta = anchor.getBoundingClientRect().top - content.getBoundingClientRect().top;
+      content.scrollBy({ top: delta, behavior: 'smooth' });
+    }, 340);
+    return () => window.clearTimeout(id);
+  }, [searchDoneCount]);
 
   const transformStyle =
     dragOffset != null
