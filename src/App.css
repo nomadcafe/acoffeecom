@@ -102,8 +102,10 @@ body {
 }
 
 .map-section {
-  /* iOS Safari doesn't reliably resolve flex:1 height through min-height:100vh
-     ancestors, leaving the GoogleMap container at 0px and the map blank. */
+  /* min-height + position:relative are both load-bearing: 60dvh guarantees
+     iOS Safari gives the section non-zero height, position:relative makes
+     it the containing block for Map's absolute-positioned .container. */
+  position: relative;
   flex: 1;
   min-height: 60dvh;
   border-radius: 0;

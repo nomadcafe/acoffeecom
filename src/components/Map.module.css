@@ -1,7 +1,8 @@
 .container {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  /* Fill via absolute positioning so size doesn't depend on parent's `height`
+     resolving — `min-height` on the parent doesn't satisfy `height: 100%`. */
+  position: absolute;
+  inset: 0;
   border-radius: 12px;
   overflow: hidden;
   background: #e8e8e8;
