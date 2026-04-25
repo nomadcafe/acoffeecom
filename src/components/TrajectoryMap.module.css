@@ -1,0 +1,71 @@
+.section {
+  background: var(--ac-surface);
+  border-radius: 14px;
+  box-shadow: var(--ac-shadow-card);
+  padding: 1.25rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.4rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.lead {
+  margin: 0 0 0.85rem 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ac-text-muted);
+}
+
+.mapWrap {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface-tinted);
+}
+
+.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 0.85rem;
+  color: var(--ac-text-muted);
+}
+
+.numberPin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #6f4e37;
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  cursor: pointer;
+  transition: transform 140ms ease-out;
+}
+
+.numberPin:hover {
+  transform: scale(1.15);
+}
+
+.numberPinStart {
+  background: #2e7d32;
+}
+
+.numberPinEnd {
+  background: #c0392b;
+}

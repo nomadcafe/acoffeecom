@@ -208,6 +208,8 @@ export const en: MessageDict = {
   'passport.listTitle': 'Visited cafés ({{count}})',
   'passport.emptyCta': 'Find a café to visit',
   'passport.viewFull': 'View full passport →',
+  'passport.trajectoryTitle': 'Your trajectory',
+  'passport.trajectoryLead': 'Every café you stamped, in the order you discovered them. Tap a marker to find it in the list.',
   'visited.shareCardText':
     'My coffee passport — {{count}} cafés, {{visits}} visits. Built on acoffee.com.',
 
@@ -491,6 +493,8 @@ export const ja: MessageDict = {
   'passport.listTitle': '来店したカフェ（{{count}}）',
   'passport.emptyCta': 'カフェを探す',
   'passport.viewFull': 'パスポート全体を見る →',
+  'passport.trajectoryTitle': '足跡マップ',
+  'passport.trajectoryLead': '訪れた順にすべてのカフェをつないで表示します。マーカーをタップすると下のリストの該当行に移動します。',
   'visited.shareCardText':
     'マイ・コーヒーパスポート — {{count}} 軒、{{visits}} 回。acoffee.com で作成。',
 
@@ -765,6 +769,8 @@ export const zh: MessageDict = {
   'passport.listTitle': '已到访咖啡店（{{count}}）',
   'passport.emptyCta': '去找一家咖啡店',
   'passport.viewFull': '查看完整护照 →',
+  'passport.trajectoryTitle': '足迹地图',
+  'passport.trajectoryLead': '按发现顺序串起你打过卡的每一家咖啡店。点一下标记可定位到下方列表对应的那一行。',
   'visited.shareCardText':
     '我的咖啡护照 — {{count}} 家店，{{visits}} 次访问。acoffee.com 生成。',
 

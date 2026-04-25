@@ -249,6 +249,12 @@
   background: var(--ac-surface-tinted);
   border-radius: 10px;
   border: 1px solid var(--ac-border);
+  transition: background 220ms ease-out, border-color 220ms ease-out;
+}
+
+.rowFlash {
+  background: rgba(111, 78, 55, 0.12);
+  border-color: rgba(111, 78, 55, 0.45);
 }
 
 .rowMain {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useApp } from '../context/AppContext';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
@@ -11,6 +11,7 @@ import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { track } from '../utils/analytics';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { TrajectoryMap } from './TrajectoryMap';
 import styles from './PassportPage.module.css';
 
 export function PassportPage() {
@@ -22,6 +23,26 @@ export function PassportPage() {
   const [shareStatus, setShareStatus] = useState<
     { kind: 'error' | 'info'; message: string } | null
   >(null);
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const flashTimerRef = useRef<number | null>(null);
+
+  const handleTrajectoryMarkerClick = (shopId: string) => {
+    const el = document.querySelector<HTMLElement>(`[data-shop-id="${CSS.escape(shopId)}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setFlashId(shopId);
+    if (flashTimerRef.current != null) window.clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = window.setTimeout(() => {
+      setFlashId(null);
+      flashTimerRef.current = null;
+    }, 1600);
+  };
+
+  useEffect(
+    () => () => {
+      if (flashTimerRef.current != null) window.clearTimeout(flashTimerRef.current);
+    },
+    [],
+  );
 
   const count = visitedShops.length;
 
@@ -50,6 +71,15 @@ export function PassportPage() {
 
   const allTimestamps = useMemo(
     () => visitedShops.flatMap((s) => s.visits),
+    [visitedShops],
+  );
+
+  const trajectoryStopCount = useMemo(
+    () =>
+      visitedShops.filter(
+        (s) =>
+          s.visits.length > 0 && (Math.abs(s.lat) > 1e-5 || Math.abs(s.lng) > 1e-5),
+      ).length,
     [visitedShops],
   );
 
@@ -241,6 +271,13 @@ export function PassportPage() {
               ) : null}
             </section>
 
+            {trajectoryStopCount >= 2 ? (
+              <TrajectoryMap
+                visitedShops={visitedShops}
+                onMarkerClick={handleTrajectoryMarkerClick}
+              />
+            ) : null}
+
             <section className={styles.listSection} aria-label={t('passport.listTitle')}>
               <h2 className={styles.sectionTitle}>
                 {t('passport.listTitle', { count })}
@@ -250,7 +287,11 @@ export function PassportPage() {
                   const last = snap.visits[0];
                   const vc = snap.visits.length;
                   return (
-                    <li key={snap.id} className={styles.row}>
+                    <li
+                      key={snap.id}
+                      className={`${styles.row}${flashId === snap.id ? ' ' + styles.rowFlash : ''}`}
+                      data-shop-id={snap.id}
+                    >
                       <div className={styles.rowMain}>
                         <div className={styles.rowName}>{snap.name}</div>
                         {snap.address ? (
