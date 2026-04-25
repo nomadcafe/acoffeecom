@@ -18,6 +18,28 @@ export type ChangelogEntry = {
 export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   en: [
     {
+      isoDate: '2026-04-25',
+      title: 'Mobile polish',
+      bullets: [
+        'The map now stays visible above the bottom sheet, even before your first search.',
+        'After a search the sheet expands and scrolls to the results — no manual drag needed.',
+        'Bigger A and B inputs and a larger swap button make typing easier on phones.',
+        'Long café names now wrap to two lines instead of being cut off.',
+        'First-time visitors can try a sample search straight from the hero with one tap.',
+      ],
+    },
+    {
+      isoDate: '2026-04-24',
+      title: 'Sign in and cloud sync',
+      bullets: [
+        'Sign in with an email magic link — no password to remember.',
+        'Your Coffee Passport now syncs across devices: visited and saved cafés follow you wherever you sign in.',
+        'A small indicator in the header shows the latest sync status.',
+        'Passport page now overlays your visit trajectory on the map, with a separate trail-style share card.',
+        'Friendlier fallback screen when something unexpected goes wrong.',
+      ],
+    },
+    {
       isoDate: '2026-04-23',
       title: 'A cleaner look',
       bullets: [
@@ -82,6 +104,28 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   ],
   ja: [
     {
+      isoDate: '2026-04-25',
+      title: 'スマホ周りの調整',
+      bullets: [
+        '検索前でも地図がボトムシートの上にきちんと表示されるようになりました。',
+        '検索完了後、シートが自動で展開し結果までスクロールします。手動で引き上げる必要がありません。',
+        'A・B 入力欄と入れ替えボタンを大きくし、スマホでも押しやすくなりました。',
+        '長いカフェ名が省略されず、2 行まで折り返して表示されます。',
+        '初回訪問時、ヒーロー部分からワンタップで試せるサンプル検索を追加しました。',
+      ],
+    },
+    {
+      isoDate: '2026-04-24',
+      title: 'サインインとクラウド同期',
+      bullets: [
+        'メールのマジックリンクでサインイン — パスワード不要。',
+        'コーヒーパスポートが端末間で同期されるようになりました（訪問・お気に入り）。サインインすればどこでも同じ内容が見られます。',
+        'ヘッダーに同期状態を示す小さなインジケーターを追加。',
+        'パスポートページに訪問の軌跡を地図上に重ねるオーバーレイと、その軌跡を共有できる新しい共有カードを追加。',
+        '予期しないエラー時に表示されるフォールバック画面を整えました。',
+      ],
+    },
+    {
       isoDate: '2026-04-23',
       title: 'スッキリした見た目に',
       bullets: [
@@ -145,6 +189,28 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
     },
   ],
   zh: [
+    {
+      isoDate: '2026-04-25',
+      title: '手机端打磨',
+      bullets: [
+        '搜索前地图也能正常显示在底部抽屉上方，不再是空白一片。',
+        '搜索完成后抽屉自动展开并滚动到结果位置，不用再手动上滑。',
+        'A、B 输入框和交换按钮加大，手机上更易点按。',
+        '较长的咖啡店名现在会换行显示两行，不再被截断。',
+        '首次访问时可以直接从顶部一键试用示例搜索。',
+      ],
+    },
+    {
+      isoDate: '2026-04-24',
+      title: '账号与云同步',
+      bullets: [
+        '使用邮箱魔法链接登录 — 无需记住密码。',
+        '咖啡护照支持跨设备同步：访问与收藏数据登录后随你流转。',
+        '顶栏新增同步状态小图标，可看到最近一次同步情况。',
+        '护照页新增"足迹"地图叠加层，记录你拜访咖啡店的轨迹，并提供独立风格的分享卡。',
+        '出现意外错误时显示更友好的提示页面。',
+      ],
+    },
     {
       isoDate: '2026-04-23',
       title: '更清爽的外观',
