@@ -1,11 +1,11 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createDeepSeek } from '@ai-sdk/deepseek';
 import { generateText } from 'ai';
 import { z } from 'zod';
 import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 import { readSummaryCache, writeSummaryCache } from '../../_lib/summaryCache';
 
 interface Env {
-  GOOGLE_GENERATIVE_AI_API_KEY: string;
+  DEEPSEEK_API_KEY: string;
   AI_SUMMARY_MODEL?: string;
 }
 
@@ -36,8 +36,8 @@ Style:
 Only state things grounded in the supplied reviews. If reviews disagree, prefer the most recent-sounding signal.`;
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
-  if (!env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    return jsonError('GOOGLE_GENERATIVE_AI_API_KEY not configured', 500);
+  if (!env.DEEPSEEK_API_KEY) {
+    return jsonError('DEEPSEEK_API_KEY not configured', 500);
   }
 
   let input: z.infer<typeof InputSchema>;
@@ -64,9 +64,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUnti
   if (!limit.ok) return rateLimitResponse(limit);
 
   try {
-    const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY });
+    const deepseek = createDeepSeek({ apiKey: env.DEEPSEEK_API_KEY });
     const { text } = await generateText({
-      model: google(env.AI_SUMMARY_MODEL ?? 'gemini-2.5-flash'),
+      model: deepseek(env.AI_SUMMARY_MODEL ?? 'deepseek-v4-flash'),
       system: SYSTEM,
       prompt: `User locale: ${input.locale}\n\nCafé: ${input.placeName}\n\nReviews:\n${input.reviews
         .map(
