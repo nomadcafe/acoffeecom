@@ -190,16 +190,17 @@ export function BottomSheet({ children }: Props) {
 
   useEffect(() => {
     if (searchDoneCount === 0) return;
-    if (window.innerWidth >= 768) return;
-    // Wait for the snap transition (CSS: 300ms) before scrolling so the
-    // contentRef has its final scroll height.
+    // Wait for the mobile snap transition (CSS: 300ms) before scrolling.
+    // On desktop there's no transition, but the small delay is harmless.
+    // scrollIntoView walks up to the nearest scrollable ancestor:
+    //   mobile  → BottomSheet's contentRef (overflow-y: auto at peek/half)
+    //   desktop → the inline `.sidebar` (overflow-y: auto, max-height)
+    // so the same call lands the user on the results in both layouts.
     const id = window.setTimeout(() => {
       const content = contentRef.current;
       if (!content) return;
       const anchor = content.querySelector<HTMLElement>('[data-results-anchor]');
-      if (!anchor) return;
-      const delta = anchor.getBoundingClientRect().top - content.getBoundingClientRect().top;
-      content.scrollBy({ top: delta, behavior: 'smooth' });
+      anchor?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 340);
     return () => window.clearTimeout(id);
   }, [searchDoneCount]);
