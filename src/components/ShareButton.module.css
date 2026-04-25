@@ -1,6 +1,9 @@
 .shareButton {
   background: none;
   border: none;
+  /* ~40px tap target on mobile. */
+  min-width: 40px;
+  min-height: 40px;
   padding: 0.25rem;
   cursor: pointer;
   color: #888;
@@ -11,9 +14,11 @@
   line-height: 0;
 }
 
-.shareButton:hover:not(:disabled) {
-  transform: scale(1.15);
-  color: var(--ac-accent, #6f4e37);
+@media (hover: hover) {
+  .shareButton:hover:not(:disabled) {
+    transform: scale(1.15);
+    color: var(--ac-accent, #6f4e37);
+  }
 }
 
 .shareButton:disabled {

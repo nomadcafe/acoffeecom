@@ -25,9 +25,11 @@
   transition: stroke 0.15s ease;
 }
 
-.cell:hover {
-  stroke: #3e2416;
-  stroke-width: 1;
+@media (hover: hover) {
+  .cell:hover {
+    stroke: #3e2416;
+    stroke-width: 1;
+  }
 }
 
 .legend {

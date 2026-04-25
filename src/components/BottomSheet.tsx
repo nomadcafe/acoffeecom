@@ -236,7 +236,21 @@ export function BottomSheet({ children }: Props) {
           {t('sheet.label')}
         </span>
       </div>
-      <div ref={contentRef} className={styles.content}>
+      <div
+        ref={contentRef}
+        className={styles.content}
+        onFocusCapture={(e) => {
+          // Tapping into a text input at peek/half hides the cursor behind
+          // the collapsed sheet once the soft keyboard opens. Promote to
+          // full so the user can see what they're typing. Capture phase so
+          // we run before any inner stopPropagation. Desktop ignores snap
+          // classes (CSS `transform: none !important`) — harmless there.
+          const tag = (e.target as HTMLElement | null)?.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA') {
+            if (snap !== 'full') setSnap('full');
+          }
+        }}
+      >
         {children}
       </div>
     </div>

@@ -3,6 +3,9 @@
   background: none;
   border: none;
   cursor: pointer;
+  /* ~40px tap target — keep the icon visually small. */
+  min-width: 40px;
+  min-height: 40px;
   padding: 0.25rem;
   transition: transform 0.15s ease;
   line-height: 1;
@@ -11,8 +14,14 @@
   justify-content: center;
 }
 
-.visitedButton:hover {
-  transform: scale(1.1);
+@media (hover: hover) {
+  .visitedButton:hover {
+    transform: scale(1.1);
+  }
+  .visitedButton:hover .icon {
+    opacity: 0.75;
+    filter: grayscale(0.5);
+  }
 }
 
 .visitedButton:active .icon {
@@ -24,11 +33,6 @@
   transition: filter 0.2s, opacity 0.2s;
   opacity: 0.3;
   filter: grayscale(1);
-}
-
-.visitedButton:hover .icon {
-  opacity: 0.75;
-  filter: grayscale(0.5);
 }
 
 .visitedButton.stamped .icon {

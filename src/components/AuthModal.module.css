@@ -90,13 +90,20 @@
 .input {
   width: 100%;
   padding: 10px 12px;
-  font-size: 0.95rem;
+  /* 16px so iOS doesn't zoom on focus; tablet+ can use the smaller size. */
+  font-size: 1rem;
   border: 1px solid var(--ac-border);
   border-radius: 10px;
   background: var(--ac-surface);
   color: var(--ac-text);
   transition: border-color 0.15s ease;
   box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .input {
+    font-size: 0.95rem;
+  }
 }
 
 .input:focus-visible {

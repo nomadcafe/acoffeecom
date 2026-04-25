@@ -16,9 +16,11 @@
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.signInButton:hover {
-  background-color: var(--ac-surface-tinted);
-  border-color: var(--ac-border-strong);
+@media (hover: hover) {
+  .signInButton:hover {
+    background-color: var(--ac-surface-tinted);
+    border-color: var(--ac-border-strong);
+  }
 }
 
 .signInButton:focus-visible {
@@ -44,8 +46,10 @@
   transition: opacity 0.15s ease;
 }
 
-.avatarButton:hover {
-  opacity: 0.9;
+@media (hover: hover) {
+  .avatarButton:hover {
+    opacity: 0.9;
+  }
 }
 
 .avatarButton:focus-visible {
@@ -93,15 +97,18 @@
   text-align: left;
   background: transparent;
   border: none;
-  padding: 8px 10px;
-  font-size: 0.85rem;
+  /* ~40px tap target on mobile. */
+  padding: 11px 12px;
+  font-size: 0.9rem;
   color: var(--ac-text);
   border-radius: 6px;
   cursor: pointer;
 }
 
-.menuItem:hover {
-  background: var(--ac-surface-tinted);
+@media (hover: hover) {
+  .menuItem:hover {
+    background: var(--ac-surface-tinted);
+  }
 }
 
 .menuItem:disabled {

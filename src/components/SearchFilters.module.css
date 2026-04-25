@@ -151,8 +151,16 @@
   padding: 0.6rem 0.75rem;
   border: 1px solid #ddd;
   border-radius: 8px;
-  font-size: 0.9rem;
+  /* iOS auto-zooms when focused on an input <16px. Use 16px on mobile,
+     restore the original 0.9rem on tablet+ where zoom isn't a concern. */
+  font-size: 1rem;
   box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .keywordInput {
+    font-size: 0.9rem;
+  }
 }
 
 .keywordInput:focus {
