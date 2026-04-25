@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { useJsApiLoader } from '@react-google-maps/api';
 import type {
   Location,
   CoffeeShop,
@@ -16,6 +17,7 @@ import { geocodeAddress } from '../utils/geocoding';
 import { calculateMidpoint } from '../utils/midpoint';
 import { track } from '../utils/analytics';
 import { useSession } from '../utils/authClient';
+import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
 import {
   claimPassport,
   deleteVisitedShop,
@@ -213,7 +215,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
-  const [isMapReady, setIsMapReady] = useState(false);
+  // Boot the Maps SDK at the provider level so autocomplete + geocoding +
+  // Place.searchNearby are all usable before (and independent of) the
+  // visible <Map> mounting. Without this, the pre-search inline layout has
+  // no SDK loaded → autocomplete stays empty and any kicked-off search
+  // dies with 'Map not loaded yet'.
+  const { isLoaded: isSdkLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
+  // Geocoder needs the SDK loaded but doesn't need a map instance, so
+  // create it as soon as the SDK is ready. Search functions check this ref
+  // (not mapRef) before running.
+  useEffect(() => {
+    if (isSdkLoaded && !geocoderRef.current) {
+      geocoderRef.current = new google.maps.Geocoder();
+    }
+  }, [isSdkLoaded]);
   // Stores URL-derived search intent so the auto-search fires once after the map loads.
   // a+b → meetup search; near=lat,lng → nearby search.
   const pendingUrlSearch = useRef<
@@ -435,10 +454,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setMapRef = useCallback((map: google.maps.Map | null) => {
     mapRef.current = map;
-    if (map && !geocoderRef.current) {
-      geocoderRef.current = new google.maps.Geocoder();
-    }
-    setIsMapReady(!!map);
   }, []);
 
   const setSelectedCoffeeShopId = useCallback((id: string | null) => {
@@ -455,7 +470,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (!mapRef.current || !geocoderRef.current) {
+      if (!geocoderRef.current) {
         setError(t('errors.mapNotLoaded'));
         return;
       }
@@ -487,7 +502,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setMidpoint(mid);
 
         const { shops } = await searchCoffeeShops(
-          mapRef.current,
           mid,
           coordsA,
           coordsB,
@@ -556,7 +570,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const searchAround = useCallback(
     async (center: { lat: number; lng: number }) => {
-      if (!mapRef.current) {
+      if (!isSdkLoaded) {
         setError(t('errors.mapNotLoaded'));
         return;
       }
@@ -575,7 +589,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       try {
         const { shops } = await searchCoffeeShops(
-          mapRef.current,
           center,
           null,
           null,
@@ -610,12 +623,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, searchOpenNow, t]
+    [isSdkLoaded, searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, searchOpenNow, t]
   );
 
-  // Auto-search from URL params once the map instance is ready.
+  // Auto-search from URL params once the SDK is loaded. Used to wait for
+  // the visible map to mount; now decoupled so the geocoder + Place
+  // search can fire as soon as the script is ready.
   useEffect(() => {
-    if (!isMapReady || !pendingUrlSearch.current) return;
+    if (!isSdkLoaded || !pendingUrlSearch.current) return;
     const pending = pendingUrlSearch.current;
     pendingUrlSearch.current = null;
     if (pending.kind === 'meetup') {
@@ -623,7 +638,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } else {
       void searchAround({ lat: pending.lat, lng: pending.lng });
     }
-  }, [isMapReady, searchWithAddresses, searchAround]);
+  }, [isSdkLoaded, searchWithAddresses, searchAround]);
 
   // Reflect filter state in URL so bookmarked/shared links carry the same
   // radius / rating / keyword / category / sort. Only non-default values

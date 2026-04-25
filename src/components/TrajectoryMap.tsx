@@ -6,10 +6,10 @@ import { sharePassportCard } from '../utils/passportCard';
 import { renderTrajectoryCard } from '../utils/trajectoryCard';
 import { formatAbsoluteDate } from '../utils/relativeTime';
 import { track } from '../utils/analytics';
+import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
 import { AdvancedMarker } from './AdvancedMarker';
 import styles from './TrajectoryMap.module.css';
 
-const libraries: ('marker')[] = ['marker'];
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const mapContainerStyle = { width: '100%', height: '100%' };
@@ -51,7 +51,7 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
   const { t, locale } = useI18n();
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries,
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   const stops = useMemo<TrajectoryStop[]>(() => {

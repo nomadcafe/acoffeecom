@@ -126,7 +126,6 @@ const NEARBY_FIELDS: string[] = [
  * Returns up to 20 places per search; pagination is not exposed on this JS surface.
  */
 export async function searchCoffeeShops(
-  _map: google.maps.Map,
   midpoint: { lat: number; lng: number },
   locationA: { lat: number; lng: number } | null,
   locationB: { lat: number; lng: number } | null,

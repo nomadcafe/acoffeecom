@@ -4,13 +4,12 @@ import { GoogleMap, useJsApiLoader, InfoWindow } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
+import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
 import { snapshotToCoffeeShop } from '../hooks/useStarredShops';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { formatRelativeTime } from '../utils/relativeTime';
 import { AdvancedMarker } from './AdvancedMarker';
 import styles from './Map.module.css';
-
-const libraries: ('places' | 'marker')[] = ['places', 'marker'];
 
 // AdvancedMarkerElement requires a Map ID (Google Cloud Console → Maps → Map
 // IDs). Without it, markers render blank. Log once at startup if missing so
@@ -50,7 +49,7 @@ export function Map() {
   const { t, locale } = useI18n();
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries,
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   const {
