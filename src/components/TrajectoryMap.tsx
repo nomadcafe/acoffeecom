@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { GoogleMap, Polyline, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Polyline } from '@react-google-maps/api';
 import type { VisitedShopSnapshot } from '../types';
+import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { sharePassportCard } from '../utils/passportCard';
 import { renderTrajectoryCard } from '../utils/trajectoryCard';
 import { formatAbsoluteDate } from '../utils/relativeTime';
 import { track } from '../utils/analytics';
-import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
 import { AdvancedMarker } from './AdvancedMarker';
 import styles from './TrajectoryMap.module.css';
 
@@ -49,10 +49,7 @@ interface TrajectoryStop {
 
 export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProps) {
   const { t, locale } = useI18n();
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries: GOOGLE_MAPS_LIBRARIES,
-  });
+  const { isSdkLoaded: isLoaded, sdkLoadError: loadError } = useApp();
 
   const stops = useMemo<TrajectoryStop[]>(() => {
     const out: TrajectoryStop[] = [];

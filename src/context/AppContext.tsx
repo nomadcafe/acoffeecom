@@ -41,6 +41,11 @@ export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
 interface AppContextType extends AppState {
   syncStatus: SyncStatus;
+  /** Google Maps SDK loaded — single source of truth so consumers (Map,
+   *  TrajectoryMap) don't each call useJsApiLoader and risk desync. */
+  isSdkLoaded: boolean;
+  /** Surface load failures so visible map components can show an error. */
+  sdkLoadError: Error | undefined;
   setAddressA: (address: string) => void;
   setAddressB: (address: string) => void;
   addressA: string;
@@ -220,7 +225,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // visible <Map> mounting. Without this, the pre-search inline layout has
   // no SDK loaded → autocomplete stays empty and any kicked-off search
   // dies with 'Map not loaded yet'.
-  const { isLoaded: isSdkLoaded } = useJsApiLoader({
+  const { isLoaded: isSdkLoaded, loadError: sdkLoadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
@@ -734,6 +739,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       starredShops,
       visitedShops,
       syncStatus,
+      isSdkLoaded,
+      sdkLoadError,
       isLoading,
       error,
       searchMinRating,
@@ -784,6 +791,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       starredShops,
       visitedShops,
       syncStatus,
+      isSdkLoaded,
+      sdkLoadError,
       isLoading,
       error,
       searchMinRating,

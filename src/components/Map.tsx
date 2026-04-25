@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { GoogleMap, useJsApiLoader, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, InfoWindow } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
-import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
 import { snapshotToCoffeeShop } from '../hooks/useStarredShops';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { formatRelativeTime } from '../utils/relativeTime';
@@ -47,12 +46,10 @@ function hasCoordinates(lat: number, lng: number): boolean {
 
 export function Map() {
   const { t, locale } = useI18n();
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries: GOOGLE_MAPS_LIBRARIES,
-  });
 
   const {
+    isSdkLoaded: isLoaded,
+    sdkLoadError: loadError,
     locationA,
     locationB,
     midpoint,
