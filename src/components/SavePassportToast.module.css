@@ -1,0 +1,105 @@
+.toast {
+  position: fixed;
+  bottom: 88px;
+  right: 16px;
+  max-width: 320px;
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  border: 1px solid var(--ac-border);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  padding: 16px;
+  z-index: 200;
+  animation: rise 0.2s ease;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+  padding-right: 24px;
+}
+
+.body {
+  font-size: 0.82rem;
+  color: var(--ac-text-soft);
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.dismiss {
+  background: transparent;
+  border: none;
+  color: var(--ac-text-soft);
+  font-size: 0.82rem;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.dismiss:hover {
+  color: var(--ac-text);
+  background: var(--ac-surface-tinted);
+}
+
+.cta {
+  background: var(--ac-accent);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cta:hover {
+  opacity: 0.92;
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: var(--ac-text-soft);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.close:hover {
+  background: var(--ac-surface-tinted);
+  color: var(--ac-text);
+}
+
+@media (max-width: 480px) {
+  .toast {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+    bottom: 80px;
+  }
+}

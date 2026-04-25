@@ -66,6 +66,8 @@ export function useStarredShops(): {
   starredShopIds: string[];
   toggleStar: (shop: CoffeeShop) => void;
   updateStarredNote: (shopId: string, note: string) => void;
+  /** Replace the entire starred list (used by cloud sync to reconcile with server). */
+  replaceStarred: (next: StarredShopSnapshot[]) => void;
   isStarred: (shopId: string) => boolean;
 } {
   const [starredShops, setStarredShops] = useState<StarredShopSnapshot[]>(loadStarredShops);
@@ -115,10 +117,14 @@ export function useStarredShops(): {
     );
   }, []);
 
+  const replaceStarred = useCallback((next: StarredShopSnapshot[]) => {
+    setStarredShops(next);
+  }, []);
+
   const isStarred = useCallback(
     (shopId: string) => starredShopIds.includes(shopId),
     [starredShopIds]
   );
 
-  return { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred };
+  return { starredShops, starredShopIds, toggleStar, updateStarredNote, replaceStarred, isStarred };
 }

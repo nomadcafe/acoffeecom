@@ -1,10 +1,12 @@
 import { lazy, Suspense } from 'react';
+import type { ReactNode } from 'react';
 import { AppProvider } from './context/AppContext';
 import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
 import { SearchFilters } from './components/SearchFilters';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
+import { AccountMenu } from './components/AccountMenu';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
 import { VisitedPlacesMenu } from './components/VisitedPlacesMenu';
 import { SiteBottomNav } from './components/SiteBottomNav';
@@ -62,6 +64,7 @@ function AppShell() {
             <VisitedPlacesMenu />
             <SavedPlacesMenu />
             <LanguageSwitcher />
+            {import.meta.env.VITE_AUTH_ENABLED === 'true' && <AccountMenu />}
           </div>
         </div>
       </header>
@@ -93,8 +96,9 @@ function AppRoute() {
   useTrackPageViews(pathname);
   const logicalPath = stripLocalePrefix(pathname);
 
+  let body: ReactNode;
   if (isUpdatesPath(logicalPath)) {
-    return (
+    body = (
       <>
         <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
           <UpdateLogPage />
@@ -102,10 +106,8 @@ function AppRoute() {
         <SiteBottomNav />
       </>
     );
-  }
-
-  if (isPassportPath(logicalPath)) {
-    return (
+  } else if (isPassportPath(logicalPath)) {
+    body = (
       <>
         <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
           <PassportPage />
@@ -113,13 +115,13 @@ function AppRoute() {
         <SiteBottomNav />
       </>
     );
+  } else {
+    body = <AppShell />;
   }
 
-  return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
-  );
+  // AppProvider wraps every route so PassportPage / UpdateLogPage can share
+  // visitedShops + (when auth flag is on) the cloud-sync layer with AppShell.
+  return <AppProvider>{body}</AppProvider>;
 }
 
 export default function App() {

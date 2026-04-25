@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
-import { useVisitedShops, visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
+import { useApp } from '../context/AppContext';
+import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { buildHeatmap } from '../utils/heatmap';
 import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
@@ -14,7 +15,7 @@ import styles from './PassportPage.module.css';
 
 export function PassportPage() {
   const { t, locale } = useI18n();
-  const { visitedShops, removeVisited } = useVisitedShops();
+  const { visitedShops, removeVisited } = useApp();
   const homeHref = buildLocalizedPathname('/', locale);
 
   const [sharing, setSharing] = useState(false);

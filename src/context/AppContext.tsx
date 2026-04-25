@@ -15,6 +15,18 @@ import { useVisitedShops } from '../hooks/useVisitedShops';
 import { geocodeAddress } from '../utils/geocoding';
 import { calculateMidpoint } from '../utils/midpoint';
 import { track } from '../utils/analytics';
+import { useSession } from '../utils/authClient';
+import {
+  claimPassport,
+  deleteVisitedShop,
+  pushVisitedShop,
+} from '../utils/passportSync';
+import {
+  claimStarred,
+  deleteStarredShop,
+  pushStarredShop,
+} from '../utils/starredSync';
+import type { StarredShopSnapshot, VisitedShopSnapshot } from '../types';
 import {
   searchCoffeeShops,
   SEARCH_RADIUS_MAX_M,
@@ -227,9 +239,106 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return null;
   })());
 
-  const { starredShops, starredShopIds, toggleStar, updateStarredNote, isStarred } = useStarredShops();
-  const { visitedShops, addVisit, removeVisited, isVisited, visitCount, lastVisit } =
-    useVisitedShops();
+  const {
+    starredShops,
+    starredShopIds,
+    toggleStar,
+    updateStarredNote,
+    replaceStarred,
+    isStarred,
+  } = useStarredShops();
+  const {
+    visitedShops,
+    addVisit,
+    removeVisited,
+    replaceVisited,
+    isVisited,
+    visitCount,
+    lastVisit,
+  } = useVisitedShops();
+
+  // Phase 0 cloud sync of the passport. Activates only when the auth flag is on
+  // AND the user has a session. Anonymous behavior is unchanged (localStorage only).
+  // Effect runs on session change (claim+merge once) and on visitedShops change
+  // (diff against last-synced snapshot, push individual upsert/delete).
+  const authEnabled = import.meta.env.VITE_AUTH_ENABLED === 'true';
+  const { data: session, isPending: sessionLoading } = useSession();
+  const sessionUserId =
+    authEnabled && !sessionLoading && session?.user?.id ? session.user.id : null;
+  const lastSyncedRef = useRef<VisitedShopSnapshot[] | null>(null);
+
+  useEffect(() => {
+    if (!sessionUserId) {
+      // Logged out / disabled — reset, do nothing else.
+      lastSyncedRef.current = null;
+      return;
+    }
+    if (lastSyncedRef.current === null) {
+      // First sync after login: claim merges localStorage with server, server returns canonical.
+      let cancelled = false;
+      void (async () => {
+        const merged = await claimPassport(visitedShops);
+        if (cancelled || merged == null) return;
+        lastSyncedRef.current = merged;
+        replaceVisited(merged);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+    // Steady state: diff against last-synced snapshot, push only what changed.
+    const prev = lastSyncedRef.current;
+    const prevById = new Map(prev.map((s) => [s.id, s]));
+    const currById = new Map(visitedShops.map((s) => [s.id, s]));
+    for (const id of prevById.keys()) {
+      if (!currById.has(id)) deleteVisitedShop(id);
+    }
+    for (const [id, shop] of currById) {
+      const prevShop = prevById.get(id);
+      const changed =
+        !prevShop ||
+        prevShop.visits.length !== shop.visits.length ||
+        (prevShop.visits[0] ?? 0) !== (shop.visits[0] ?? 0);
+      if (changed) pushVisitedShop(shop);
+    }
+    lastSyncedRef.current = visitedShops;
+  }, [visitedShops, sessionUserId, replaceVisited]);
+
+  // Parallel sync for starred shops. Same state machine as visited (claim once on
+  // session change, then diff-push on local changes), but change detection looks at
+  // membership + note instead of visit count.
+  const lastSyncedStarredRef = useRef<StarredShopSnapshot[] | null>(null);
+
+  useEffect(() => {
+    if (!sessionUserId) {
+      lastSyncedStarredRef.current = null;
+      return;
+    }
+    if (lastSyncedStarredRef.current === null) {
+      let cancelled = false;
+      void (async () => {
+        const merged = await claimStarred(starredShops);
+        if (cancelled || merged == null) return;
+        lastSyncedStarredRef.current = merged;
+        replaceStarred(merged);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+    const prev = lastSyncedStarredRef.current;
+    const prevById = new Map(prev.map((s) => [s.id, s]));
+    const currById = new Map(starredShops.map((s) => [s.id, s]));
+    for (const id of prevById.keys()) {
+      if (!currById.has(id)) deleteStarredShop(id);
+    }
+    for (const [id, shop] of currById) {
+      const prevShop = prevById.get(id);
+      const changed = !prevShop || prevShop.note !== shop.note;
+      if (changed) pushStarredShop(shop);
+    }
+    lastSyncedStarredRef.current = starredShops;
+  }, [starredShops, sessionUserId, replaceStarred]);
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const coffeeShops = useMemo(

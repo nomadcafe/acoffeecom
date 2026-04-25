@@ -67,6 +67,8 @@ export function useVisitedShops(): {
   visitedShopIds: string[];
   addVisit: (shop: CoffeeShop) => void;
   removeVisited: (shopId: string) => void;
+  /** Replace the entire visited list (used by cloud sync to reconcile with server). */
+  replaceVisited: (next: VisitedShopSnapshot[]) => void;
   isVisited: (shopId: string) => boolean;
   visitCount: (shopId: string) => number;
   lastVisit: (shopId: string) => number | null;
@@ -128,6 +130,10 @@ export function useVisitedShops(): {
     setVisitedShops((prev) => prev.filter((s) => s.id !== shopId));
   }, []);
 
+  const replaceVisited = useCallback((next: VisitedShopSnapshot[]) => {
+    setVisitedShops(next);
+  }, []);
+
   const isVisited = useCallback(
     (shopId: string) => visitedShopIds.includes(shopId),
     [visitedShopIds],
@@ -148,6 +154,7 @@ export function useVisitedShops(): {
     visitedShopIds,
     addVisit,
     removeVisited,
+    replaceVisited,
     isVisited,
     visitCount,
     lastVisit,
