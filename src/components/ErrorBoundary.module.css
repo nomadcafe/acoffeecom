@@ -1,0 +1,72 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  background: var(--ac-page-bg, #faf7f2);
+  color: var(--ac-text, #2a1f17);
+  font-family: var(--ac-font-body, system-ui, -apple-system, Segoe UI, sans-serif);
+  box-sizing: border-box;
+}
+
+.card {
+  max-width: 28rem;
+  width: 100%;
+  background: var(--ac-surface, #fff);
+  border-radius: 14px;
+  box-shadow: var(--ac-shadow-card, 0 1px 3px rgba(0, 0, 0, 0.08));
+  padding: 2rem 1.75rem;
+  text-align: center;
+}
+
+.glyph {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ac-text-muted, #6c5d50);
+}
+
+.reload {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  background: var(--ac-accent, #6f4e37);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.reload:hover {
+  background: var(--ac-accent-dark, #553a28);
+}
+
+.detail {
+  margin-top: 1.25rem;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted, #8b7d70);
+  text-align: left;
+  background: var(--ac-surface-tinted, #f4ede5);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.4;
+  max-height: 6rem;
+  overflow: auto;
+}
