@@ -102,10 +102,10 @@ body {
 }
 
 .map-section {
-  /* Mobile: hero is hidden once a search starts, so the map fills the main
-     column. The BottomSheet overlays the lower portion. */
+  /* iOS Safari doesn't reliably resolve flex:1 height through min-height:100vh
+     ancestors, leaving the GoogleMap container at 0px and the map blank. */
   flex: 1;
-  min-height: 0;
+  min-height: 60dvh;
   border-radius: 0;
   overflow: hidden;
 }
