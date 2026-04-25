@@ -9,3 +9,20 @@ name = "acoffeemeetup"
 compatibility_date = "2026-04-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
+
+# D1 binding — dev database. The `database_id` is filled in after running
+# `wrangler d1 create acoffee-dev`. Migrations live alongside the schema.
+[[d1_databases]]
+binding = "DB"
+database_name = "acoffee-dev"
+database_id = "237b2a39-340b-4d34-a9b6-947358a17ef9"
+migrations_dir = "functions/_lib/db/migrations"
+
+# Production D1 — separate database, same binding name. Set via
+# `wrangler d1 create acoffee-prod` and paste the id below.
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "acoffee-prod"
+database_id = "7f9083bb-6e58-44dd-a360-4879e0509f0e"
+migrations_dir = "functions/_lib/db/migrations"

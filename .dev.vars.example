@@ -1,13 +1,33 @@
 # Copy to .dev.vars (git-ignored) and fill in real keys for `wrangler pages dev`.
-# In production these are set via the Cloudflare Pages dashboard (Settings →
-# Environment variables → Add).
+# In production these are set via the Cloudflare Pages dashboard (Settings ->
+# Environment variables -> Add).
 
-# Claude (used by /api/ai/parse-query — natural-language search parsing)
+# Claude (used by /api/ai/parse-query - natural-language search parsing)
 ANTHROPIC_API_KEY=
 
-# Google Generative AI (used by /api/ai/summarize — café review summaries)
-GOOGLE_GENERATIVE_AI_API_KEY=
+# DeepSeek (used by /api/ai/summarize - cafe review summaries).
+# Get a key from https://platform.deepseek.com/api_keys.
+DEEPSEEK_API_KEY=
 
 # Optional model overrides (defaults baked in):
 #   AI_PARSE_MODEL=claude-sonnet-4-6
-#   AI_SUMMARY_MODEL=gemini-2.5-flash
+#   AI_SUMMARY_MODEL=deepseek-v4-flash
+
+# --- Auth (Phase 0: email magic link via Better Auth) ---
+
+# Random secret used by Better Auth to sign sessions / tokens.
+# Generate with: openssl rand -base64 32
+AUTH_SECRET=
+
+# Origin for auth callbacks. Use http://localhost:8788 for `wrangler pages dev`,
+# https://acoffee.com (or your preview URL) in production.
+AUTH_BASE_URL=http://localhost:8788
+
+# --- Email (Resend, used to send magic links) ---
+
+# https://resend.com/api-keys - free tier: 100/day, 3K/month
+RESEND_API_KEY=
+
+# Must be a verified sender on Resend (verify the domain or a single address).
+# Until acoffee.com is verified you can use the Resend onboarding sender.
+RESEND_FROM_EMAIL=auth@acoffee.com
