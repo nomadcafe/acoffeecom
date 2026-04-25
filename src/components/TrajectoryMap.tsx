@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GoogleMap, Polyline, useJsApiLoader } from '@react-google-maps/api';
 import type { VisitedShopSnapshot } from '../types';
 import { useI18n } from '../context/I18nContext';
+import { sharePassportCard } from '../utils/passportCard';
+import { renderTrajectoryCard } from '../utils/trajectoryCard';
+import { formatAbsoluteDate } from '../utils/relativeTime';
+import { track } from '../utils/analytics';
 import { AdvancedMarker } from './AdvancedMarker';
 import styles from './TrajectoryMap.module.css';
 
@@ -39,11 +43,12 @@ interface TrajectoryStop {
   name: string;
   lat: number;
   lng: number;
+  city: string | null;
   firstVisit: number;
 }
 
 export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
@@ -55,7 +60,14 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
       if (!hasCoordinates(s.lat, s.lng) || s.visits.length === 0) continue;
       // visits[] is newest-first, so the chronologically first stamp sits at the end.
       const firstVisit = s.visits[s.visits.length - 1] ?? 0;
-      out.push({ id: s.id, name: s.name, lat: s.lat, lng: s.lng, firstVisit });
+      out.push({
+        id: s.id,
+        name: s.name,
+        lat: s.lat,
+        lng: s.lng,
+        city: s.city && s.city.trim() ? s.city : null,
+        firstVisit,
+      });
     }
     out.sort((a, b) => a.firstVisit - b.firstVisit);
     return out;
@@ -69,7 +81,6 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
     const bounds = new google.maps.LatLngBounds();
     for (const s of stops) bounds.extend({ lat: s.lat, lng: s.lng });
     map.fitBounds(bounds, 48);
-    // Single-point bounds collapse to max zoom; clamp so it doesn't over-zoom.
     if (stops.length === 1) {
       const z = map.getZoom();
       if (z != null && z > 14) map.setZoom(14);
@@ -88,7 +99,6 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
     mapRef.current = null;
   }, []);
 
-  // Re-fit when the set of stops changes (new visit, deletion, sync).
   useEffect(() => {
     fitBoundsToStops();
   }, [fitBoundsToStops]);
@@ -97,6 +107,81 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
     () => stops.map((s) => ({ lat: s.lat, lng: s.lng })),
     [stops],
   );
+
+  const cityCount = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of stops) if (s.city) set.add(s.city);
+    return set.size;
+  }, [stops]);
+
+  const [sharing, setSharing] = useState(false);
+  const [shareStatus, setShareStatus] = useState<
+    { kind: 'error' | 'info'; message: string } | null
+  >(null);
+
+  useEffect(() => {
+    if (!shareStatus) return;
+    const id = window.setTimeout(() => setShareStatus(null), 5000);
+    return () => window.clearTimeout(id);
+  }, [shareStatus]);
+
+  const onShare = async () => {
+    if (sharing || stops.length < 2) return;
+    setShareStatus(null);
+    setSharing(true);
+    try {
+      const first = stops[0].firstVisit;
+      const last = stops[stops.length - 1].firstVisit;
+      const rangeLabel =
+        first && last && last > first
+          ? `${formatAbsoluteDate(first, locale)} → ${formatAbsoluteDate(last, locale)}`
+          : first
+            ? formatAbsoluteDate(first, locale)
+            : '';
+      const blob = await renderTrajectoryCard({
+        title: t('passport.trajectoryShareTitle'),
+        countLabel: t('passport.trajectoryShareCount', { count: stops.length }),
+        citiesLabel:
+          cityCount >= 2 ? t('passport.trajectoryShareCities', { count: cityCount }) : '',
+        rangeLabel,
+        brand: 'acoffee.com',
+        stops: stops.map((s) => ({ lat: s.lat, lng: s.lng })),
+      });
+      const result = await sharePassportCard(blob, {
+        title: t('passport.trajectoryShareTitle'),
+        text: t('passport.trajectoryShareText', {
+          count: stops.length,
+          cities: cityCount,
+        }),
+        fileName: 'my-coffee-trajectory.png',
+      });
+      track('trajectory_shared', {
+        result,
+        stopCount: stops.length,
+        cityCount,
+      });
+      setShareStatus({
+        kind: 'info',
+        message:
+          result === 'shared'
+            ? t('visited.shareShared')
+            : t('passport.trajectoryShareDownloaded'),
+      });
+    } catch (e) {
+      console.error('Trajectory share failed:', e);
+      track('trajectory_shared', {
+        result: 'error',
+        stopCount: stops.length,
+        cityCount,
+      });
+      setShareStatus({
+        kind: 'error',
+        message: e instanceof Error ? e.message : t('visited.shareError'),
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (loadError) {
     return (
@@ -111,7 +196,19 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
 
   return (
     <section className={styles.section} aria-label={t('passport.trajectoryTitle')}>
-      <h2 className={styles.sectionTitle}>{t('passport.trajectoryTitle')}</h2>
+      <div className={styles.header}>
+        <h2 className={styles.sectionTitle}>{t('passport.trajectoryTitle')}</h2>
+        {stops.length >= 2 ? (
+          <button
+            type="button"
+            className={styles.shareButton}
+            onClick={() => void onShare()}
+            disabled={sharing}
+          >
+            {sharing ? t('visited.sharing') : t('passport.trajectoryShareCta')}
+          </button>
+        ) : null}
+      </div>
       <p className={styles.lead}>{t('passport.trajectoryLead')}</p>
       <div className={styles.mapWrap}>
         {!isLoaded ? (
@@ -149,6 +246,14 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
           </GoogleMap>
         )}
       </div>
+      {shareStatus ? (
+        <p
+          className={shareStatus.kind === 'error' ? styles.shareError : styles.shareInfo}
+          role="status"
+        >
+          {shareStatus.message}
+        </p>
+      ) : null}
     </section>
   );
 }

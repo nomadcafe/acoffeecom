@@ -210,6 +210,13 @@ export const en: MessageDict = {
   'passport.viewFull': 'View full passport →',
   'passport.trajectoryTitle': 'Your trajectory',
   'passport.trajectoryLead': 'Every café you stamped, in the order you discovered them. Tap a marker to find it in the list.',
+  'passport.trajectoryShareCta': 'Share trajectory',
+  'passport.trajectoryShareTitle': 'My coffee trajectory',
+  'passport.trajectoryShareCount': '{{count}} cafés',
+  'passport.trajectoryShareCities': '{{count}} cities',
+  'passport.trajectoryShareText':
+    'My coffee trajectory — {{count}} cafés across {{cities}} cities. Made on acoffee.com.',
+  'passport.trajectoryShareDownloaded': 'Saved to your device as my-coffee-trajectory.png.',
   'visited.shareCardText':
     'My coffee passport — {{count}} cafés, {{visits}} visits. Built on acoffee.com.',
 
@@ -495,6 +502,13 @@ export const ja: MessageDict = {
   'passport.viewFull': 'パスポート全体を見る →',
   'passport.trajectoryTitle': '足跡マップ',
   'passport.trajectoryLead': '訪れた順にすべてのカフェをつないで表示します。マーカーをタップすると下のリストの該当行に移動します。',
+  'passport.trajectoryShareCta': '足跡を共有',
+  'passport.trajectoryShareTitle': '私のコーヒー足跡',
+  'passport.trajectoryShareCount': 'カフェ {{count}} 軒',
+  'passport.trajectoryShareCities': '{{count}} 都市',
+  'passport.trajectoryShareText':
+    '私のコーヒー足跡 — {{cities}} 都市・{{count}} 軒。acoffee.com 作成。',
+  'passport.trajectoryShareDownloaded': 'my-coffee-trajectory.png として保存しました。',
   'visited.shareCardText':
     'マイ・コーヒーパスポート — {{count}} 軒、{{visits}} 回。acoffee.com で作成。',
 
@@ -771,6 +785,13 @@ export const zh: MessageDict = {
   'passport.viewFull': '查看完整护照 →',
   'passport.trajectoryTitle': '足迹地图',
   'passport.trajectoryLead': '按发现顺序串起你打过卡的每一家咖啡店。点一下标记可定位到下方列表对应的那一行。',
+  'passport.trajectoryShareCta': '分享足迹',
+  'passport.trajectoryShareTitle': '我的咖啡足迹',
+  'passport.trajectoryShareCount': '{{count}} 家',
+  'passport.trajectoryShareCities': '{{count}} 个城市',
+  'passport.trajectoryShareText':
+    '我的咖啡足迹 — {{cities}} 个城市，{{count}} 家咖啡店。acoffee.com 生成。',
+  'passport.trajectoryShareDownloaded': '已保存为 my-coffee-trajectory.png。',
   'visited.shareCardText':
     '我的咖啡护照 — {{count}} 家店，{{visits}} 次访问。acoffee.com 生成。',
 
