@@ -34,7 +34,11 @@ export function AccountMenu() {
     return <div className={styles.placeholder} aria-hidden="true" />;
   }
 
-  if (!session) {
+  // `session` can be a truthy object with no `user` when the /api/auth endpoint
+  // isn't reachable (e.g. plain `vite` instead of `wrangler pages dev`). Treat
+  // a missing email the same as no session so the menu degrades to sign-in.
+  const email = session?.user?.email;
+  if (!email) {
     return (
       <>
         <button
@@ -50,7 +54,6 @@ export function AccountMenu() {
     );
   }
 
-  const email = session.user.email;
   const initial = (email[0] ?? '?').toUpperCase();
 
   async function handleSignOut() {
