@@ -1,6 +1,7 @@
 import { useI18n } from '../context/I18nContext';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { changelogByLocale } from '../i18n/changelog';
+import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import styles from './UpdateLogPage.module.css';
 
@@ -24,6 +25,7 @@ export function UpdateLogPage() {
               <span className={styles.logoWordmark}>ACoffee</span>
             </a>
           </div>
+          <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
           </div>

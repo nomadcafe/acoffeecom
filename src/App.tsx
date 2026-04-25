@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
 import { SearchFilters } from './components/SearchFilters';
@@ -11,6 +11,7 @@ import { SyncIndicator } from './components/SyncIndicator';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
 import { VisitedPlacesMenu } from './components/VisitedPlacesMenu';
 import { SiteBottomNav } from './components/SiteBottomNav';
+import { HeaderNavLinks } from './components/HeaderNavLinks';
 import { BottomSheet } from './components/BottomSheet';
 import { AppHero } from './components/AppHero';
 import { usePathname } from './hooks/usePathname';
@@ -52,7 +53,18 @@ const PassportPage = lazy(() =>
 
 function AppShell() {
   const { t, locale } = useI18n();
+  const { midpoint, isLoading } = useApp();
   const homeHref = buildLocalizedPathname('/', locale);
+
+  // Pre-search (no midpoint, no in-flight search): skip the map and the
+  // BottomSheet entirely. Until there's something to show on the map it's
+  // just a giant grey rectangle either squashed under the hero (mobile) or
+  // sitting empty next to the form (desktop). Both layouts get a clean
+  // hero + centered form instead. Once a search starts or resolves, we
+  // flip to the map + sheet layout: mobile gets the Google-Maps-style
+  // full-bleed map + overlapping sheet, desktop gets sidebar + map.
+  const showMapLayout = !!midpoint || isLoading;
+  const useInlinePreSearch = !showMapLayout;
 
   return (
     <div className="app">
@@ -61,6 +73,7 @@ function AppShell() {
           <a className="logo" href={homeHref} aria-label={t('app.logoAlt')}>
             <span className="logoWordmark">ACoffee</span>
           </a>
+          <HeaderNavLinks />
           <div className="headerAside headerAsideBar">
             <VisitedPlacesMenu />
             <SavedPlacesMenu />
@@ -77,20 +90,30 @@ function AppShell() {
 
       <AppHero />
 
-      <main className="main">
-        <section className="map-section">
-          <Suspense fallback={<div className="mapFallback" aria-hidden="true" />}>
-            <Map />
-          </Suspense>
-        </section>
-
-        <BottomSheet>
-          <aside className="sidebar">
+      <main className={useInlinePreSearch ? 'main mainInline' : 'main'}>
+        {useInlinePreSearch ? (
+          <aside className="sidebar sidebarInline">
             <LocationInput />
             <SearchFilters />
             <CoffeeShopList />
           </aside>
-        </BottomSheet>
+        ) : (
+          <>
+            <section className="map-section">
+              <Suspense fallback={<div className="mapFallback" aria-hidden="true" />}>
+                <Map />
+              </Suspense>
+            </section>
+
+            <BottomSheet>
+              <aside className="sidebar">
+                <LocationInput />
+                <SearchFilters />
+                <CoffeeShopList />
+              </aside>
+            </BottomSheet>
+          </>
+        )}
       </main>
       <SiteBottomNav />
     </div>

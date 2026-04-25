@@ -85,6 +85,14 @@ body {
   padding-bottom: var(--bottom-nav-safe);
 }
 
+/* Pre-search layout (mobile + desktop): no map, no fixed sheet — just the
+   hero followed by the inline form cards in a centered column. Mobile gets
+   small horizontal padding; desktop overrides max-width below to keep the
+   form readable rather than stretching to 1400px. */
+.main.mainInline {
+  padding: 0.5rem 1rem var(--bottom-nav-safe);
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -94,12 +102,10 @@ body {
 }
 
 .map-section {
-  /* Mobile: flex-fill whatever the header + AppHero didn't take. The
-     BottomSheet at peek covers ~136px of the bottom, so guarantee enough
-     vertical room above it for the map to actually be visible. Hero hides
-     post-search, at which point flex:1 lets the map expand to fill. */
+  /* Mobile: hero is hidden once a search starts, so the map fills the main
+     column. The BottomSheet overlays the lower portion. */
   flex: 1;
-  min-height: 35vh;
+  min-height: 0;
   border-radius: 0;
   overflow: hidden;
 }
@@ -116,6 +122,12 @@ body {
 
 /* Desktop layout */
 @media (min-width: 768px) {
+  .app {
+    /* SiteBottomNav is hidden on desktop (HeaderNavLinks takes over in the
+       top bar), so the bottom-safe reservation is no longer needed. */
+    --bottom-nav-safe: 0px;
+  }
+
   .header {
     padding: 0.55rem 1.5rem;
   }
@@ -160,6 +172,22 @@ body {
     height: auto;
     min-width: 0;
     border-radius: 12px;
+  }
+
+  /* Pre-search inline mode on desktop: collapse the row layout to a single
+     centered column and let the form cards expand to fit. The .sidebar
+     desktop rules (380px width, max-height + overflow scroll) only make
+     sense alongside a map sibling, so override them when inline. */
+  .main.mainInline {
+    flex-direction: column;
+    max-width: 720px;
+  }
+
+  .sidebar.sidebarInline {
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    align-self: stretch;
   }
 }
 

@@ -9,6 +9,7 @@ import { computeStreak, streakFireEmoji } from '../utils/streak';
 import { formatAbsoluteDate, formatRelativeTime } from '../utils/relativeTime';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { track } from '../utils/analytics';
+import { HeaderNavLinks } from './HeaderNavLinks';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { TrajectoryMap } from './TrajectoryMap';
@@ -176,6 +177,7 @@ export function PassportPage() {
           <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
             <span className={styles.logoWordmark}>ACoffee</span>
           </a>
+          <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
           </div>

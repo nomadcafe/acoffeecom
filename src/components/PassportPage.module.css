@@ -326,6 +326,11 @@
 }
 
 @media (min-width: 768px) {
+  .app {
+    /* Bottom nav hidden on desktop — see SiteBottomNav.module.css. */
+    --bottom-nav-safe: 0px;
+  }
+
   .pageTitle {
     font-size: 2.6rem;
   }

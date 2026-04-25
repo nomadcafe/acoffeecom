@@ -13,7 +13,10 @@ export function AppHero() {
   const { t, locale } = useI18n();
   const { midpoint, searchWithAddresses, isLoading, recentSearches } = useApp();
 
-  if (midpoint) return null;
+  // Hide the hero as soon as any search is in flight, not just on
+  // midpoint — otherwise on mobile the hero briefly remains stacked above
+  // the map+sheet layout while geocoding runs.
+  if (midpoint || isLoading) return null;
 
   // First-run only: returning users see their own recents inside the
   // BottomSheet; the hero stays focused on Near me to avoid clutter.
