@@ -1,0 +1,45 @@
+# Triggers /api/cron/monthly-recap on the 1st of every month so opted-in
+# users get a "your last month in coffee" email. Pages Functions don't have
+# native cron yet, so this workflow plays the role of a scheduler.
+#
+# To wire up: in repo Settings → Secrets and variables → Actions, add a
+# secret named CRON_SECRET that matches the value set in the Cloudflare
+# Pages dashboard (Settings → Environment Variables → Production).
+
+name: Monthly recap
+
+on:
+  schedule:
+    # Minute 0, hour 8 UTC, day-of-month 1. GitHub Actions cron schedules
+    # are best-effort and may be delayed by a few minutes; for a once-a-
+    # month digest that's fine.
+    - cron: '0 8 1 * *'
+  # Manual trigger from the Actions tab — useful for testing or for sending
+  # an out-of-cycle recap when something goes wrong.
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/cron/monthly-recap
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET not set in repo secrets — abort." >&2
+            exit 1
+          fi
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://acoffee.com/api/cron/monthly-recap)
+          body=$(echo "$response" | head -n -1)
+          status=$(echo "$response" | tail -n 1)
+          echo "HTTP $status"
+          echo "$body"
+          # Fail the run on non-2xx so the Actions UI shows red and you get
+          # GitHub's automatic email about the failed run.
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi
