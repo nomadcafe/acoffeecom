@@ -17,6 +17,7 @@ import { AppHero } from './components/AppHero';
 import { CoffeeNudge } from './components/CoffeeNudge';
 import { StreakReminder } from './components/StreakReminder';
 import { usePathname } from './hooks/usePathname';
+import { useInterceptInternalLinks } from './hooks/useInterceptInternalLinks';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
 import { isAccountPath, isPassportPath } from './routes';
@@ -133,6 +134,7 @@ function AppShell() {
 function AppRoute() {
   const pathname = usePathname();
   useTrackPageViews(pathname);
+  useInterceptInternalLinks();
   const logicalPath = stripLocalePrefix(pathname);
 
   let body: ReactNode;
