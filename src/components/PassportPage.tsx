@@ -11,6 +11,7 @@ import { formatAbsoluteDate, formatRelativeTime } from '../utils/relativeTime';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { track } from '../utils/analytics';
 import { CoffeeNudge } from './CoffeeNudge';
+import { StreakReminder } from './StreakReminder';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -173,6 +174,7 @@ export function PassportPage() {
 
       <main className={styles.main}>
         <CoffeeNudge />
+        <StreakReminder />
 
         <div className={styles.hero}>
           <h1 className={styles.pageTitle}>

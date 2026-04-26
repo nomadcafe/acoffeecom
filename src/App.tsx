@@ -15,6 +15,7 @@ import { HeaderNavLinks } from './components/HeaderNavLinks';
 import { BottomSheet } from './components/BottomSheet';
 import { AppHero } from './components/AppHero';
 import { CoffeeNudge } from './components/CoffeeNudge';
+import { StreakReminder } from './components/StreakReminder';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
@@ -92,6 +93,7 @@ function AppShell() {
       <AppHero />
 
       <CoffeeNudge />
+      <StreakReminder />
 
       <main className={useInlinePreSearch ? 'main mainInline' : 'main'}>
         {useInlinePreSearch ? (

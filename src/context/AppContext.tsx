@@ -32,7 +32,12 @@ import {
   toWire as starredToWire,
   type StarredShopWire,
 } from '../utils/starredSync';
-import { drain as drainQueue, enqueue as enqueueMutation, type QueueEntry } from '../utils/syncQueue';
+import {
+  drain as drainQueue,
+  enqueue as enqueueMutation,
+  subscribeSize as subscribeQueueSize,
+  type QueueEntry,
+} from '../utils/syncQueue';
 import type { StarredShopSnapshot, VisitedShopSnapshot } from '../types';
 import {
   searchCoffeeShops,
@@ -46,6 +51,8 @@ export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
 interface AppContextType extends AppState {
   syncStatus: SyncStatus;
+  /** Pending mutations sitting in the IndexedDB queue (offline-buffered or in backoff). */
+  syncPending: number;
   /** Google Maps SDK loaded — single source of truth so consumers (Map,
    *  TrajectoryMap) don't each call useJsApiLoader and risk desync. */
   isSdkLoaded: boolean;
@@ -303,8 +310,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // concurrent ops; `idleTimer` clears the visible 'synced'/'error' badge after
   // a short delay so the indicator doesn't get stuck.
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const [syncPending, setSyncPending] = useState<number>(0);
   const inFlightRef = useRef(0);
   const idleTimerRef = useRef<number | null>(null);
+
+  // Subscribe to queue size so the indicator can show "N waiting" badges.
+  useEffect(() => subscribeQueueSize(setSyncPending), []);
 
   const cancelIdleTimer = useCallback(() => {
     if (idleTimerRef.current != null) {
@@ -806,6 +817,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       starredShops,
       visitedShops,
       syncStatus,
+      syncPending,
       isSdkLoaded,
       sdkLoadError,
       isLoading,
@@ -858,6 +870,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       starredShops,
       visitedShops,
       syncStatus,
+      syncPending,
       isSdkLoaded,
       sdkLoadError,
       isLoading,

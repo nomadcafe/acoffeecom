@@ -27,6 +27,21 @@
   cursor: help;
 }
 
+.pending {
+  color: #b45309;
+  background: rgba(180, 83, 9, 0.08);
+}
+
+.count {
+  display: inline-block;
+  margin-left: 0.15rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.08);
+}
+
 .glyph {
   display: inline-flex;
   width: 0.85rem;
