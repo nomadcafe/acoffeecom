@@ -15,6 +15,11 @@ const USERNAME_REGEX = /^[a-z][a-z0-9_-]{2,29}$/;
 const CHECK_DEBOUNCE_MS = 350;
 const DELETE_CONFIRM_PHRASE = 'DELETE';
 
+/* Username picker is gated until Pro launches — keep good names reserved.
+ * The form is intact; flipping this back to true re-enables it everywhere
+ * without touching server endpoints (which also gate on their own copy). */
+const USERNAMES_PUBLIC = false;
+
 type SaveState =
   | { kind: 'idle' }
   | { kind: 'saving' }
@@ -26,6 +31,19 @@ type AvailabilityState =
   | { kind: 'checking' }
   | { kind: 'available' }
   | { kind: 'unavailable'; reason: 'invalid' | 'reserved' | 'taken' };
+
+interface SessionRow {
+  id: string;
+  device: string;
+  ipAddress: string | null;
+  createdAt: number;
+  current: boolean;
+}
+
+type SessionsState =
+  | { kind: 'loading' }
+  | { kind: 'ready'; sessions: SessionRow[] }
+  | { kind: 'error' };
 
 export function AccountPage() {
   const { t, locale } = useI18n();
@@ -171,6 +189,9 @@ function SignedInAccountPage({
   onRefetchSession,
 }: SignedInProps) {
   const { t, locale } = useI18n();
+  const { visitedShops, starredShops } = useApp();
+  const [sessionsState, setSessionsState] = useState<SessionsState>({ kind: 'loading' });
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   const trimmed = draft.trim().toLowerCase();
   const cleared = trimmed === '';
@@ -264,6 +285,76 @@ function SignedInAccountPage({
     window.location.href = homeHref;
   }
 
+  // Fetch active sessions on mount. Re-fetched after a successful revoke so
+  // the list stays accurate without a separate refresh button.
+  const refreshSessions = async () => {
+    try {
+      const res = await fetch('/api/account/sessions');
+      if (!res.ok) {
+        setSessionsState({ kind: 'error' });
+        return;
+      }
+      const json = (await res.json()) as { sessions: SessionRow[] };
+      setSessionsState({ kind: 'ready', sessions: json.sessions });
+    } catch {
+      setSessionsState({ kind: 'error' });
+    }
+  };
+  useEffect(() => {
+    void refreshSessions();
+  }, []);
+
+  async function handleRevokeSession(s: SessionRow) {
+    if (revokingId) return;
+    setRevokingId(s.id);
+    try {
+      const res = await fetch(`/api/account/sessions/${encodeURIComponent(s.id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        setRevokingId(null);
+        return;
+      }
+      track('session_revoked', { wasCurrent: s.current });
+      if (s.current) {
+        // Revoking ourselves — clear cookie + bounce home.
+        await authClient.signOut().catch(() => undefined);
+        window.location.href = homeHref;
+        return;
+      }
+      await refreshSessions();
+    } finally {
+      setRevokingId(null);
+    }
+  }
+
+  function handleExportAll() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      account: {
+        email: sessionUser.email,
+        createdAt: sessionUser.createdAt ?? null,
+        username: sessionUser.username ?? null,
+      },
+      visited: visitedShops,
+      starred: starredShops,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `acoffee-account-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    track('account_data_exported', {
+      shopCount: visitedShops.length,
+      starredCount: starredShops.length,
+    });
+  }
+
   const createdAtRaw = sessionUser.createdAt;
   const createdAt = createdAtRaw
     ? typeof createdAtRaw === 'string'
@@ -311,62 +402,83 @@ function SignedInAccountPage({
           ) : null}
         </section>
 
-        <section className={styles.card} aria-label={t('account.usernameTitle')}>
-          <h2 className={styles.cardTitle}>{t('account.usernameTitle')}</h2>
-          <form className={styles.usernameForm} onSubmit={handleSubmit}>
-            <div className={styles.usernamePrefix}>
-              <span className={styles.usernamePrefixLabel}>acoffee.com/</span>
-              <input
-                className={styles.usernameInput}
-                type="text"
-                inputMode="text"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                placeholder={t('account.usernamePlaceholder')}
-                value={draft}
-                onChange={(e) => {
-                  setDraft(e.target.value);
-                  if (save.kind !== 'idle') setSave({ kind: 'idle' });
-                }}
-                aria-invalid={availability.kind === 'unavailable' || undefined}
-                aria-describedby="username-hint username-availability"
-              />
-            </div>
+        {USERNAMES_PUBLIC ? (
+          <section className={styles.card} aria-label={t('account.usernameTitle')}>
+            <h2 className={styles.cardTitle}>{t('account.usernameTitle')}</h2>
+            <form className={styles.usernameForm} onSubmit={handleSubmit}>
+              <div className={styles.usernamePrefix}>
+                <span className={styles.usernamePrefixLabel}>acoffee.com/</span>
+                <input
+                  className={styles.usernameInput}
+                  type="text"
+                  inputMode="text"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder={t('account.usernamePlaceholder')}
+                  value={draft}
+                  onChange={(e) => {
+                    setDraft(e.target.value);
+                    if (save.kind !== 'idle') setSave({ kind: 'idle' });
+                  }}
+                  aria-invalid={availability.kind === 'unavailable' || undefined}
+                  aria-describedby="username-hint username-availability"
+                />
+              </div>
 
-            <p
-              id="username-availability"
-              className={styles.availability}
-              aria-live="polite"
-              role="status"
-            >
-              {renderAvailability(availability, t)}
-            </p>
+              <p
+                id="username-availability"
+                className={styles.availability}
+                aria-live="polite"
+                role="status"
+              >
+                {renderAvailability(availability, t)}
+              </p>
 
-            <p className={styles.usernameHint} id="username-hint">
-              {t('account.usernameHint')}
-            </p>
+              <p className={styles.usernameHint} id="username-hint">
+                {t('account.usernameHint')}
+              </p>
 
-            <div className={styles.formRow}>
-              <button type="submit" className={styles.saveButton} disabled={!canSubmit}>
-                {save.kind === 'saving'
-                  ? t('account.saving')
-                  : cleared
-                    ? t('account.clearUsername')
-                    : t('account.saveUsername')}
-              </button>
-              {save.kind === 'error' ? (
-                <p className={styles.errorMsg} role="alert">{save.message}</p>
+              <div className={styles.formRow}>
+                <button type="submit" className={styles.saveButton} disabled={!canSubmit}>
+                  {save.kind === 'saving'
+                    ? t('account.saving')
+                    : cleared
+                      ? t('account.clearUsername')
+                      : t('account.saveUsername')}
+                </button>
+                {save.kind === 'error' ? (
+                  <p className={styles.errorMsg} role="alert">{save.message}</p>
+                ) : null}
+                {save.kind === 'saved' ? (
+                  <p className={styles.successMsg} role="status">
+                    {save.value
+                      ? t('account.usernameSaved', { username: save.value })
+                      : t('account.usernameCleared')}
+                  </p>
+                ) : null}
+              </div>
+
+              {effectiveUsername ? (
+                <div className={styles.publicLink}>
+                  <span aria-hidden>🔗</span>
+                  <span>
+                    {t('account.publicLink')}{' '}
+                    <span className={styles.publicLinkUrl}>
+                      acoffee.com/{effectiveUsername}
+                    </span>
+                  </span>
+                </div>
               ) : null}
-              {save.kind === 'saved' ? (
-                <p className={styles.successMsg} role="status">
-                  {save.value
-                    ? t('account.usernameSaved', { username: save.value })
-                    : t('account.usernameCleared')}
-                </p>
-              ) : null}
-            </div>
-
+            </form>
+          </section>
+        ) : (
+          /* Tease the future Pro feature without exposing the picker. */
+          <section className={styles.card} aria-label={t('account.usernameTitle')}>
+            <h2 className={styles.cardTitle}>{t('account.usernameTitle')}</h2>
+            <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+              {t('account.usernameProSoon')}
+            </p>
             {effectiveUsername ? (
               <div className={styles.publicLink}>
                 <span aria-hidden>🔗</span>
@@ -378,8 +490,8 @@ function SignedInAccountPage({
                 </span>
               </div>
             ) : null}
-          </form>
-        </section>
+          </section>
+        )}
 
         <section className={styles.card} aria-label={t('account.statsTitle')}>
           <h2 className={styles.cardTitle}>{t('account.statsTitle')}</h2>
@@ -397,6 +509,59 @@ function SignedInAccountPage({
               <div className={styles.statCellLabel}>{t('passport.statStreak')}</div>
             </a>
           </div>
+        </section>
+
+        <section className={styles.card} aria-label={t('account.exportTitle')}>
+          <h2 className={styles.cardTitle}>{t('account.exportTitle')}</h2>
+          <p className={styles.dangerHint} style={{ color: 'var(--ac-text-muted)' }}>
+            {t('account.exportHint')}
+          </p>
+          <button type="button" className={styles.saveButton} onClick={handleExportAll}>
+            {t('account.exportButton')}
+          </button>
+        </section>
+
+        <section className={styles.card} aria-label={t('account.sessionsTitle')}>
+          <h2 className={styles.cardTitle}>{t('account.sessionsTitle')}</h2>
+          {sessionsState.kind === 'loading' ? (
+            <p className={styles.sessionLoading}>{t('account.sessionsLoading')}</p>
+          ) : sessionsState.kind === 'error' ? (
+            <p className={styles.sessionEmpty}>{t('account.sessionsError')}</p>
+          ) : sessionsState.sessions.length === 0 ? (
+            <p className={styles.sessionEmpty}>{t('account.sessionsEmpty')}</p>
+          ) : (
+            <ul className={styles.sessionList}>
+              {sessionsState.sessions.map((s) => (
+                <li key={s.id} className={styles.sessionRow}>
+                  <div className={styles.sessionMain}>
+                    <div className={styles.sessionDevice}>
+                      {s.device}
+                      {s.current ? (
+                        <span className={styles.sessionCurrent}>
+                          {t('account.sessionsCurrent')}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className={styles.sessionMeta}>
+                      {formatAbsoluteDate(s.createdAt, locale)}
+                      {s.ipAddress ? <> · {s.ipAddress}</> : null}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.sessionRevoke}
+                    onClick={() => void handleRevokeSession(s)}
+                    disabled={revokingId != null}
+                    aria-label={t('account.sessionsRevokeAria', { device: s.device })}
+                  >
+                    {revokingId === s.id
+                      ? t('account.sessionsRevoking')
+                      : t('account.sessionsRevoke')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className={`${styles.card} ${styles.signOutCard}`}>

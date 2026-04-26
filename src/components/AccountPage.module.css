@@ -356,6 +356,86 @@
   100% { background-position: -100% 0; }
 }
 
+/* ---------- active sessions ---------- */
+
+.sessionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sessionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--ac-page-bg);
+  border-radius: 8px;
+}
+
+.sessionMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionDevice {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.sessionMeta {
+  font-size: 0.75rem;
+  color: var(--ac-text-muted);
+  margin-top: 0.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sessionCurrent {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  background: #ecfdf5;
+  color: #065f46;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 0.4rem;
+}
+
+.sessionRevoke {
+  flex-shrink: 0;
+  border: 1px solid var(--ac-border);
+  background: #fff;
+  color: var(--ac-text-muted);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sessionRevoke:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.sessionRevoke:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sessionEmpty,
+.sessionLoading {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--ac-text-muted);
+}
+
 /* ---------- danger zone (delete account) ---------- */
 
 .dangerCard {

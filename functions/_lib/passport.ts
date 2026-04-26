@@ -125,6 +125,15 @@ export async function getSessionUser(env: AuthEnv, request: Request) {
   return session?.user ?? null;
 }
 
+/** Like getSessionUser but also returns the active session id so callers can
+ *  highlight or protect the current session in management UIs. */
+export async function getSessionContext(env: AuthEnv, request: Request) {
+  const auth = createAuth(env);
+  const result = await auth.api.getSession({ headers: request.headers });
+  if (!result?.user) return null;
+  return { user: result.user, sessionId: (result.session as { id?: string } | undefined)?.id ?? null };
+}
+
 export function jsonError(message: string, status: number): Response {
   return Response.json({ error: message }, { status });
 }

@@ -6,11 +6,18 @@ import { user } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
 import { checkUsernameAvailability } from '../../_lib/username';
 
+/* Public username picker is gated until the Pro tier launches — we're holding
+ * back high-value names (admin, coffee, etc.) for paid users. The route is
+ * intact so we can flip this flag without redeploying schema. */
+const USERNAMES_PUBLIC = false;
+
 const InputSchema = z.object({
   username: z.string().nullable(),
 });
 
 export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) => {
+  if (!USERNAMES_PUBLIC) return jsonError('Username picker not yet available', 403);
+
   const sessionUser = await getSessionUser(env, request);
   if (!sessionUser) return jsonError('Unauthorized', 401);
 
@@ -47,6 +54,8 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
 };
 
 export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => {
+  if (!USERNAMES_PUBLIC) return jsonError('Username picker not yet available', 403);
+
   const sessionUser = await getSessionUser(env, request);
   if (!sessionUser) return jsonError('Unauthorized', 401);
 
