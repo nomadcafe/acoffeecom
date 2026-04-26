@@ -224,13 +224,19 @@ export function PassportPage() {
             <section className={styles.statsGrid} aria-label={t('passport.statsLabel')}>
               {today > 0 ? (
                 <div className={styles.statCard}>
-                  <div className={styles.statValue}>{today}</div>
+                  <div className={styles.statValue}>
+                    {today}
+                    <span className={styles.statSuffix} aria-hidden>☕</span>
+                  </div>
                   <div className={styles.statLabel}>{t('passport.statToday')}</div>
                 </div>
               ) : null}
               {thisWeek > 0 ? (
                 <div className={styles.statCard}>
-                  <div className={styles.statValue}>{thisWeek}</div>
+                  <div className={styles.statValue}>
+                    {thisWeek}
+                    <span className={styles.statSuffix} aria-hidden>☕</span>
+                  </div>
                   <div className={styles.statLabel}>{t('passport.statThisWeek')}</div>
                 </div>
               ) : null}
@@ -239,7 +245,10 @@ export function PassportPage() {
                 <div className={styles.statLabel}>{t('passport.statShops')}</div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statValue}>{totalVisits}</div>
+                <div className={styles.statValue}>
+                  {totalVisits}
+                  <span className={styles.statSuffix} aria-hidden>☕</span>
+                </div>
                 <div className={styles.statLabel}>{t('passport.statVisits')}</div>
               </div>
               {streak > 0 ? (
@@ -318,6 +327,7 @@ export function PassportPage() {
                   </button>
                 </div>
               </div>
+              <p className={styles.sectionSubtitle}>{t('passport.heatmapSubtitle')}</p>
               <div className={styles.heatmapWrap}>
                 <HeatmapGrid timestamps={allTimestamps} days={90} />
               </div>
