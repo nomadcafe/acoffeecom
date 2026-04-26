@@ -238,6 +238,69 @@
   margin-bottom: 0.65rem;
 }
 
+.listControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.7rem;
+  font-size: 0.95rem;
+  pointer-events: none;
+  color: var(--ac-text-muted);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.55rem 2.4rem 0.55rem 2.1rem;
+  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border-radius: 999px;
+  background: #fff;
+  font-family: inherit;
+  /* 16px+ to dodge iOS Safari's "auto-zoom on focus" trigger. */
+  font-size: 1rem;
+  color: var(--ac-text);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--ac-accent, #6f4e37);
+  box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.12);
+}
+
+.searchClear {
+  position: absolute;
+  right: 0.45rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--ac-text-muted);
+  font-size: 1.05rem;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.searchClear:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ac-text);
+}
+
 .timeFilterRow {
   display: inline-flex;
   align-items: center;

@@ -31,6 +31,7 @@ export function PassportPage() {
   const flashTimerRef = useRef<number | null>(null);
   const [cityFilter, setCityFilter] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week'>('all');
+  const [nameQuery, setNameQuery] = useState<string>('');
   const [expandedShopId, setExpandedShopId] = useState<string | null>(null);
 
   const handleTrajectoryMarkerClick = (shopId: string) => {
@@ -59,9 +60,9 @@ export function PassportPage() {
     [visitedShops],
   );
 
-  // List filters: city + time range. Stats/heatmap/trajectory keep showing
-  // the full lifetime picture so the filter UI doesn't change the headline
-  // numbers underneath the user.
+  // List filters: city + time range + name query. Stats/heatmap/trajectory
+  // keep showing the full lifetime picture so the filter UI doesn't change
+  // the headline numbers underneath the user.
   const filteredVisited = useMemo(() => {
     let cutoff = -Infinity;
     if (timeFilter === 'today' || timeFilter === 'week') {
@@ -74,15 +75,22 @@ export function PassportPage() {
       }
       cutoff = d.getTime();
     }
+    const q = nameQuery.trim().toLocaleLowerCase();
     return sortedVisited.filter((s) => {
       if (cityFilter && (s.city && s.city.trim() ? s.city : null) !== cityFilter) return false;
       if (cutoff !== -Infinity) {
         const hasMatchingVisit = s.visits.some((ts) => ts >= cutoff);
         if (!hasMatchingVisit) return false;
       }
+      if (q) {
+        // Match against name + city + address — broad enough that the user
+        // doesn't have to remember exactly how the place was labelled.
+        const hay = `${s.name}${s.city ?? ''}${s.address}`.toLocaleLowerCase();
+        if (!hay.includes(q)) return false;
+      }
       return true;
     });
-  }, [sortedVisited, cityFilter, timeFilter]);
+  }, [sortedVisited, cityFilter, timeFilter, nameQuery]);
 
   const streakFires = streakFireEmoji(streak);
 
@@ -375,6 +383,29 @@ export function PassportPage() {
               <h2 className={styles.sectionTitle}>
                 {t('passport.listTitle', { count: filteredVisited.length })}
               </h2>
+              <div className={styles.listControls}>
+                <div className={styles.searchWrap}>
+                  <span aria-hidden className={styles.searchIcon}>🔍</span>
+                  <input
+                    type="search"
+                    className={styles.searchInput}
+                    value={nameQuery}
+                    onChange={(e) => setNameQuery(e.target.value)}
+                    placeholder={t('passport.searchPlaceholder')}
+                    aria-label={t('passport.searchAria')}
+                  />
+                  {nameQuery ? (
+                    <button
+                      type="button"
+                      className={styles.searchClear}
+                      onClick={() => setNameQuery('')}
+                      aria-label={t('passport.searchClear')}
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
+              </div>
               <div
                 className={styles.timeFilterRow}
                 role="tablist"
