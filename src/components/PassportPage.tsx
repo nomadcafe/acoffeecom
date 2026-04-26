@@ -10,8 +10,10 @@ import { streakFireEmoji } from '../utils/streak';
 import { formatAbsoluteDate, formatRelativeTime } from '../utils/relativeTime';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { track } from '../utils/analytics';
+import { AccountMenu } from './AccountMenu';
 import { CoffeeNudge } from './CoffeeNudge';
 import { StreakReminder } from './StreakReminder';
+import { SyncIndicator } from './SyncIndicator';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -224,6 +226,12 @@ export function PassportPage() {
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
+              <>
+                <SyncIndicator />
+                <AccountMenu />
+              </>
+            ) : null}
           </div>
         </div>
       </header>

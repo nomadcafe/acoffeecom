@@ -1,8 +1,10 @@
 import { useI18n } from '../context/I18nContext';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { changelogByLocale } from '../i18n/changelog';
+import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SyncIndicator } from './SyncIndicator';
 import styles from './UpdateLogPage.module.css';
 
 function formatChangelogDate(isoDate: string, locale: string): string {
@@ -28,6 +30,12 @@ export function UpdateLogPage() {
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
+              <>
+                <SyncIndicator />
+                <AccountMenu />
+              </>
+            ) : null}
           </div>
         </div>
       </header>

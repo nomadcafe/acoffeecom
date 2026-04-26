@@ -7,8 +7,10 @@ import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { PASSPORT_PATH } from '../routes';
 import { formatAbsoluteDate } from '../utils/relativeTime';
 import { track } from '../utils/analytics';
+import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SyncIndicator } from './SyncIndicator';
 import styles from './AccountPage.module.css';
 
 const USERNAME_REGEX = /^[a-z][a-z0-9_-]{2,29}$/;
@@ -76,6 +78,12 @@ export function AccountPage() {
             <HeaderNavLinks />
             <div className={styles.headerAside}>
               <LanguageSwitcher />
+              {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
+                <>
+                  <SyncIndicator />
+                  <AccountMenu />
+                </>
+              ) : null}
             </div>
           </div>
         </header>
@@ -114,6 +122,12 @@ export function AccountPage() {
             <HeaderNavLinks />
             <div className={styles.headerAside}>
               <LanguageSwitcher />
+              {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
+                <>
+                  <SyncIndicator />
+                  <AccountMenu />
+                </>
+              ) : null}
             </div>
           </div>
         </header>
@@ -384,6 +398,12 @@ function SignedInAccountPage({
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
+              <>
+                <SyncIndicator />
+                <AccountMenu />
+              </>
+            ) : null}
           </div>
         </div>
       </header>

@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { formatAbsoluteDate } from '../utils/relativeTime';
+import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SyncIndicator } from './SyncIndicator';
 import styles from './PublicProfilePage.module.css';
 
 interface PublicShop {
@@ -90,6 +92,12 @@ export function PublicProfilePage({ username }: Props) {
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
+              <>
+                <SyncIndicator />
+                <AccountMenu />
+              </>
+            ) : null}
           </div>
         </div>
       </header>
