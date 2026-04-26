@@ -277,13 +277,14 @@ export function PassportPage() {
                   {citiesByCount.map((c) => {
                     const active = cityFilter === c.name;
                     return (
-                      <li key={c.name} style={{ display: 'inline' }}>
+                      <li key={c.name} className={styles.cityListItem}>
                         <button
                           type="button"
                           className={`${styles.cityPill}${active ? ' ' + styles.cityPillActive : ''}`}
                           onClick={() => setCityFilter(active ? null : c.name)}
                           aria-pressed={active}
                           aria-label={t('passport.cityFilterAria', { city: c.name })}
+                          title={c.name}
                         >
                           <span className={styles.cityPillName}>{c.name}</span>
                           <span className={styles.cityPillCount}>

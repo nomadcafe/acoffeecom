@@ -379,6 +379,13 @@
   margin-top: 0.75rem;
   list-style: none;
   padding: 0;
+  /* Each <li> uses display:contents so its child <button> participates in
+     the flex layout directly — keeps the semantic list while letting the
+     pills wrap onto new rows cleanly on narrow screens. */
+}
+
+.cityListItem {
+  display: contents;
 }
 
 .cityPill {
@@ -390,11 +397,16 @@
   border: 1px solid var(--ac-border);
   border-radius: 999px;
   font-size: 0.9rem;
-  line-height: 1;
+  line-height: 1.2;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
   font-family: inherit;
   color: inherit;
+  /* Long city names (e.g. "越秀区广州市广东省 China") overflow the row
+     unless we cap the pill and ellipsize. 100% lets it shrink to the
+     container's available width on the wrap row it lands on. */
+  max-width: 100%;
+  min-width: 0;
 }
 
 @media (hover: hover) {
@@ -418,11 +430,17 @@
 .cityPillName {
   font-weight: 600;
   color: var(--ac-text);
+  /* Ellipsize a single long city name rather than blow out the row. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .cityPillCount {
   color: var(--ac-text-muted);
   font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
 .filterClear {
