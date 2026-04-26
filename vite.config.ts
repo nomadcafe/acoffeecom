@@ -4,6 +4,22 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        // Stable vendor chunks so app-code-only deploys don't bust the
+        // browser cache for React / Maps SDK / Better Auth — these update
+        // far less often than our own files.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/\/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react';
+          if (id.includes('@react-google-maps')) return 'maps';
+          if (id.includes('better-auth') || id.includes('@better-auth')) return 'auth';
+          return undefined;
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

@@ -2,8 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react';
 import {
   type Locale,
+  type MessageDict,
   interpolate,
-  messagesByLocale,
+  loadLocaleMessages,
+  getLoadedMessages,
   LOCALE_STORAGE_KEY,
   SUPPORTED_LOCALES,
 } from '../i18n/messages';
@@ -59,6 +61,34 @@ function upsertLinkRel(rel: string, href: string, hreflang?: string) {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => getInitialLocale(window.location.pathname));
+  // Each locale's catalog ships as its own chunk; we hold the loaded ones in
+  // state so re-renders pick them up. Initial value uses any catalog the
+  // synchronous accessor knows about (e.g., already cached from a prior
+  // locale switch in the same session).
+  const [dicts, setDicts] = useState<Partial<Record<Locale, MessageDict>>>(() => ({
+    en: getLoadedMessages('en'),
+    ja: getLoadedMessages('ja'),
+    zh: getLoadedMessages('zh'),
+  }));
+
+  // Load whatever locale the app is currently in; also lazily warm 'en' as the
+  // fallback dict for missing keys (cheap — same chunk pattern, just async).
+  useEffect(() => {
+    let cancelled = false;
+    void loadLocaleMessages(locale).then((d) => {
+      if (cancelled) return;
+      setDicts((prev) => (prev[locale] === d ? prev : { ...prev, [locale]: d }));
+    });
+    if (locale !== 'en') {
+      void loadLocaleMessages('en').then((d) => {
+        if (cancelled) return;
+        setDicts((prev) => (prev.en === d ? prev : { ...prev, en: d }));
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
@@ -76,14 +106,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const dict = messagesByLocale[locale];
+  const dict = dicts[locale];
+  const enDict = dicts.en;
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) => {
-      const raw = dict[key] ?? messagesByLocale.en[key] ?? key;
+      // Order: active locale → English fallback → key as-is. The first paint
+      // before the chunk arrives renders keys; in practice that window is a
+      // sub-100ms flash on first visit only.
+      const raw = dict?.[key] ?? enDict?.[key] ?? key;
       return interpolate(raw, vars);
     },
-    [dict]
+    [dict, enDict]
   );
 
   useEffect(() => {

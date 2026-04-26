@@ -1,11 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { authClient, useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { ACCOUNT_PATH } from '../routes';
-import { AuthModal } from './AuthModal';
 import { SavePassportToast } from './SavePassportToast';
 import styles from './AccountMenu.module.css';
+
+// AuthModal pulls in @better-auth/client + the email/magic-link UI; most
+// visitors never sign in, so deferring it keeps the main chunk slim.
+const AuthModal = lazy(() => import('./AuthModal').then((m) => ({ default: m.AuthModal })));
 
 export function AccountMenu() {
   const { t, locale } = useI18n();
@@ -51,7 +54,13 @@ export function AccountMenu() {
         >
           {t('auth.signIn')}
         </button>
-        <AuthModal open={modalOpen} onClose={() => setModalOpen(false)} />
+        {/* Only mount the lazy modal once the user has actually opened it,
+            avoiding the chunk fetch for visitors who never sign in. */}
+        {modalOpen ? (
+          <Suspense fallback={null}>
+            <AuthModal open={modalOpen} onClose={() => setModalOpen(false)} />
+          </Suspense>
+        ) : null}
         <SavePassportToast onSignIn={() => setModalOpen(true)} />
       </>
     );
