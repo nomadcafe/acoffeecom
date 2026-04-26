@@ -596,13 +596,47 @@
 
 .visitRow {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.4rem 0;
   font-size: 0.8rem;
   color: var(--ac-text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.visitRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.visitNoteInput {
+  width: 100%;
+  border: 1px solid var(--ac-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  background: var(--ac-page-bg);
+  color: var(--ac-text);
+  font-family: inherit;
+  /* 16px on touch to dodge iOS auto-zoom on focus, smaller on desktop. */
+  font-size: 1rem;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 2.1rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.visitNoteInput:focus {
+  border-color: var(--ac-accent, #6f4e37);
+  box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
+}
+
+@media (min-width: 768px) {
+  .visitNoteInput {
+    font-size: 0.85rem;
+  }
 }
 
 .visitRemove {

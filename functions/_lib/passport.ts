@@ -15,6 +15,9 @@ export const VisitedShopWireSchema = z.object({
   googleMapsUri: z.string().url().max(1024).optional(),
   city: z.string().max(128).optional(),
   visits: z.array(z.number().int().nonnegative()).max(2000),
+  /* Map of `{ visitTs: noteText }` — only for visits that have a note. Each
+   * note capped to 500 chars; the whole map at 200 keys to bound payload. */
+  visitNotes: z.record(z.string(), z.string().max(500)).optional(),
   updatedAt: z.number().int().nonnegative(),
   deleted: z.boolean().optional(),
 });
@@ -23,6 +26,7 @@ export type VisitedShopWire = z.infer<typeof VisitedShopWireSchema>;
 export type VisitedShopRow = typeof visitedShops.$inferSelect;
 
 export function rowToWire(row: VisitedShopRow): VisitedShopWire {
+  const notes = parseNotes(row.visitNotes);
   return {
     id: row.placeId,
     name: row.name,
@@ -32,6 +36,7 @@ export function rowToWire(row: VisitedShopRow): VisitedShopWire {
     googleMapsUri: row.googleMapsUri ?? undefined,
     city: row.city ?? undefined,
     visits: parseVisits(row.visits),
+    visitNotes: Object.keys(notes).length > 0 ? notes : undefined,
     updatedAt: row.updatedAt instanceof Date ? row.updatedAt.getTime() : (row.updatedAt as unknown as number),
     deleted: row.deleted || undefined,
   };
@@ -44,6 +49,20 @@ function parseVisits(raw: string): number[] {
     return parsed.filter((n) => typeof n === 'number' && Number.isFinite(n));
   } catch {
     return [];
+  }
+}
+
+function parseNotes(raw: string): Record<string, string> {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === 'string' && v.length > 0) out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
   }
 }
 
@@ -77,6 +96,7 @@ function asMs(v: unknown): number {
  */
 export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: VisitedShopWire) {
   const incomingDeleted = incoming.deleted ?? false;
+  const incomingNotes = incoming.visitNotes ?? {};
   if (!prev) {
     return {
       name: incoming.name,
@@ -86,6 +106,7 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
       googleMapsUri: incoming.googleMapsUri ?? null,
       city: incoming.city ?? null,
       visits: incoming.visits,
+      visitNotes: incomingNotes,
       updatedAt: new Date(incoming.updatedAt),
       deleted: incomingDeleted,
     };
@@ -93,6 +114,7 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
   const prevTs = asMs(prev.updatedAt);
   const prevVisits = parseVisits(prev.visits);
   const visits = mergeVisits(incoming.visits, prevVisits);
+  const visitNotes = mergeNotes(parseNotes(prev.visitNotes), incomingNotes);
   if (incoming.updatedAt > prevTs) {
     return {
       name: incoming.name || prev.name,
@@ -102,6 +124,7 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
       googleMapsUri: incoming.googleMapsUri ?? prev.googleMapsUri,
       city: incoming.city ?? prev.city,
       visits,
+      visitNotes,
       updatedAt: new Date(incoming.updatedAt),
       deleted: incomingDeleted,
     };
@@ -114,9 +137,29 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
     googleMapsUri: prev.googleMapsUri,
     city: prev.city,
     visits,
+    visitNotes,
     updatedAt: new Date(prevTs),
     deleted: prev.deleted,
   };
+}
+
+/**
+ * Per-ts note merge. When both sides have a note for the same visit
+ * timestamp, prefer the longer text — gives the user-as-editor benefit of
+ * the doubt that the longer version is the more recent / more deliberate
+ * edit. Empty / missing notes never overwrite a non-empty one.
+ */
+function mergeNotes(
+  a: Record<string, string>,
+  b: Record<string, string>,
+): Record<string, string> {
+  const out: Record<string, string> = { ...a };
+  for (const [ts, note] of Object.entries(b)) {
+    if (!note) continue;
+    const cur = out[ts];
+    if (!cur || note.length > cur.length) out[ts] = note;
+  }
+  return out;
 }
 
 export async function getSessionUser(env: AuthEnv, request: Request) {

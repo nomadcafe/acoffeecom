@@ -41,6 +41,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
         googleMapsUri: merged.googleMapsUri,
         city: merged.city,
         visits: JSON.stringify(merged.visits),
+        visitNotes: JSON.stringify(merged.visitNotes),
         updatedAt: merged.updatedAt,
         deleted: merged.deleted,
       })
@@ -56,6 +57,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       googleMapsUri: merged.googleMapsUri,
       city: merged.city,
       visits: JSON.stringify(merged.visits),
+      visitNotes: JSON.stringify(merged.visitNotes),
       updatedAt: merged.updatedAt,
       deleted: merged.deleted,
     });

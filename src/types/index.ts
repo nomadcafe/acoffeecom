@@ -44,6 +44,8 @@ export interface VisitedShopSnapshot {
   googleMapsUri?: string;
   /** Ordered newest-first list of visit timestamps (ms). A passport-style stamp log. */
   visits: number[];
+  /** Per-visit short notes keyed by ts. Sparse — only visits that have a note appear. */
+  visitNotes?: Record<string, string>;
   /** Derived from `address` via extractCity(); lazily backfilled on load for older records. */
   city?: string;
   /** ms — last local mutation. LWW key for cloud sync. Filled on read for legacy records. */

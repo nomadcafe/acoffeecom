@@ -10,11 +10,13 @@ export interface VisitedShopWire {
   googleMapsUri?: string;
   city?: string;
   visits: number[];
+  visitNotes?: Record<string, string>;
   updatedAt: number;
   deleted?: boolean;
 }
 
 export function toWire(s: VisitedShopSnapshot): VisitedShopWire {
+  const notes = s.visitNotes;
   return {
     id: s.id,
     name: s.name,
@@ -24,6 +26,7 @@ export function toWire(s: VisitedShopSnapshot): VisitedShopWire {
     googleMapsUri: s.googleMapsUri,
     city: s.city,
     visits: s.visits,
+    visitNotes: notes && Object.keys(notes).length > 0 ? notes : undefined,
     updatedAt: s.updatedAt,
   };
 }
@@ -38,6 +41,7 @@ export function fromWire(w: VisitedShopWire): VisitedShopSnapshot {
     googleMapsUri: w.googleMapsUri,
     city: w.city,
     visits: w.visits,
+    visitNotes: w.visitNotes,
     updatedAt: w.updatedAt,
   };
 }

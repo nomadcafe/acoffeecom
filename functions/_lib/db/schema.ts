@@ -76,6 +76,10 @@ export const visitedShops = sqliteTable(
     googleMapsUri: text('google_maps_uri'),
     city: text('city'),
     visits: text('visits').notNull(),
+    /* JSON map of `{ [visitTs]: noteText }`. One short note per visit; not
+       every visit needs one. Stored separately from the visits[] array so a
+       legacy reader without the column still gets a usable timestamp list. */
+    visitNotes: text('visit_notes').notNull().default('{}'),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
     /* Tombstone for offline delete. We keep the row so a stale upsert from
        another device with an older updatedAt loses LWW and doesn't resurrect. */

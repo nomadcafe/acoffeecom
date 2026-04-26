@@ -18,6 +18,37 @@ function mergeVisits(a: number[], b: number[]): number[] {
   return out;
 }
 
+function shallowEqualNotes(
+  a: Record<string, string> | undefined,
+  b: Record<string, string> | undefined,
+): boolean {
+  if (a === b) return true;
+  const aKeys = a ? Object.keys(a) : [];
+  const bKeys = b ? Object.keys(b) : [];
+  if (aKeys.length !== bKeys.length) return false;
+  for (const k of aKeys) {
+    if ((a as Record<string, string>)[k] !== (b as Record<string, string> | undefined)?.[k]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Per-ts note merge mirroring the server: longer string wins. */
+function mergeVisitNotes(
+  a: Record<string, string> | undefined,
+  b: Record<string, string> | undefined,
+): Record<string, string> | undefined {
+  if (!a && !b) return undefined;
+  const out: Record<string, string> = { ...(a ?? {}) };
+  for (const [ts, note] of Object.entries(b ?? {})) {
+    if (!note) continue;
+    const cur = out[ts];
+    if (!cur || note.length > cur.length) out[ts] = note;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 /**
  * Merge a delta of remote visited rows into the local list. LWW per-row by
  * `updatedAt`; tombstones (deleted=true) on the winning side remove the row;
@@ -41,12 +72,14 @@ export function mergeRemoteVisited(
         lng: r.lng,
         googleMapsUri: r.googleMapsUri,
         visits: r.visits,
+        visitNotes: r.visitNotes,
         city: undefined,
         updatedAt: r.updatedAt,
       });
       continue;
     }
     const visits = mergeVisits(cur.visits, r.visits);
+    const visitNotes = mergeVisitNotes(cur.visitNotes, r.visitNotes);
     if (r.updatedAt > cur.updatedAt) {
       if (r.deleted) {
         byId.delete(r.id);
@@ -60,13 +93,16 @@ export function mergeRemoteVisited(
         lng: r.lng,
         googleMapsUri: r.googleMapsUri,
         visits,
+        visitNotes,
         city: cur.city,
         updatedAt: r.updatedAt,
       });
     } else {
-      // Local is newer (or tied) — keep local fields, but adopt any unioned visits.
-      if (visits.length !== cur.visits.length) {
-        byId.set(r.id, { ...cur, visits });
+      // Local is newer (or tied) — keep local fields, but adopt any unioned visits / notes.
+      const visitsChanged = visits.length !== cur.visits.length;
+      const notesChanged = !shallowEqualNotes(cur.visitNotes, visitNotes);
+      if (visitsChanged || notesChanged) {
+        byId.set(r.id, { ...cur, visits, visitNotes });
       }
     }
   }

@@ -216,6 +216,7 @@ export const messages: MessageDict = {
   'passport.visitsHide': '履歴を隠す',
   'passport.visitRemove': 'この来店記録を削除',
   'passport.visitRemoveAria': '{{date}} の {{name}} の来店記録を削除',
+  'passport.visitNotePlaceholder': 'メモを追加 — 何を注文した？誰と？気分は？',
   'passport.export': 'エクスポート',
   'passport.listTitle': '来店したカフェ（{{count}}）',
   'passport.listFilteredEmpty': '条件に合うカフェがありません。',

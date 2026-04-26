@@ -25,6 +25,14 @@ function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
       if (visits.length === 0) return null;
       const address = typeof s.address === 'string' ? s.address : '';
       const storedCity = typeof s.city === 'string' && s.city.trim() ? s.city : undefined;
+      let visitNotes: Record<string, string> | undefined;
+      if (s.visitNotes && typeof s.visitNotes === 'object' && !Array.isArray(s.visitNotes)) {
+        const cleaned: Record<string, string> = {};
+        for (const [k, v] of Object.entries(s.visitNotes as Record<string, unknown>)) {
+          if (typeof v === 'string' && v.length > 0) cleaned[k] = v;
+        }
+        if (Object.keys(cleaned).length > 0) visitNotes = cleaned;
+      }
       return {
         id: s.id,
         name: s.name || 'Visited café',
@@ -33,6 +41,7 @@ function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
         lng: typeof s.lng === 'number' ? s.lng : 0,
         googleMapsUri: typeof s.googleMapsUri === 'string' ? s.googleMapsUri : undefined,
         visits: [...visits].sort((a, b) => b - a),
+        visitNotes,
         city: storedCity ?? extractCity(address) ?? undefined,
         // Pre-sync schema had no updatedAt; backfill once on read so LWW has a key.
         updatedAt: typeof s.updatedAt === 'number' ? s.updatedAt : legacyTs,
@@ -71,6 +80,8 @@ export function useVisitedShops(): {
   removeVisited: (shopId: string) => void;
   /** Remove a single visit timestamp; clears the shop entirely if it was the last visit. */
   removeVisitAt: (shopId: string, ts: number) => void;
+  /** Add / edit / clear a per-visit note. Empty string clears. */
+  setVisitNote: (shopId: string, ts: number, note: string) => void;
   /** Replace the entire visited list (used by cloud sync to reconcile with server). */
   replaceVisited: (next: VisitedShopSnapshot[]) => void;
   isVisited: (shopId: string) => boolean;
@@ -152,10 +163,43 @@ export function useVisitedShops(): {
         }
         const filtered = s.visits.filter((t) => t !== ts);
         if (filtered.length === 0) continue; // shop dropped from list entirely
-        next.push({ ...s, visits: filtered, updatedAt: Date.now() });
+        let nextNotes = s.visitNotes;
+        if (nextNotes && nextNotes[String(ts)]) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [String(ts)]: _dropped, ...rest } = nextNotes;
+          nextNotes = Object.keys(rest).length > 0 ? rest : undefined;
+        }
+        next.push({ ...s, visits: filtered, visitNotes: nextNotes, updatedAt: Date.now() });
       }
       return next;
     });
+  }, []);
+
+  /**
+   * Set or clear the note for a single visit timestamp on a shop. Empty
+   * string deletes the entry from the map; trimmed values persist. Bumps
+   * updatedAt so cloud sync ships the change.
+   */
+  const setVisitNote = useCallback((shopId: string, ts: number, note: string) => {
+    const trimmed = note.trim();
+    setVisitedShops((prev) =>
+      prev.map((s) => {
+        if (s.id !== shopId) return s;
+        const key = String(ts);
+        const cur = s.visitNotes ?? {};
+        let nextNotes: Record<string, string> | undefined;
+        if (trimmed) {
+          nextNotes = { ...cur, [key]: trimmed };
+        } else if (cur[key]) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [key]: _dropped, ...rest } = cur;
+          nextNotes = Object.keys(rest).length > 0 ? rest : undefined;
+        } else {
+          nextNotes = s.visitNotes;
+        }
+        return { ...s, visitNotes: nextNotes, updatedAt: Date.now() };
+      }),
+    );
   }, []);
 
   const replaceVisited = useCallback((next: VisitedShopSnapshot[]) => {
@@ -183,6 +227,7 @@ export function useVisitedShops(): {
     addVisit,
     removeVisited,
     removeVisitAt,
+    setVisitNote,
     replaceVisited,
     isVisited,
     visitCount,

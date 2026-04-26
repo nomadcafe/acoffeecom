@@ -71,6 +71,7 @@ interface AppContextType extends AppState {
   addVisit: (shop: CoffeeShop) => void;
   removeVisited: (shopId: string) => void;
   removeVisitAt: (shopId: string, ts: number) => void;
+  setVisitNote: (shopId: string, ts: number, note: string) => void;
   isVisited: (shopId: string) => boolean;
   visitCount: (shopId: string) => number;
   lastVisit: (shopId: string) => number | null;
@@ -313,6 +314,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addVisit,
     removeVisited,
     removeVisitAt,
+    setVisitNote,
     replaceVisited,
     isVisited,
     visitCount,
@@ -1019,6 +1021,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addVisit,
       removeVisited,
       removeVisitAt,
+      setVisitNote,
       isVisited,
       visitCount,
       lastVisit,
@@ -1067,6 +1070,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addVisit,
       removeVisited,
       removeVisitAt,
+      setVisitNote,
       isVisited,
       visitCount,
       lastVisit,

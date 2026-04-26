@@ -29,6 +29,13 @@
       "when": 1777170580292,
       "tag": "0003_fearless_silhouette",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1777202248986,
+      "tag": "0004_previous_green_goblin",
+      "breakpoints": true
     }
   ]
 }

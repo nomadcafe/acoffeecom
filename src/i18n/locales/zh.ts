@@ -211,6 +211,7 @@ export const messages: MessageDict = {
   'passport.visitsHide': '收起历史',
   'passport.visitRemove': '删除这次记录',
   'passport.visitRemoveAria': '删除 {{name}} 在 {{date}} 的记录',
+  'passport.visitNotePlaceholder': '加点笔记 — 喝了什么、和谁、什么心情…',
   'passport.export': '导出',
   'passport.listTitle': '已到访咖啡店（{{count}}）',
   'passport.listFilteredEmpty': '没有符合条件的咖啡店。',
