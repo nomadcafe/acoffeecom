@@ -14,6 +14,7 @@ import { SiteBottomNav } from './components/SiteBottomNav';
 import { HeaderNavLinks } from './components/HeaderNavLinks';
 import { BottomSheet } from './components/BottomSheet';
 import { AppHero } from './components/AppHero';
+import { CoffeeNudge } from './components/CoffeeNudge';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
@@ -89,6 +90,8 @@ function AppShell() {
       </header>
 
       <AppHero />
+
+      <CoffeeNudge />
 
       <main className={useInlinePreSearch ? 'main mainInline' : 'main'}>
         {useInlinePreSearch ? (

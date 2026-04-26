@@ -2,13 +2,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useApp } from '../context/AppContext';
 import { visitedSnapshotToCoffeeShop } from '../hooks/useVisitedShops';
+import { usePassportStats } from '../hooks/usePassportStats';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { buildHeatmap } from '../utils/heatmap';
 import { renderPassportCard, sharePassportCard } from '../utils/passportCard';
-import { computeStreak, streakFireEmoji } from '../utils/streak';
+import { streakFireEmoji } from '../utils/streak';
 import { formatAbsoluteDate, formatRelativeTime } from '../utils/relativeTime';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { track } from '../utils/analytics';
+import { CoffeeNudge } from './CoffeeNudge';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -45,29 +47,14 @@ export function PassportPage() {
     [],
   );
 
-  const count = visitedShops.length;
+  const stats = usePassportStats(visitedShops);
+  const { today, thisWeek, total: totalVisits, shops: count, streak, firstVisit: firstVisitDate } = stats;
 
   const sortedVisited = useMemo(
     () => [...visitedShops].sort((a, b) => (b.visits[0] ?? 0) - (a.visits[0] ?? 0)),
     [visitedShops],
   );
 
-  const totalVisits = useMemo(
-    () => visitedShops.reduce((sum, s) => sum + s.visits.length, 0),
-    [visitedShops],
-  );
-
-  const firstVisitDate = useMemo(() => {
-    if (visitedShops.length === 0) return null;
-    let earliest = Infinity;
-    for (const s of visitedShops) {
-      const last = s.visits[s.visits.length - 1];
-      if (last != null && last < earliest) earliest = last;
-    }
-    return earliest === Infinity ? null : earliest;
-  }, [visitedShops]);
-
-  const streak = useMemo(() => computeStreak(visitedShops), [visitedShops]);
   const streakFires = streakFireEmoji(streak);
 
   const allTimestamps = useMemo(
@@ -185,6 +172,8 @@ export function PassportPage() {
       </header>
 
       <main className={styles.main}>
+        <CoffeeNudge />
+
         <div className={styles.hero}>
           <h1 className={styles.pageTitle}>
             <span aria-hidden className={styles.pageTitleGlyph}>☕</span>
@@ -203,6 +192,18 @@ export function PassportPage() {
         ) : (
           <>
             <section className={styles.statsGrid} aria-label={t('passport.statsLabel')}>
+              {today > 0 ? (
+                <div className={styles.statCard}>
+                  <div className={styles.statValue}>{today}</div>
+                  <div className={styles.statLabel}>{t('passport.statToday')}</div>
+                </div>
+              ) : null}
+              {thisWeek > 0 ? (
+                <div className={styles.statCard}>
+                  <div className={styles.statValue}>{thisWeek}</div>
+                  <div className={styles.statLabel}>{t('passport.statThisWeek')}</div>
+                </div>
+              ) : null}
               <div className={styles.statCard}>
                 <div className={styles.statValue}>{count}</div>
                 <div className={styles.statLabel}>{t('passport.statShops')}</div>
