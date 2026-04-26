@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { LOCATION_SYNC_EVENT } from './i18n/locationSync';
@@ -70,24 +70,34 @@ function AppShell() {
   const { midpoint, isLoading, clearSearch } = useApp();
   const homeHref = buildLocalizedPathname('/', locale);
 
-  // The logo (and any other link to "/") only does an SPA pushState now, which
-  // updates the URL but leaves AppContext's search state intact — meaning a
-  // user who taps the logo from a search-results view sees the URL clear but
-  // the page unchanged. Wipe search state when we land at the home path with
-  // no a/b/near params, both on initial mount (cross-page nav like /passport
-  // → /) and on subsequent SPA navigations (already on / → click logo again).
+  // Tapping the logo from a results view rewrites the URL via SPA pushState
+  // but leaves AppContext's search state alone, so the page would visually
+  // freeze on the old results. Reset search state when the URL lands on the
+  // home path with no a/b/near params.
+  //
+  // midpoint goes through a ref (not deps) on purpose: the search functions
+  // call setMidpoint() *before* their internal replaceState updates the URL.
+  // If midpoint were a dep we'd race that gap and wipe the freshly-set
+  // midpoint while ?near= / ?a&b= aren't in the URL yet. The LOCATION_SYNC
+  // event isn't fired by replaceState (only pushState dispatches it), so the
+  // listener never sees the search's internal URL update — exactly what we
+  // want. Mount-time check still handles cross-page nav (e.g. /passport → /).
+  const midpointRef = useRef(midpoint);
+  useEffect(() => {
+    midpointRef.current = midpoint;
+  }, [midpoint]);
   useEffect(() => {
     function checkAndClear() {
       const params = new URLSearchParams(window.location.search);
       const hasSearchParams = params.has('a') || params.has('b') || params.has('near');
-      if (!hasSearchParams && midpoint) {
+      if (!hasSearchParams && midpointRef.current) {
         clearSearch();
       }
     }
     checkAndClear();
     window.addEventListener(LOCATION_SYNC_EVENT, checkAndClear);
     return () => window.removeEventListener(LOCATION_SYNC_EVENT, checkAndClear);
-  }, [midpoint, clearSearch]);
+  }, [clearSearch]);
 
   // Pre-search (no midpoint, no in-flight search): skip the map and the
   // BottomSheet entirely. Until there's something to show on the map it's
