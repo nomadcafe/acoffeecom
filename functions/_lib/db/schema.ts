@@ -14,6 +14,10 @@ export const user = sqliteTable('user', {
   /* Opt-in: profile pages stay private until the owner publishes. Pairs with
    * username — a profile needs both a slug to live at and an explicit toggle. */
   profilePublic: integer('profile_public', { mode: 'boolean' }).notNull().default(false),
+  /* Defaults true so signed-up users get the monthly recap immediately —
+   * one email a month is the kind of low-frequency contact people actually
+   * tolerate, and they can flip it off from /account anytime. */
+  monthlyRecapEmail: integer('monthly_recap_email', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });

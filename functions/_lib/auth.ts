@@ -9,6 +9,8 @@ export interface AuthEnv extends DbEnv {
   AUTH_BASE_URL: string;
   RESEND_API_KEY: string;
   RESEND_FROM_EMAIL: string;
+  /** Shared secret for the /api/cron/* endpoints. Set in CF dashboard. */
+  CRON_SECRET?: string;
 }
 
 export function createAuth(env: AuthEnv) {
@@ -23,6 +25,7 @@ export function createAuth(env: AuthEnv) {
       additionalFields: {
         username: { type: 'string', required: false },
         profilePublic: { type: 'boolean', required: false, defaultValue: false },
+        monthlyRecapEmail: { type: 'boolean', required: false, defaultValue: true },
       },
     },
     session: {

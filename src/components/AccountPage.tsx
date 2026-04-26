@@ -164,7 +164,13 @@ interface SignedInProps {
   setAvailability: (s: AvailabilityState) => void;
   deleteOpen: boolean;
   setDeleteOpen: (v: boolean) => void;
-  sessionUser: { email?: string; createdAt?: string | Date; username?: string | null };
+  sessionUser: {
+    email?: string;
+    createdAt?: string | Date;
+    username?: string | null;
+    profilePublic?: boolean;
+    monthlyRecapEmail?: boolean;
+  };
   initialUsername: string;
   stats: ReturnType<typeof usePassportStats>;
   passportHref: string;
@@ -501,6 +507,12 @@ function SignedInAccountPage({
           }
         />
 
+        <MonthlyRecapCard
+          initial={
+            (sessionUser as { monthlyRecapEmail?: boolean }).monthlyRecapEmail !== false
+          }
+        />
+
         <section className={styles.card} aria-label={t('account.statsTitle')}>
           <h2 className={styles.cardTitle}>{t('account.statsTitle')}</h2>
           <div className={styles.statsRow}>
@@ -808,6 +820,71 @@ function ProfileVisibilityCard({ hasUsername, username, initial }: VisibilityPro
           aria-checked={enabled}
           aria-label={t('account.profileToggleAria')}
           disabled={!canToggle}
+          onClick={() => void handleToggle()}
+        />
+      </div>
+      {error ? <p className={styles.errorMsg} role="alert">{error}</p> : null}
+    </section>
+  );
+}
+
+interface RecapToggleProps {
+  initial: boolean;
+}
+
+/** Toggle for the monthly recap email. Optimistic flip; reverts on PATCH
+ *  failure. Uses the same toggle styles + PATCH /api/account endpoint as
+ *  the profile-visibility card. */
+function MonthlyRecapCard({ initial }: RecapToggleProps) {
+  const { t } = useI18n();
+  const [enabled, setEnabled] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleToggle() {
+    if (busy) return;
+    const next = !enabled;
+    setEnabled(next);
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ monthlyRecapEmail: next }),
+      });
+      if (!res.ok) {
+        setEnabled(!next);
+        setError(t('account.recapSaveFailed'));
+      } else {
+        track('monthly_recap_set', { enabled: next });
+      }
+    } catch {
+      setEnabled(!next);
+      setError(t('account.recapSaveFailed'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={styles.card} aria-label={t('account.recapTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.recapTitle')}</h2>
+      <div className={styles.toggleRow}>
+        <label className={styles.toggleLabel} htmlFor="monthly-recap-toggle">
+          {t('account.recapToggleLabel')}
+          <span className={styles.toggleSubLabel}>
+            {enabled ? t('account.recapOnHint') : t('account.recapOffHint')}
+          </span>
+        </label>
+        <button
+          type="button"
+          id="monthly-recap-toggle"
+          className={`${styles.toggle}${enabled ? ' ' + styles.toggleOn : ''}`}
+          role="switch"
+          aria-checked={enabled}
+          aria-label={t('account.recapToggleAria')}
+          disabled={busy}
           onClick={() => void handleToggle()}
         />
       </div>

@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `monthly_recap_email` integer DEFAULT true NOT NULL;

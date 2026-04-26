@@ -29,11 +29,13 @@ export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env }) 
 
 const PatchSchema = z.object({
   profilePublic: z.boolean().optional(),
+  monthlyRecapEmail: z.boolean().optional(),
 });
 
-/** Patch toggles for the user account. Today only `profilePublic` — sets
- *  whether `acoffee.com/<username>` is reachable. Requires the user to have
- *  a username already (we don't auto-publish nameless profiles). */
+/** Patch toggles for the user account. Currently `profilePublic` (whether
+ *  acoffee.com/<username> is reachable) and `monthlyRecapEmail` (the once-
+ *  a-month digest). Profile publish requires a username to exist already
+ *  — there'd be no URL to host the page at otherwise. */
 export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) => {
   const sessionUser = await getSessionUser(env, request);
   if (!sessionUser) return jsonError('Unauthorized', 401);
@@ -47,7 +49,6 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
 
   const db = getDb(env);
   if (input.profilePublic === true) {
-    // Refuse to publish a profile with no slug — there'd be no URL.
     const [row] = await db
       .select({ username: user.username })
       .from(user)
@@ -55,10 +56,14 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
     if (!row?.username) return jsonError('Set a username before publishing', 400);
   }
 
-  if (input.profilePublic !== undefined) {
+  const patch: Record<string, unknown> = { updatedAt: new Date() };
+  if (input.profilePublic !== undefined) patch.profilePublic = input.profilePublic;
+  if (input.monthlyRecapEmail !== undefined) patch.monthlyRecapEmail = input.monthlyRecapEmail;
+
+  if (Object.keys(patch).length > 1) {
     await db
       .update(user)
-      .set({ profilePublic: input.profilePublic, updatedAt: new Date() })
+      .set(patch)
       .where(eq(user.id, sessionUser.id));
   }
 
