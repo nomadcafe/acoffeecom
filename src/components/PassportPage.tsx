@@ -464,6 +464,20 @@ export function PassportPage() {
                                 })}
                           </div>
                         ) : null}
+                        {/* Single-visit shops: show the note input inline so users
+                            can write something on the very first stamp. Multi-visit
+                            shops keep the expander pattern (one note per visit). */}
+                        {vc === 1 && snap.visits[0] != null ? (
+                          <div className={styles.inlineNoteWrap}>
+                            <VisitNoteInput
+                              initial={snap.visitNotes?.[String(snap.visits[0])] ?? ''}
+                              placeholder={t('passport.visitNotePlaceholder')}
+                              onCommit={(value) =>
+                                setVisitNote(snap.id, snap.visits[0]!, value)
+                              }
+                            />
+                          </div>
+                        ) : null}
                         {vc >= 2 ? (
                           <button
                             type="button"

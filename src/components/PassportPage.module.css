@@ -611,6 +611,10 @@
   gap: 0.5rem;
 }
 
+.inlineNoteWrap {
+  margin-top: 0.45rem;
+}
+
 .visitNoteInput {
   width: 100%;
   border: 1px solid var(--ac-border);
