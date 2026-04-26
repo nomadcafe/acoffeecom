@@ -20,6 +20,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "resend": "^6.12.2",
+    "workers-og": "^0.0.27",
     "zod": "^4.3.6"
   },
   "devDependencies": {

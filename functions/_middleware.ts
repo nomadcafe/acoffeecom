@@ -100,6 +100,7 @@ interface OgValues {
   title: string;
   description: string;
   url: string;
+  image: string;
 }
 
 function buildOgValues(profile: ProfileForOg, requestUrl: URL): OgValues {
@@ -112,6 +113,7 @@ function buildOgValues(profile: ProfileForOg, requestUrl: URL): OgValues {
     title,
     description,
     url: `${requestUrl.origin}/${profile.username}`,
+    image: `${requestUrl.origin}/api/og/${profile.username}`,
   };
 }
 
@@ -177,8 +179,11 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
     .on('meta[property="og:title"]', new MetaTagSetter('property', 'og:title', og.title))
     .on('meta[property="og:description"]', new MetaTagSetter('property', 'og:description', og.description))
     .on('meta[property="og:url"]', new MetaTagSetter('property', 'og:url', og.url))
+    .on('meta[property="og:image"]', new MetaTagSetter('property', 'og:image', og.image))
+    .on('meta[name="twitter:card"]', new MetaTagSetter('name', 'twitter:card', 'summary_large_image'))
     .on('meta[name="twitter:title"]', new MetaTagSetter('name', 'twitter:title', og.title))
-    .on('meta[name="twitter:description"]', new MetaTagSetter('name', 'twitter:description', og.description));
+    .on('meta[name="twitter:description"]', new MetaTagSetter('name', 'twitter:description', og.description))
+    .on('meta[name="twitter:image"]', new MetaTagSetter('name', 'twitter:image', og.image));
 
   return rewriter.transform(response);
 };
