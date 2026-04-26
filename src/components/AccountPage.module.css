@@ -294,6 +294,120 @@
   font-weight: 700;
 }
 
+/* ---------- profile content editor ---------- */
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  position: relative;
+}
+
+.fieldLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.charCount {
+  align-self: flex-end;
+  font-size: 0.72rem;
+  color: var(--ac-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.bioTextarea {
+  width: 100%;
+  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  background: #fff;
+  color: var(--ac-text);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+  min-height: 4.5rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bioTextarea:focus {
+  border-color: var(--ac-accent, #6f4e37);
+  box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
+}
+
+.linkRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+
+.linkLabelInput,
+.linkUrlInput {
+  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  background: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--ac-text);
+  outline: none;
+  min-width: 0;
+}
+
+.linkLabelInput:focus,
+.linkUrlInput:focus {
+  border-color: var(--ac-accent, #6f4e37);
+  box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
+}
+
+.linkUrlInput[aria-invalid='true'] {
+  border-color: #fecaca;
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1);
+}
+
+.linkRemove {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--ac-border);
+  background: #fff;
+  color: var(--ac-text-muted);
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.linkRemove:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.linkAdd {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  border: 1px dashed var(--ac-border-strong, #c9bdb1);
+  background: transparent;
+  color: var(--ac-text-muted);
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.linkAdd:hover {
+  background: #faf6f1;
+  color: var(--ac-text);
+}
+
 /* ---------- visibility toggle ---------- */
 
 .toggleRow {

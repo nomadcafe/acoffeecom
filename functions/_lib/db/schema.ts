@@ -18,6 +18,14 @@ export const user = sqliteTable('user', {
    * one email a month is the kind of low-frequency contact people actually
    * tolerate, and they can flip it off from /account anytime. */
   monthlyRecapEmail: integer('monthly_recap_email', { mode: 'boolean' }).notNull().default(true),
+  /* Bio-link surface for the public profile (acoffee.com/<username>).
+   * `display_name` is the human-friendly name shown above @username;
+   * `bio` is one short line under it; `social_links` is a JSON array of
+   * `{label, url}` (max 5) rendered as a chip row. All optional — empty
+   * profiles still work, the page just falls back to stats only. */
+  displayName: text('display_name'),
+  bio: text('bio'),
+  socialLinks: text('social_links').notNull().default('[]'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });

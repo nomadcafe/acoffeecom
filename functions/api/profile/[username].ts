@@ -11,13 +11,41 @@ interface PublicShop {
   visits: number;
 }
 
+interface SocialLink {
+  label: string;
+  url: string;
+}
+
 export interface PublicProfile {
   username: string;
+  displayName: string | null;
+  bio: string | null;
+  socialLinks: SocialLink[];
   memberSince: number;
   cups: number;
   shops: number;
   streak: number;
   topShops: PublicShop[];
+}
+
+function parseSocialLinks(raw: string | null | undefined): SocialLink[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (l): l is SocialLink =>
+          l &&
+          typeof l === 'object' &&
+          typeof (l as SocialLink).label === 'string' &&
+          typeof (l as SocialLink).url === 'string' &&
+          /^https?:\/\//i.test((l as SocialLink).url),
+      )
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -30,7 +58,7 @@ export interface PublicProfile {
  *  - No exact addresses on the public top-shops list (just city)
  *  - Streak is rounded by day (it already is, by virtue of computeStreak)
  */
-export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env, params }) => {
+export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
   const raw = typeof params.username === 'string' ? params.username : null;
   if (!raw) return jsonError('Not found', 404);
   const username = raw.toLowerCase();
@@ -99,6 +127,9 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env, param
 
   const payload: PublicProfile = {
     username,
+    displayName: owner.displayName ?? null,
+    bio: owner.bio ?? null,
+    socialLinks: parseSocialLinks(owner.socialLinks),
     memberSince,
     cups: allTimestamps.length,
     shops: shopsAgg.length,

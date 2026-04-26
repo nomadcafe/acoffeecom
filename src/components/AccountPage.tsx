@@ -184,6 +184,9 @@ interface SignedInProps {
     username?: string | null;
     profilePublic?: boolean;
     monthlyRecapEmail?: boolean;
+    displayName?: string | null;
+    bio?: string | null;
+    socialLinks?: string;
   };
   initialUsername: string;
   stats: ReturnType<typeof usePassportStats>;
@@ -525,6 +528,16 @@ function SignedInAccountPage({
           initial={
             (sessionUser as { profilePublic?: boolean }).profilePublic === true
           }
+        />
+
+        <ProfileContentCard
+          initialDisplayName={
+            (sessionUser as { displayName?: string | null }).displayName ?? ''
+          }
+          initialBio={(sessionUser as { bio?: string | null }).bio ?? ''}
+          initialSocialLinks={parseInitialSocialLinks(
+            (sessionUser as { socialLinks?: string }).socialLinks,
+          )}
         />
 
         <MonthlyRecapCard
@@ -956,6 +969,221 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
             role="status"
           >
             {testStatus.message}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+interface SocialLinkDraft {
+  label: string;
+  url: string;
+}
+
+function parseInitialSocialLinks(raw: string | undefined): SocialLinkDraft[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (l): l is SocialLinkDraft =>
+          l && typeof l === 'object' && typeof l.label === 'string' && typeof l.url === 'string',
+      )
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+interface ProfileContentProps {
+  initialDisplayName: string;
+  initialBio: string;
+  initialSocialLinks: SocialLinkDraft[];
+}
+
+const DISPLAY_NAME_MAX = 50;
+const BIO_MAX = 160;
+const LINKS_MAX = 5;
+const LINK_LABEL_MAX = 30;
+const LINK_URL_MAX = 200;
+
+/**
+ * Bio-link editor: display name + one-line bio + up to 5 social links. All
+ * three fields are PATCHed together on Save so the form has one obvious
+ * commit moment instead of save-on-every-blur churn (a half-typed URL
+ * shouldn't be persisted as the user navigates between rows).
+ */
+function ProfileContentCard({
+  initialDisplayName,
+  initialBio,
+  initialSocialLinks,
+}: ProfileContentProps) {
+  const { t } = useI18n();
+  const [displayName, setDisplayName] = useState(initialDisplayName);
+  const [bio, setBio] = useState(initialBio);
+  const [links, setLinks] = useState<SocialLinkDraft[]>(initialSocialLinks);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+
+  function setLinkField(idx: number, field: 'label' | 'url', value: string) {
+    setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
+  }
+  function addLink() {
+    setLinks((prev) => (prev.length >= LINKS_MAX ? prev : [...prev, { label: '', url: '' }]));
+  }
+  function removeLink(idx: number) {
+    setLinks((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  // A link is committable only when both fields are filled and the URL parses
+  // as http(s). Server enforces the same rule; this just lets us drop blank
+  // rows silently on Save instead of erroring out.
+  function isLinkValid(l: SocialLinkDraft): boolean {
+    if (!l.label.trim() || !l.url.trim()) return false;
+    if (!/^https?:\/\//i.test(l.url.trim())) return false;
+    return true;
+  }
+  function isLinkPartial(l: SocialLinkDraft): boolean {
+    return (l.label.trim() !== '' || l.url.trim() !== '') && !isLinkValid(l);
+  }
+  const hasInvalidLink = links.some(isLinkPartial);
+
+  async function handleSave() {
+    if (busy || hasInvalidLink) return;
+    setBusy(true);
+    setStatus(null);
+    const cleanLinks = links
+      .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
+      .filter(isLinkValid);
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          displayName: displayName.trim() ? displayName.trim() : null,
+          bio: bio.trim() ? bio.trim() : null,
+          socialLinks: cleanLinks,
+        }),
+      });
+      if (!res.ok) {
+        setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
+        return;
+      }
+      setLinks(cleanLinks); // strip any blanks that were filtered out
+      setStatus({ kind: 'ok', message: t('account.profileContentSaved') });
+      track('profile_content_set', {
+        hasName: !!displayName.trim(),
+        hasBio: !!bio.trim(),
+        linkCount: cleanLinks.length,
+      });
+    } catch {
+      setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={styles.card} aria-label={t('account.profileContentTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.profileContentTitle')}</h2>
+      <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+        {t('account.profileContentHint')}
+      </p>
+
+      <label className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.displayNameLabel')}</span>
+        <input
+          type="text"
+          className={styles.usernameInput}
+          maxLength={DISPLAY_NAME_MAX}
+          placeholder={t('account.displayNamePlaceholder')}
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+        />
+        <span className={styles.charCount}>
+          {displayName.length} / {DISPLAY_NAME_MAX}
+        </span>
+      </label>
+
+      <label className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.bioLabel')}</span>
+        <textarea
+          className={styles.bioTextarea}
+          maxLength={BIO_MAX}
+          rows={3}
+          placeholder={t('account.bioPlaceholder')}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+        />
+        <span className={styles.charCount}>
+          {bio.length} / {BIO_MAX}
+        </span>
+      </label>
+
+      <div className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.socialLinksLabel')}</span>
+        {links.length === 0 ? (
+          <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+            {t('account.socialLinksEmpty')}
+          </p>
+        ) : null}
+        {links.map((l, idx) => (
+          <div className={styles.linkRow} key={idx}>
+            <input
+              type="text"
+              className={styles.linkLabelInput}
+              maxLength={LINK_LABEL_MAX}
+              placeholder={t('account.linkLabelPlaceholder')}
+              value={l.label}
+              onChange={(e) => setLinkField(idx, 'label', e.target.value)}
+            />
+            <input
+              type="url"
+              className={styles.linkUrlInput}
+              maxLength={LINK_URL_MAX}
+              placeholder="https://…"
+              value={l.url}
+              onChange={(e) => setLinkField(idx, 'url', e.target.value)}
+              aria-invalid={isLinkPartial(l) || undefined}
+            />
+            <button
+              type="button"
+              className={styles.linkRemove}
+              onClick={() => removeLink(idx)}
+              aria-label={t('account.linkRemoveAria')}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        {links.length < LINKS_MAX ? (
+          <button type="button" className={styles.linkAdd} onClick={addLink}>
+            + {t('account.linkAdd')}
+          </button>
+        ) : null}
+      </div>
+
+      <div className={styles.formRow}>
+        <button
+          type="button"
+          className={styles.saveButton}
+          onClick={() => void handleSave()}
+          disabled={busy || hasInvalidLink}
+        >
+          {busy ? t('account.saving') : t('account.profileContentSave')}
+        </button>
+        {hasInvalidLink ? (
+          <p className={styles.errorMsg} role="alert">
+            {t('account.linkInvalid')}
+          </p>
+        ) : status ? (
+          <p
+            className={status.kind === 'err' ? styles.errorMsg : styles.successMsg}
+            role="status"
+          >
+            {status.message}
           </p>
         ) : null}
       </div>

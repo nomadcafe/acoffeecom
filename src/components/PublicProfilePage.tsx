@@ -15,8 +15,16 @@ interface PublicShop {
   visits: number;
 }
 
+interface SocialLink {
+  label: string;
+  url: string;
+}
+
 interface PublicProfile {
   username: string;
+  displayName: string | null;
+  bio: string | null;
+  socialLinks: SocialLink[];
   memberSince: number;
   cups: number;
   shops: number;
@@ -137,16 +145,39 @@ function ProfileSkeleton() {
 
 function ProfileBody({ profile }: { profile: PublicProfile }) {
   const { t, locale } = useI18n();
-  const initial = profile.username[0]?.toUpperCase() ?? '?';
+  const initialChar = (profile.displayName ?? profile.username)[0]?.toUpperCase() ?? '?';
 
   return (
     <>
       <section className={styles.heroCard} aria-label={t('profile.heroAria')}>
-        <div className={styles.avatar} aria-hidden>{initial}</div>
-        <h1 className={styles.handle}>
+        <div className={styles.avatar} aria-hidden>{initialChar}</div>
+        {profile.displayName ? (
+          <h1 className={styles.handle}>{profile.displayName}</h1>
+        ) : null}
+        <div
+          className={profile.displayName ? styles.handleSecondary : styles.handle}
+          aria-label={profile.displayName ? `@${profile.username}` : undefined}
+        >
           <span className={styles.handleAt}>@</span>
           {profile.username}
-        </h1>
+        </div>
+        {profile.bio ? <p className={styles.bio}>{profile.bio}</p> : null}
+        {profile.socialLinks.length > 0 ? (
+          <ul className={styles.socialLinkList}>
+            {profile.socialLinks.map((l) => (
+              <li key={`${l.label}-${l.url}`}>
+                <a
+                  className={styles.socialLink}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <p className={styles.memberSince}>
           {t('profile.memberSince', { date: formatAbsoluteDate(profile.memberSince, locale) })}
         </p>

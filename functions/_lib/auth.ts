@@ -26,6 +26,9 @@ export function createAuth(env: AuthEnv) {
         username: { type: 'string', required: false },
         profilePublic: { type: 'boolean', required: false, defaultValue: false },
         monthlyRecapEmail: { type: 'boolean', required: false, defaultValue: true },
+        displayName: { type: 'string', required: false },
+        bio: { type: 'string', required: false },
+        socialLinks: { type: 'string', required: false, defaultValue: '[]' },
       },
     },
     session: {
