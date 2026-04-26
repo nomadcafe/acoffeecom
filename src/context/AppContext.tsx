@@ -91,6 +91,9 @@ interface AppContextType extends AppState {
   widenAndResearch: () => void;
   canWidenSearch: boolean;
   clearError: () => void;
+  /** Reset locations / midpoint / results / address inputs back to a fresh
+   *  home state. Saved and visited shops and search settings are preserved. */
+  clearSearch: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -916,6 +919,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setError(null);
   }, []);
 
+  /**
+   * Reset search-only state (locations, midpoint, results, address inputs)
+   * without touching saved/visited shops or filter settings. Called when the
+   * user navigates back to a "fresh home" — e.g., taps the logo from a page
+   * that already has search results — so the URL change actually translates
+   * into a visible change.
+   */
+  const clearSearch = useCallback(() => {
+    setLocationA(null);
+    setLocationB(null);
+    setMidpoint(null);
+    setRawShops([]);
+    setSelectedCoffeeShopIdState(null);
+    setAddressA('');
+    setAddressB('');
+    setError(null);
+    setIsLoading(false);
+  }, []);
+
   const value = useMemo<AppContextType>(
     () => ({
       locationA,
@@ -954,6 +976,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       widenAndResearch,
       canWidenSearch,
       clearError,
+      clearSearch,
       findMeetupSpot,
       searchWithAddresses,
       searchAround,
@@ -1001,6 +1024,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       widenAndResearch,
       canWidenSearch,
       clearError,
+      clearSearch,
       findMeetupSpot,
       searchWithAddresses,
       searchAround,

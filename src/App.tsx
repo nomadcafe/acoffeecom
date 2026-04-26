@@ -1,6 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import { LOCATION_SYNC_EVENT } from './i18n/locationSync';
 import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
 import { SearchFilters } from './components/SearchFilters';
@@ -66,8 +67,27 @@ const PublicProfilePage = lazy(() =>
 
 function AppShell() {
   const { t, locale } = useI18n();
-  const { midpoint, isLoading } = useApp();
+  const { midpoint, isLoading, clearSearch } = useApp();
   const homeHref = buildLocalizedPathname('/', locale);
+
+  // The logo (and any other link to "/") only does an SPA pushState now, which
+  // updates the URL but leaves AppContext's search state intact — meaning a
+  // user who taps the logo from a search-results view sees the URL clear but
+  // the page unchanged. Wipe search state when we land at the home path with
+  // no a/b/near params, both on initial mount (cross-page nav like /passport
+  // → /) and on subsequent SPA navigations (already on / → click logo again).
+  useEffect(() => {
+    function checkAndClear() {
+      const params = new URLSearchParams(window.location.search);
+      const hasSearchParams = params.has('a') || params.has('b') || params.has('near');
+      if (!hasSearchParams && midpoint) {
+        clearSearch();
+      }
+    }
+    checkAndClear();
+    window.addEventListener(LOCATION_SYNC_EVENT, checkAndClear);
+    return () => window.removeEventListener(LOCATION_SYNC_EVENT, checkAndClear);
+  }, [midpoint, clearSearch]);
 
   // Pre-search (no midpoint, no in-flight search): skip the map and the
   // BottomSheet entirely. Until there's something to show on the map it's
