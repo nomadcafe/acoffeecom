@@ -493,6 +493,14 @@ function SignedInAccountPage({
           </section>
         )}
 
+        <ProfileVisibilityCard
+          hasUsername={!!effectiveUsername}
+          username={effectiveUsername}
+          initial={
+            (sessionUser as { profilePublic?: boolean }).profilePublic === true
+          }
+        />
+
         <section className={styles.card} aria-label={t('account.statsTitle')}>
           <h2 className={styles.cardTitle}>{t('account.statsTitle')}</h2>
           <div className={styles.statsRow}>
@@ -728,5 +736,82 @@ function DeleteAccountModal({ onClose, onConfirmed }: DeleteModalProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+interface VisibilityProps {
+  hasUsername: boolean;
+  username: string | null;
+  initial: boolean;
+}
+
+/**
+ * Toggle for `acoffee.com/<username>` visibility. Only useful once the user
+ * has a slug; before then the toggle is disabled. While the global username
+ * picker is gated (USERNAMES_PUBLIC=false) effectively no one has a slug
+ * yet, so the card mostly renders as a "soon" placeholder — but it'll start
+ * working the moment the picker opens, no extra deploy needed.
+ */
+function ProfileVisibilityCard({ hasUsername, username, initial }: VisibilityProps) {
+  const { t } = useI18n();
+  const [enabled, setEnabled] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canToggle = hasUsername && !busy;
+
+  async function handleToggle() {
+    if (!canToggle) return;
+    const next = !enabled;
+    setEnabled(next); // optimistic — flip back on failure
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ profilePublic: next }),
+      });
+      if (!res.ok) {
+        setEnabled(!next);
+        setError(t('account.profileSaveFailed'));
+      } else {
+        track('profile_visibility_set', { public: next });
+      }
+    } catch {
+      setEnabled(!next);
+      setError(t('account.profileSaveFailed'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={styles.card} aria-label={t('account.profileTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.profileTitle')}</h2>
+      <div className={styles.toggleRow}>
+        <label className={styles.toggleLabel} htmlFor="profile-visibility-toggle">
+          {t('account.profileToggleLabel')}
+          <span className={styles.toggleSubLabel}>
+            {hasUsername
+              ? enabled
+                ? t('account.profilePublicHint', { username: username ?? '' })
+                : t('account.profilePrivateHint')
+              : t('account.profileNeedsUsername')}
+          </span>
+        </label>
+        <button
+          type="button"
+          id="profile-visibility-toggle"
+          className={`${styles.toggle}${enabled ? ' ' + styles.toggleOn : ''}`}
+          role="switch"
+          aria-checked={enabled}
+          aria-label={t('account.profileToggleAria')}
+          disabled={!canToggle}
+          onClick={() => void handleToggle()}
+        />
+      </div>
+      {error ? <p className={styles.errorMsg} role="alert">{error}</p> : null}
+    </section>
   );
 }

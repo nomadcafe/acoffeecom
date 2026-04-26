@@ -11,6 +11,9 @@ export const user = sqliteTable('user', {
   name: text('name'),
   image: text('image'),
   username: text('username').unique(),
+  /* Opt-in: profile pages stay private until the owner publishes. Pairs with
+   * username — a profile needs both a slug to live at and an explicit toggle. */
+  profilePublic: integer('profile_public', { mode: 'boolean' }).notNull().default(false),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });

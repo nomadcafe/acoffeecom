@@ -294,6 +294,68 @@
   font-weight: 700;
 }
 
+/* ---------- visibility toggle ---------- */
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.toggleLabel {
+  flex: 1;
+  font-size: 0.92rem;
+  color: var(--ac-text);
+}
+
+.toggleSubLabel {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  font-weight: 400;
+}
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #d1d5db;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.toggleOn {
+  background: #15803d;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.toggleOn::after {
+  transform: translateX(20px);
+}
+
+.toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ---------- public link badge ---------- */
 
 .publicLink {

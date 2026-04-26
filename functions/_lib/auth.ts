@@ -22,6 +22,7 @@ export function createAuth(env: AuthEnv) {
     user: {
       additionalFields: {
         username: { type: 'string', required: false },
+        profilePublic: { type: 'boolean', required: false, defaultValue: false },
       },
     },
     session: {

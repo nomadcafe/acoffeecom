@@ -22,6 +22,13 @@
       "when": 1777160250278,
       "tag": "0002_late_vengeance",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777170580292,
+      "tag": "0003_fearless_silhouette",
+      "breakpoints": true
     }
   ]
 }

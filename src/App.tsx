@@ -20,7 +20,7 @@ import { usePathname } from './hooks/usePathname';
 import { useInterceptInternalLinks } from './hooks/useInterceptInternalLinks';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
-import { isAccountPath, isPassportPath } from './routes';
+import { isAccountPath, isPassportPath, matchProfileUsername } from './routes';
 import { useTrackPageViews } from './utils/analytics';
 import './App.css';
 
@@ -56,6 +56,11 @@ const PassportPage = lazy(() =>
 const AccountPage = lazy(() =>
   reloadOnChunkError(
     import('./components/AccountPage').then((m) => ({ default: m.AccountPage })),
+  ),
+);
+const PublicProfilePage = lazy(() =>
+  reloadOnChunkError(
+    import('./components/PublicProfilePage').then((m) => ({ default: m.PublicProfilePage })),
   ),
 );
 
@@ -161,6 +166,16 @@ function AppRoute() {
       <>
         <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
           <AccountPage />
+        </Suspense>
+        <SiteBottomNav />
+      </>
+    );
+  } else if (matchProfileUsername(logicalPath) != null) {
+    const username = matchProfileUsername(logicalPath)!;
+    body = (
+      <>
+        <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+          <PublicProfilePage username={username} />
         </Suspense>
         <SiteBottomNav />
       </>
