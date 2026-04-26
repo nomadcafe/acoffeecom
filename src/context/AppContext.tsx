@@ -70,6 +70,7 @@ interface AppContextType extends AppState {
   isStarred: (shopId: string) => boolean;
   addVisit: (shop: CoffeeShop) => void;
   removeVisited: (shopId: string) => void;
+  removeVisitAt: (shopId: string, ts: number) => void;
   isVisited: (shopId: string) => boolean;
   visitCount: (shopId: string) => number;
   lastVisit: (shopId: string) => number | null;
@@ -296,6 +297,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     visitedShops,
     addVisit,
     removeVisited,
+    removeVisitAt,
     replaceVisited,
     isVisited,
     visitCount,
@@ -962,6 +964,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isStarred,
       addVisit,
       removeVisited,
+      removeVisitAt,
       isVisited,
       visitCount,
       lastVisit,
@@ -1008,6 +1011,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isStarred,
       addVisit,
       removeVisited,
+      removeVisitAt,
       isVisited,
       visitCount,
       lastVisit,

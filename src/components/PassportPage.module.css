@@ -384,6 +384,28 @@
   border-radius: 999px;
   font-size: 0.9rem;
   line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  font-family: inherit;
+  color: inherit;
+}
+
+@media (hover: hover) {
+  .cityPill:hover {
+    background: rgba(111, 78, 55, 0.08);
+    border-color: rgba(111, 78, 55, 0.35);
+  }
+}
+
+.cityPillActive {
+  background: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent, #6f4e37);
+  color: #fff;
+}
+
+.cityPillActive .cityPillName,
+.cityPillActive .cityPillCount {
+  color: inherit;
 }
 
 .cityPillName {
@@ -394,4 +416,90 @@
 .cityPillCount {
   color: var(--ac-text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.filterClear {
+  margin-left: auto;
+  align-self: center;
+  border: 0;
+  background: transparent;
+  color: var(--ac-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-family: inherit;
+}
+
+.filterClear:hover {
+  color: var(--ac-text);
+}
+
+.visitsToggle {
+  border: 0;
+  background: transparent;
+  color: var(--ac-accent, #6f4e37);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  margin-top: 0.4rem;
+  font-family: inherit;
+}
+
+.visitsToggle:hover {
+  text-decoration: underline;
+}
+
+.visitsList {
+  list-style: none;
+  margin: 0.4rem 0 0 0;
+  padding: 0.4rem 0 0 0;
+  border-top: 1px dashed var(--ac-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.visitRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.8rem;
+  color: var(--ac-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.visitRemove {
+  border: 0;
+  background: transparent;
+  color: var(--ac-text-muted);
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.visitRemove:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.exportButton {
+  margin-left: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  background: transparent;
+  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border-radius: 8px;
+  color: var(--ac-text);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.exportButton:hover {
+  background: #faf6f1;
 }

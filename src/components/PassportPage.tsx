@@ -20,7 +20,7 @@ import styles from './PassportPage.module.css';
 
 export function PassportPage() {
   const { t, locale } = useI18n();
-  const { visitedShops, removeVisited } = useApp();
+  const { visitedShops, starredShops, removeVisited, removeVisitAt } = useApp();
   const homeHref = buildLocalizedPathname('/', locale);
 
   const [sharing, setSharing] = useState(false);
@@ -29,6 +29,8 @@ export function PassportPage() {
   >(null);
   const [flashId, setFlashId] = useState<string | null>(null);
   const flashTimerRef = useRef<number | null>(null);
+  const [cityFilter, setCityFilter] = useState<string | null>(null);
+  const [expandedShopId, setExpandedShopId] = useState<string | null>(null);
 
   const handleTrajectoryMarkerClick = (shopId: string) => {
     const el = document.querySelector<HTMLElement>(`[data-shop-id="${CSS.escape(shopId)}"]`);
@@ -55,6 +57,12 @@ export function PassportPage() {
     () => [...visitedShops].sort((a, b) => (b.visits[0] ?? 0) - (a.visits[0] ?? 0)),
     [visitedShops],
   );
+
+  // City filter applies to the list only — stats/heatmap/trajectory still cover everything.
+  const filteredVisited = useMemo(() => {
+    if (!cityFilter) return sortedVisited;
+    return sortedVisited.filter((s) => (s.city && s.city.trim() ? s.city : null) === cityFilter);
+  }, [sortedVisited, cityFilter]);
 
   const streakFires = streakFireEmoji(streak);
 
@@ -92,6 +100,26 @@ export function PassportPage() {
     const id = window.setTimeout(() => setShareStatus(null), 5000);
     return () => window.clearTimeout(id);
   }, [shareStatus]);
+
+  const onExport = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      visited: visitedShops,
+      starred: starredShops,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.download = `acoffee-passport-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    track('passport_exported', { shopCount: visitedShops.length, starredCount: starredShops.length });
+  };
 
   const onShare = async () => {
     if (sharing) return;
@@ -237,14 +265,34 @@ export function PassportPage() {
               <section className={styles.citiesSection} aria-label={t('passport.citiesTitle')}>
                 <h2 className={styles.sectionTitle}>{t('passport.citiesTitle')}</h2>
                 <ul className={styles.citiesList}>
-                  {citiesByCount.map((c) => (
-                    <li key={c.name} className={styles.cityPill}>
-                      <span className={styles.cityPillName}>{c.name}</span>
-                      <span className={styles.cityPillCount}>
-                        {t('passport.cityCount', { count: c.count })}
-                      </span>
-                    </li>
-                  ))}
+                  {citiesByCount.map((c) => {
+                    const active = cityFilter === c.name;
+                    return (
+                      <li key={c.name} style={{ display: 'inline' }}>
+                        <button
+                          type="button"
+                          className={`${styles.cityPill}${active ? ' ' + styles.cityPillActive : ''}`}
+                          onClick={() => setCityFilter(active ? null : c.name)}
+                          aria-pressed={active}
+                          aria-label={t('passport.cityFilterAria', { city: c.name })}
+                        >
+                          <span className={styles.cityPillName}>{c.name}</span>
+                          <span className={styles.cityPillCount}>
+                            {t('passport.cityCount', { count: c.count })}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                  {cityFilter ? (
+                    <button
+                      type="button"
+                      className={styles.filterClear}
+                      onClick={() => setCityFilter(null)}
+                    >
+                      {t('passport.cityFilterClear')}
+                    </button>
+                  ) : null}
                 </ul>
               </section>
             ) : null}
@@ -252,14 +300,23 @@ export function PassportPage() {
             <section className={styles.heatmapSection} aria-label={t('passport.heatmapTitle')}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>{t('passport.heatmapTitle')}</h2>
-                <button
-                  type="button"
-                  className={styles.shareButton}
-                  onClick={() => void onShare()}
-                  disabled={sharing}
-                >
-                  {sharing ? t('visited.sharing') : t('visited.share')}
-                </button>
+                <div>
+                  <button
+                    type="button"
+                    className={styles.shareButton}
+                    onClick={() => void onShare()}
+                    disabled={sharing}
+                  >
+                    {sharing ? t('visited.sharing') : t('visited.share')}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.exportButton}
+                    onClick={() => onExport()}
+                  >
+                    {t('passport.export')}
+                  </button>
+                </div>
               </div>
               <div className={styles.heatmapWrap}>
                 <HeatmapGrid timestamps={allTimestamps} days={90} />
@@ -285,12 +342,13 @@ export function PassportPage() {
 
             <section className={styles.listSection} aria-label={t('passport.listTitle')}>
               <h2 className={styles.sectionTitle}>
-                {t('passport.listTitle', { count })}
+                {t('passport.listTitle', { count: filteredVisited.length })}
               </h2>
               <ul className={styles.list}>
-                {sortedVisited.map((snap) => {
+                {filteredVisited.map((snap) => {
                   const last = snap.visits[0];
                   const vc = snap.visits.length;
+                  const expanded = expandedShopId === snap.id;
                   return (
                     <li
                       key={snap.id}
@@ -313,6 +371,39 @@ export function PassportPage() {
                                   last: formatRelativeTime(last, locale),
                                 })}
                           </div>
+                        ) : null}
+                        {vc >= 2 ? (
+                          <button
+                            type="button"
+                            className={styles.visitsToggle}
+                            onClick={() => setExpandedShopId(expanded ? null : snap.id)}
+                            aria-expanded={expanded}
+                          >
+                            {expanded
+                              ? t('passport.visitsHide')
+                              : t('passport.visitsShow', { count: vc })}
+                          </button>
+                        ) : null}
+                        {expanded ? (
+                          <ul className={styles.visitsList}>
+                            {snap.visits.map((ts) => (
+                              <li key={ts} className={styles.visitRow}>
+                                <span>{formatAbsoluteDate(ts, locale)}</span>
+                                <button
+                                  type="button"
+                                  className={styles.visitRemove}
+                                  onClick={() => removeVisitAt(snap.id, ts)}
+                                  aria-label={t('passport.visitRemoveAria', {
+                                    date: formatAbsoluteDate(ts, locale),
+                                    name: snap.name,
+                                  })}
+                                  title={t('passport.visitRemove')}
+                                >
+                                  ×
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
                         ) : null}
                       </div>
                       <div className={styles.rowActions}>

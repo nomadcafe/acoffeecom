@@ -69,6 +69,8 @@ export function useVisitedShops(): {
   visitedShopIds: string[];
   addVisit: (shop: CoffeeShop) => void;
   removeVisited: (shopId: string) => void;
+  /** Remove a single visit timestamp; clears the shop entirely if it was the last visit. */
+  removeVisitAt: (shopId: string, ts: number) => void;
   /** Replace the entire visited list (used by cloud sync to reconcile with server). */
   replaceVisited: (next: VisitedShopSnapshot[]) => void;
   isVisited: (shopId: string) => boolean;
@@ -135,6 +137,27 @@ export function useVisitedShops(): {
     setVisitedShops((prev) => prev.filter((s) => s.id !== shopId));
   }, []);
 
+  /**
+   * Drop a single visit timestamp from a shop's history. If that was the
+   * last visit, the whole shop is removed (the diff sync turns it into a
+   * delete tombstone). Bumps updatedAt so cloud sync notices the change.
+   */
+  const removeVisitAt = useCallback((shopId: string, ts: number) => {
+    setVisitedShops((prev) => {
+      const next: VisitedShopSnapshot[] = [];
+      for (const s of prev) {
+        if (s.id !== shopId) {
+          next.push(s);
+          continue;
+        }
+        const filtered = s.visits.filter((t) => t !== ts);
+        if (filtered.length === 0) continue; // shop dropped from list entirely
+        next.push({ ...s, visits: filtered, updatedAt: Date.now() });
+      }
+      return next;
+    });
+  }, []);
+
   const replaceVisited = useCallback((next: VisitedShopSnapshot[]) => {
     setVisitedShops(next);
   }, []);
@@ -159,6 +182,7 @@ export function useVisitedShops(): {
     visitedShopIds,
     addVisit,
     removeVisited,
+    removeVisitAt,
     replaceVisited,
     isVisited,
     visitCount,
