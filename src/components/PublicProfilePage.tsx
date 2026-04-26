@@ -5,7 +5,9 @@ import { formatAbsoluteDate } from '../utils/relativeTime';
 import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SocialIcon } from './SocialIcon';
 import { SyncIndicator } from './SyncIndicator';
+import { identifyBrand } from '../utils/socialBrand';
 import styles from './PublicProfilePage.module.css';
 
 interface PublicShop {
@@ -164,18 +166,22 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
         {profile.bio ? <p className={styles.bio}>{profile.bio}</p> : null}
         {profile.socialLinks.length > 0 ? (
           <ul className={styles.socialLinkList}>
-            {profile.socialLinks.map((l) => (
-              <li key={`${l.label}-${l.url}`}>
-                <a
-                  className={styles.socialLink}
-                  href={l.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
+            {profile.socialLinks.map((l) => {
+              const brand = identifyBrand(l.url);
+              return (
+                <li key={`${l.label}-${l.url}`}>
+                  <a
+                    className={styles.socialLink}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                  >
+                    <SocialIcon brand={brand} className={styles.socialLinkIcon} />
+                    <span>{l.label}</span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         ) : null}
         <p className={styles.memberSince}>
