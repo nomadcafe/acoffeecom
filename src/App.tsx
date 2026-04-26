@@ -19,7 +19,7 @@ import { StreakReminder } from './components/StreakReminder';
 import { usePathname } from './hooks/usePathname';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
-import { isPassportPath } from './routes';
+import { isAccountPath, isPassportPath } from './routes';
 import { useTrackPageViews } from './utils/analytics';
 import './App.css';
 
@@ -50,6 +50,11 @@ const UpdateLogPage = lazy(() =>
 const PassportPage = lazy(() =>
   reloadOnChunkError(
     import('./components/PassportPage').then((m) => ({ default: m.PassportPage })),
+  ),
+);
+const AccountPage = lazy(() =>
+  reloadOnChunkError(
+    import('./components/AccountPage').then((m) => ({ default: m.AccountPage })),
   ),
 );
 
@@ -145,6 +150,15 @@ function AppRoute() {
       <>
         <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
           <PassportPage />
+        </Suspense>
+        <SiteBottomNav />
+      </>
+    );
+  } else if (isAccountPath(logicalPath)) {
+    body = (
+      <>
+        <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+          <AccountPage />
         </Suspense>
         <SiteBottomNav />
       </>

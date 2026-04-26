@@ -1,0 +1,268 @@
+.app {
+  min-height: 100vh;
+  background: var(--ac-page-bg);
+  --bottom-nav-safe: calc(3.6rem + env(safe-area-inset-bottom, 0px));
+}
+
+.header {
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--ac-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 2.75rem;
+}
+
+.headerAside {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logoWordmark {
+  font-family: var(--ac-font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem calc(1.5rem + var(--bottom-nav-safe));
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hero {
+  padding: 0.5rem 0 0.25rem;
+}
+
+.pageTitle {
+  margin: 0 0 0.4rem 0;
+  font-family: var(--ac-font-display);
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--ac-text);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.lead {
+  margin: 0;
+  color: var(--ac-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.card {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-text-muted);
+}
+
+.identityRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  align-items: baseline;
+}
+
+.identityKey {
+  color: var(--ac-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.identityValue {
+  color: var(--ac-text);
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
+}
+
+.usernameForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.usernamePrefix {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.usernamePrefixLabel {
+  padding: 0.55rem 0.65rem;
+  background: #faf6f1;
+  color: var(--ac-text-muted);
+  font-size: 0.88rem;
+  border-right: 1px solid var(--ac-border);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+.usernameInput {
+  flex: 1;
+  border: 0;
+  outline: none;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: transparent;
+  color: var(--ac-text);
+  /* Avoid iOS auto-zoom on focus when font-size < 16px elsewhere. */
+  min-width: 0;
+}
+
+.usernameHint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  line-height: 1.4;
+}
+
+.formRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.saveButton {
+  padding: 0.5rem 0.95rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ac-accent, #6f4e37);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #5a3f2c;
+}
+
+.saveButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.errorMsg {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.82rem;
+}
+
+.successMsg {
+  margin: 0;
+  color: #15803d;
+  font-size: 0.82rem;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.statCell {
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+  border-radius: 8px;
+  background: var(--ac-page-bg);
+}
+
+.statCellValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ac-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.statCellLabel {
+  margin-top: 0.15rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ac-text-muted);
+}
+
+.signOutCard {
+  margin-top: 0.5rem;
+}
+
+.signOutButton {
+  padding: 0.55rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.15s ease;
+}
+
+.signOutButton:hover:not(:disabled) {
+  background: #fff5f5;
+}
+
+.signedOut {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--ac-text-muted);
+}
+
+.signedOutCta {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.55rem 1rem;
+  background: var(--ac-accent, #6f4e37);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
