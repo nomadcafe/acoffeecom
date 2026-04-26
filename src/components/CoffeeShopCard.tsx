@@ -3,6 +3,7 @@ import type { CoffeeShop } from '../types';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
 import { VisitedButton } from './VisitedButton';
+import { VisitNoteInput } from './VisitNoteInput';
 import { ShareButton } from './ShareButton';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
@@ -40,7 +41,16 @@ type SummaryState =
 
 export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
   const { t, locale } = useI18n();
-  const { isStarred, isVisited, visitCount, lastVisit, searchSortMode, searchMode } = useApp();
+  const {
+    isStarred,
+    isVisited,
+    visitCount,
+    lastVisit,
+    visitedShops,
+    setVisitNote,
+    searchSortMode,
+    searchMode,
+  } = useApp();
   const [summary, setSummary] = useState<SummaryState>(() => {
     const cached = getCachedSummary(shop.id, locale);
     return cached ? { kind: 'ok', text: cached } : { kind: 'idle' };
@@ -113,6 +123,24 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
     shop.distanceFromA != null && shop.distanceFromB != null
       ? Math.abs(shop.distanceFromA - shop.distanceFromB)
       : null;
+
+  // Detect "the user just tapped 'I visited' on this card right now" by
+  // watching count tick upward. The prompt then stays visible until the
+  // user either writes a note (auto-saves on blur, then closes) or
+  // explicitly dismisses. seenCount uses the compare-to-prev pattern so
+  // we don't need a useEffect/setState dance.
+  const [seenCount, setSeenCount] = useState(count);
+  const [promptForVisit, setPromptForVisit] = useState<number | null>(null);
+  if (count !== seenCount) {
+    setSeenCount(count);
+    if (count > seenCount && last != null) {
+      setPromptForVisit(last);
+    }
+  }
+  const existingNoteForPrompt =
+    promptForVisit != null
+      ? (visitedShops.find((s) => s.id === shop.id)?.visitNotes?.[String(promptForVisit)] ?? '')
+      : '';
 
   const visitedToday = last != null && isToday(last);
   const visitedLabel = last != null
@@ -223,6 +251,32 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
       </div>
 
       <AiSummary t={t} state={summary} onLoad={loadSummary} />
+
+      {promptForVisit != null ? (
+        <div className={styles.notePrompt}>
+          <div className={styles.notePromptHeader}>
+            <span aria-hidden>📝</span>
+            <span className={styles.notePromptTitle}>{t('card.notePromptTitle')}</span>
+            <button
+              type="button"
+              className={styles.notePromptDismiss}
+              onClick={() => setPromptForVisit(null)}
+              aria-label={t('card.notePromptDismiss')}
+            >
+              ×
+            </button>
+          </div>
+          <VisitNoteInput
+            initial={existingNoteForPrompt}
+            placeholder={t('card.notePromptPlaceholder')}
+            autoFocus={false}
+            onCommit={(value) => {
+              setVisitNote(shop.id, promptForVisit, value);
+              if (value.trim()) setPromptForVisit(null);
+            }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 });

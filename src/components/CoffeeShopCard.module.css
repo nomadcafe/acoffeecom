@@ -266,3 +266,46 @@
 @keyframes aiSpin {
   to { transform: rotate(360deg); }
 }
+
+/* Post-stamp note prompt — appears below the card immediately after the
+ * user taps "I visited", catches them while the memory is fresh. */
+.notePrompt {
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  background: #fffaf3;
+  border: 1px solid #f0e0c8;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notePromptHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #7c5230;
+}
+
+.notePromptTitle {
+  font-weight: 600;
+  flex: 1;
+}
+
+.notePromptDismiss {
+  border: 0;
+  background: transparent;
+  color: #b08763;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.notePromptDismiss:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #7c5230;
+}

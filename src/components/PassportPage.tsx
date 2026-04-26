@@ -18,6 +18,7 @@ import { HeaderNavLinks } from './HeaderNavLinks';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { TrajectoryMap } from './TrajectoryMap';
+import { VisitNoteInput } from './VisitNoteInput';
 import styles from './PassportPage.module.css';
 
 export function PassportPage() {
@@ -568,53 +569,4 @@ export function PassportPage() {
   );
 }
 
-interface VisitNoteInputProps {
-  initial: string;
-  placeholder: string;
-  onCommit: (value: string) => void;
-}
-
-/**
- * Local-state textarea that commits on blur. Editing is optimistic — we don't
- * fire onCommit on every keystroke (which would touch updatedAt and re-trigger
- * cloud sync per character). Only the final value when focus leaves the input
- * is what gets persisted, which matches "user is done writing" intent.
- */
-function VisitNoteInput({ initial, placeholder, onCommit }: VisitNoteInputProps) {
-  const [draft, setDraft] = useState(initial);
-  // Compare-to-seen-prop pattern: when `initial` changes (e.g. cross-device
-  // pull updated the note), adopt it only if the user isn't mid-edit (their
-  // draft still matches whatever we last saw). Otherwise keep their typing.
-  const [seenInitial, setSeenInitial] = useState(initial);
-  if (seenInitial !== initial) {
-    setSeenInitial(initial);
-    if (draft === seenInitial) {
-      setDraft(initial);
-    }
-  }
-
-  function commit() {
-    if (draft === initial) return;
-    onCommit(draft);
-  }
-
-  return (
-    <textarea
-      className={styles.visitNoteInput}
-      rows={1}
-      maxLength={500}
-      placeholder={placeholder}
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        // Cmd/Ctrl + Enter commits without losing focus — common note-taking habit.
-        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-          e.preventDefault();
-          commit();
-          (e.target as HTMLTextAreaElement).blur();
-        }
-      }}
-    />
-  );
-}
+/* VisitNoteInput is now a shared component — see ./VisitNoteInput. */

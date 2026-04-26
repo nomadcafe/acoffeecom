@@ -12,13 +12,27 @@ interface UserRecapStats {
   longestStreakInWindow: number;
 }
 
+export interface RecapRange {
+  start: Date;
+  end: Date;
+  label: string;
+}
+
 /** Range covered by one recap run: previous calendar month (UTC). The 1st-of-month
  *  schedule means a run on May 1 covers all of April. */
-export function previousMonthRange(now: Date = new Date()): { start: Date; end: Date; label: string } {
+export function previousMonthRange(now: Date = new Date()): RecapRange {
   const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1, 0, 0, 0, 0));
   const label = start.toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   return { start, end, label };
+}
+
+/** Rolling 30-day window ending now — used by the "send a sample" button on
+ *  /account so users can preview the email even early in a calendar month. */
+export function lastThirtyDaysRange(now: Date = new Date()): RecapRange {
+  const end = new Date(now);
+  const start = new Date(now.getTime() - 30 * 86_400_000);
+  return { start, end, label: 'Last 30 days' };
 }
 
 function parseVisits(raw: string): number[] {
@@ -187,47 +201,52 @@ export interface RunResult {
 }
 
 /**
+ * Send one recap email for one user. Used both by the monthly batch and by
+ * the "send me a sample" button on /account. Returns 'sent' on success,
+ * 'skipped' for empty windows / missing email, 'failed' on Resend error.
+ */
+export async function sendRecapForUser(
+  env: AuthEnv,
+  recipient: { id: string; email: string | null },
+  range: RecapRange,
+): Promise<'sent' | 'skipped' | 'failed'> {
+  if (!recipient.email) return 'skipped';
+  const stats = await loadStatsForUser(env, recipient.id, range.start, range.end);
+  if (stats.cups === 0) return 'skipped';
+  const resend = new Resend(env.RESEND_API_KEY);
+  const manageUrl = `${env.AUTH_BASE_URL}/account`;
+  try {
+    await resend.emails.send({
+      from: env.RESEND_FROM_EMAIL,
+      to: recipient.email,
+      subject: `Your ${range.label} in coffee ☕ — ${stats.cups} cups, ${stats.shops} cafés`,
+      html: recapHtml({ email: recipient.email, monthLabel: range.label, stats, manageUrl }),
+    });
+    return 'sent';
+  } catch (e) {
+    console.error('[recap] send failed for', recipient.email, e);
+    return 'failed';
+  }
+}
+
+/**
  * Iterate users opted into monthly digest, compute their previous-month stats,
  * and send a recap email each. Skips users with zero cups in the window —
  * a "0 cups, 0 cafés" email is just noise. Returns counts so the caller can
  * surface a summary in the response.
  */
 export async function runMonthlyRecap(env: AuthEnv, now: Date = new Date()): Promise<RunResult> {
-  const { start, end, label } = previousMonthRange(now);
+  const range = previousMonthRange(now);
   const db = getDb(env);
   const recipients = await db
-    .select({ id: user.id, email: user.email, optedIn: user.monthlyRecapEmail })
+    .select({ id: user.id, email: user.email })
     .from(user)
     .where(eq(user.monthlyRecapEmail, true));
 
-  const resend = new Resend(env.RESEND_API_KEY);
-  const manageUrl = `${env.AUTH_BASE_URL}/account`;
-
   const result: RunResult = { considered: recipients.length, sent: 0, skipped: 0, failed: 0 };
-
   for (const r of recipients) {
-    if (!r.email) {
-      result.skipped++;
-      continue;
-    }
-    const stats = await loadStatsForUser(env, r.id, start, end);
-    if (stats.cups === 0) {
-      result.skipped++;
-      continue;
-    }
-    try {
-      await resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
-        to: r.email,
-        subject: `Your ${label} in coffee ☕ — ${stats.cups} cups, ${stats.shops} cafés`,
-        html: recapHtml({ email: r.email, monthLabel: label, stats, manageUrl }),
-      });
-      result.sent++;
-    } catch (e) {
-      console.error('[recap] send failed for', r.email, e);
-      result.failed++;
-    }
+    const outcome = await sendRecapForUser(env, r, range);
+    result[outcome]++;
   }
-
   return result;
 }

@@ -860,6 +860,10 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
   const [enabled, setEnabled] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testStatus, setTestStatus] = useState<
+    { kind: 'sent' | 'skipped' | 'error'; message: string } | null
+  >(null);
 
   async function handleToggle() {
     if (busy) return;
@@ -887,6 +891,32 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
     }
   }
 
+  async function handleSendTest() {
+    if (testing) return;
+    setTesting(true);
+    setTestStatus(null);
+    try {
+      const res = await fetch('/api/account/recap-test', { method: 'POST' });
+      if (!res.ok) {
+        setTestStatus({ kind: 'error', message: t('account.recapTestFailed') });
+        return;
+      }
+      const j = (await res.json()) as { outcome: 'sent' | 'skipped' | 'failed' };
+      track('recap_test_sent', { outcome: j.outcome });
+      if (j.outcome === 'sent') {
+        setTestStatus({ kind: 'sent', message: t('account.recapTestSent') });
+      } else if (j.outcome === 'skipped') {
+        setTestStatus({ kind: 'skipped', message: t('account.recapTestSkipped') });
+      } else {
+        setTestStatus({ kind: 'error', message: t('account.recapTestFailed') });
+      }
+    } catch {
+      setTestStatus({ kind: 'error', message: t('account.recapTestFailed') });
+    } finally {
+      setTesting(false);
+    }
+  }
+
   return (
     <section className={styles.card} aria-label={t('account.recapTitle')}>
       <h2 className={styles.cardTitle}>{t('account.recapTitle')}</h2>
@@ -909,6 +939,26 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
         />
       </div>
       {error ? <p className={styles.errorMsg} role="alert">{error}</p> : null}
+      <div className={styles.formRow}>
+        <button
+          type="button"
+          className={styles.saveButton}
+          onClick={() => void handleSendTest()}
+          disabled={testing}
+        >
+          {testing ? t('account.recapTesting') : t('account.recapTestButton')}
+        </button>
+        {testStatus ? (
+          <p
+            className={
+              testStatus.kind === 'error' ? styles.errorMsg : styles.successMsg
+            }
+            role="status"
+          >
+            {testStatus.message}
+          </p>
+        ) : null}
+      </div>
     </section>
   );
 }
