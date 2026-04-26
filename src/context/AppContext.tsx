@@ -152,7 +152,16 @@ function loadAddressTemplates(): string[] {
 
 const DEFAULT_MIN_RATING = 4;
 const DEFAULT_RADIUS_M = 1200;
-const DEFAULT_KEYWORD = 'coffee';
+/* Default is empty: an empty keyword skips the post-hoc name filter, which
+ * is what users want by default (don't drop most cafés just because their
+ * name doesn't contain "coffee"). The previous default was the literal
+ * string "coffee" with a magic-skip to avoid that drop, which leaked the
+ * sentinel into the UI. */
+const DEFAULT_KEYWORD = '';
+/* Legacy URLs from before the default-was-empty change carried ?q=coffee.
+ * Treat those as "no filter" on load so bookmarks don't suddenly return
+ * zero results for "coffee" never appearing in real café names. */
+const LEGACY_KEYWORD_NOOP = 'coffee';
 const DEFAULT_SORT_MODE: SearchSortMode = 'rating';
 
 function initialFilter<T>(
@@ -220,7 +229,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [searchKeyword, setSearchKeyword] = useState(() => {
     const raw = new URLSearchParams(window.location.search).get('q');
-    return raw && raw.trim() ? raw : DEFAULT_KEYWORD;
+    const trimmed = raw?.trim() ?? '';
+    if (!trimmed) return DEFAULT_KEYWORD;
+    if (trimmed.toLowerCase() === LEGACY_KEYWORD_NOOP) return DEFAULT_KEYWORD;
+    return trimmed;
   });
   const [searchPlaceCategory, setSearchPlaceCategoryState] = useState<PlaceSearchCategory>(() => {
     const fromUrl = new URLSearchParams(window.location.search).get('cat');

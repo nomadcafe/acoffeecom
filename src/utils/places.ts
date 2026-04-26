@@ -137,11 +137,11 @@ export async function searchCoffeeShops(
   minRating: number = 4.0,
   radiusMeters: number = 1200,
   placeCategory: PlaceSearchCategory = 'cafe',
-  keyword: string = 'coffee',
+  keyword: string = '',
   openNowOnly: boolean = false
 ): Promise<{ shops: CoffeeShop[] }> {
   const radius = Math.min(50_000, Math.max(200, Math.round(radiusMeters)));
-  const kw = keyword.trim() || 'coffee';
+  const kw = keyword.trim();
   const ratingFloor = Math.min(SEARCH_RATING_MAX, Math.max(1, minRating));
   const includedPrimaryTypes = includedTypesForCategory(placeCategory);
 
@@ -172,14 +172,9 @@ export async function searchCoffeeShops(
     );
 
     // Keyword is post-hoc client-side name matching (the Places API has no
-    // free-text search). For cafés we treat "coffee" as the implicit default
-    // and skip the filter — most cafés don't put "coffee" in their name and
-    // the user clearly meant "any café". For other categories we apply the
-    // filter whenever the user typed something.
-    const hasMeaningfulKeyword =
-      kw.trim().length > 0 &&
-      !(placeCategory === 'cafe' && kw.trim().toLowerCase() === 'coffee');
-    if (hasMeaningfulKeyword) {
+    // free-text search). Empty string means "no name filter" — the place
+    // category alone scopes the search.
+    if (kw.length > 0) {
       shops = shops.filter((s) => nameMatchesKeyword(s.name, kw));
     }
 

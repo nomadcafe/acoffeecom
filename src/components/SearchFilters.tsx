@@ -48,6 +48,7 @@ export function SearchFilters() {
     widenSearchParams,
     isLoading,
     searchMode,
+    midpoint,
   } = useApp();
 
   const widenDisabled =
@@ -64,13 +65,10 @@ export function SearchFilters() {
     `${searchMinRating.toFixed(1)}★`,
     formatRadius(searchRadiusMeters),
   ];
-  // Mirror the server-side keyword logic in places.ts: in cafe mode the
-  // implicit default is "coffee" and we hide that from the summary; in any
-  // other category any non-empty keyword is meaningful.
+  // Empty keyword skips the post-hoc name filter, so it's not part of the
+  // collapsed summary. Any explicit value the user typed shows up.
   const trimmedKeyword = searchKeyword.trim();
-  const hasMeaningfulKeyword =
-    trimmedKeyword.length > 0 && !(isCafeMode && trimmedKeyword.toLowerCase() === 'coffee');
-  if (hasMeaningfulKeyword) {
+  if (trimmedKeyword) {
     summaryParts.push(`“${trimmedKeyword}”`);
   }
   if (searchSortMode === 'fairness') {
@@ -246,26 +244,31 @@ export function SearchFilters() {
           </p>
         </div>
 
-        <div className={styles.widenBlock}>
-          <p className={styles.widenIntro}>{t('filters.widenIntro')}</p>
-          <button
-            type="button"
-            className={styles.widenButton}
-            onClick={widenSearchParams}
-            disabled={widenDisabled}
-            aria-describedby={widenHintId}
-          >
-            {t('filters.loosen')}
-          </button>
-          <RichText
-            as="p"
-            id={widenHintId}
-            className={styles.widenHint}
-            text={t(isMeetupMode ? 'filters.widenHint' : 'filters.widenHintNearby', {
-              min: SEARCH_RATING_MIN,
-            })}
-          />
-        </div>
+        {/* Pre-search "too few results?" prompts the user with a question
+            they have no context for. Only render the widen block once a
+            search has actually happened (midpoint set). */}
+        {midpoint ? (
+          <div className={styles.widenBlock}>
+            <p className={styles.widenIntro}>{t('filters.widenIntro')}</p>
+            <button
+              type="button"
+              className={styles.widenButton}
+              onClick={widenSearchParams}
+              disabled={widenDisabled}
+              aria-describedby={widenHintId}
+            >
+              {t('filters.loosen')}
+            </button>
+            <RichText
+              as="p"
+              id={widenHintId}
+              className={styles.widenHint}
+              text={t(isMeetupMode ? 'filters.widenHint' : 'filters.widenHintNearby', {
+                min: SEARCH_RATING_MIN,
+              })}
+            />
+          </div>
+        ) : null}
       </div>
     </section>
   );
