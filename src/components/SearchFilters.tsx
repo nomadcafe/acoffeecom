@@ -47,20 +47,31 @@ export function SearchFilters() {
     setSearchOpenNow,
     widenSearchParams,
     isLoading,
+    searchMode,
   } = useApp();
 
   const widenDisabled =
     isLoading || (searchRadiusMeters >= SEARCH_RADIUS_MAX_M && searchMinRating <= SEARCH_RATING_MIN);
 
   const isCafeMode = searchPlaceCategory === 'cafe';
+  // Several copy strings and one option (Fairness sort) only make sense in
+  // meetup mode (two endpoints + midpoint). In nearby mode there's a single
+  // user-centred point, so we swap the labels and hide A/B-only options.
+  const isMeetupMode = searchMode === 'meetup';
 
   const summaryParts = [
     t(CATEGORY_LABEL_KEY[searchPlaceCategory]),
     `${searchMinRating.toFixed(1)}★`,
     formatRadius(searchRadiusMeters),
   ];
-  if (isCafeMode && searchKeyword.trim() && searchKeyword.trim().toLowerCase() !== 'coffee') {
-    summaryParts.push(`“${searchKeyword.trim()}”`);
+  // Mirror the server-side keyword logic in places.ts: in cafe mode the
+  // implicit default is "coffee" and we hide that from the summary; in any
+  // other category any non-empty keyword is meaningful.
+  const trimmedKeyword = searchKeyword.trim();
+  const hasMeaningfulKeyword =
+    trimmedKeyword.length > 0 && !(isCafeMode && trimmedKeyword.toLowerCase() === 'coffee');
+  if (hasMeaningfulKeyword) {
+    summaryParts.push(`“${trimmedKeyword}”`);
   }
   if (searchSortMode === 'fairness') {
     summaryParts.push(t('filters.sortFairness'));
@@ -101,7 +112,11 @@ export function SearchFilters() {
         hidden={!filtersExpanded}
         className={styles.filtersPanel}
       >
-        <RichText as="p" className={styles.lead} text={t('filters.lead')} />
+        <RichText
+          as="p"
+          className={styles.lead}
+          text={t(isMeetupMode ? 'filters.lead' : 'filters.leadNearby')}
+        />
 
         <div className={styles.field}>
           <label htmlFor="searchPlaceCategory" className={styles.keywordLabel}>
@@ -149,7 +164,9 @@ export function SearchFilters() {
 
         <div className={styles.field}>
           <div className={styles.fieldHeader}>
-            <label htmlFor="searchRadius">{t('filters.radius')}</label>
+            <label htmlFor="searchRadius">
+              {t(isMeetupMode ? 'filters.radius' : 'filters.radiusNearby')}
+            </label>
             <span className={styles.value}>{formatRadius(searchRadiusMeters)}</span>
           </div>
           <input
@@ -167,7 +184,11 @@ export function SearchFilters() {
             <span>{formatRadius(SEARCH_RADIUS_MIN_M)}</span>
             <span>{formatRadius(SEARCH_RADIUS_MAX_M)}</span>
           </div>
-          <RichText as="p" className={styles.fieldHelp} text={t('filters.radiusHelp')} />
+          <RichText
+            as="p"
+            className={styles.fieldHelp}
+            text={t(isMeetupMode ? 'filters.radiusHelp' : 'filters.radiusHelpNearby')}
+          />
         </div>
 
         <div className={styles.field}>
@@ -182,9 +203,13 @@ export function SearchFilters() {
             disabled={isLoading}
           >
             <option value="rating">{t('filters.sortRating')}</option>
-            <option value="fairness">{t('filters.sortFairness')}</option>
+            {/* Fairness sort needs an A and a B to balance against; in
+                nearby mode there's a single point so the option is hidden. */}
+            {isMeetupMode ? (
+              <option value="fairness">{t('filters.sortFairness')}</option>
+            ) : null}
           </select>
-          <p className={styles.hint}>{t('filters.sortHint')}</p>
+          {isMeetupMode ? <p className={styles.hint}>{t('filters.sortHint')}</p> : null}
         </div>
 
         <div className={styles.field}>
@@ -201,23 +226,25 @@ export function SearchFilters() {
           <p className={styles.hint}>{t('filters.openNowHint')}</p>
         </div>
 
-        {isCafeMode ? (
-          <div className={styles.field}>
-            <label htmlFor="searchKeyword" className={styles.keywordLabel}>
-              {t('filters.keywordCafe')}
-            </label>
-            <input
-              id="searchKeyword"
-              type="text"
-              className={styles.keywordInput}
-              placeholder={t('filters.keywordPlaceholderCafe')}
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              disabled={isLoading}
-            />
-            <p className={styles.hint}>{t('filters.keywordHintCafe')}</p>
-          </div>
-        ) : null}
+        <div className={styles.field}>
+          <label htmlFor="searchKeyword" className={styles.keywordLabel}>
+            {t(isCafeMode ? 'filters.keywordCafe' : 'filters.keywordOther')}
+          </label>
+          <input
+            id="searchKeyword"
+            type="text"
+            className={styles.keywordInput}
+            placeholder={t(
+              isCafeMode ? 'filters.keywordPlaceholderCafe' : 'filters.keywordPlaceholderOther',
+            )}
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            disabled={isLoading}
+          />
+          <p className={styles.hint}>
+            {t(isCafeMode ? 'filters.keywordHintCafe' : 'filters.keywordHintOther')}
+          </p>
+        </div>
 
         <div className={styles.widenBlock}>
           <p className={styles.widenIntro}>{t('filters.widenIntro')}</p>
@@ -234,7 +261,9 @@ export function SearchFilters() {
             as="p"
             id={widenHintId}
             className={styles.widenHint}
-            text={t('filters.widenHint', { min: SEARCH_RATING_MIN })}
+            text={t(isMeetupMode ? 'filters.widenHint' : 'filters.widenHintNearby', {
+              min: SEARCH_RATING_MIN,
+            })}
           />
         </div>
       </div>

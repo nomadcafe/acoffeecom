@@ -779,6 +779,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       setSearchMode('nearby');
+      // Fairness sort needs an A and a B to balance — pointless in nearby
+      // mode, so fall back to rating sort if the user had it on.
+      setSearchSortMode((s) => (s === 'fairness' ? 'rating' : s));
       setAddressA('');
       setAddressB('');
       setLocationA(null);

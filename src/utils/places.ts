@@ -171,7 +171,15 @@ export async function searchCoffeeShops(
       radius
     );
 
-    if (placeCategory === 'cafe' && kw.trim() && kw.trim().toLowerCase() !== 'coffee') {
+    // Keyword is post-hoc client-side name matching (the Places API has no
+    // free-text search). For cafés we treat "coffee" as the implicit default
+    // and skip the filter — most cafés don't put "coffee" in their name and
+    // the user clearly meant "any café". For other categories we apply the
+    // filter whenever the user typed something.
+    const hasMeaningfulKeyword =
+      kw.trim().length > 0 &&
+      !(placeCategory === 'cafe' && kw.trim().toLowerCase() === 'coffee');
+    if (hasMeaningfulKeyword) {
       shops = shops.filter((s) => nameMatchesKeyword(s.name, kw));
     }
 

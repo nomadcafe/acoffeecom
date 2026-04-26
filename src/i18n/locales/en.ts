@@ -99,11 +99,16 @@ export const messages: MessageDict = {
   'filters.title': 'Optional filters',
   'filters.lead':
     'Built for <strong>coffee meetups</strong> by default. These settings apply the <strong>next</strong> time you tap <strong>Find Meetup Spot</strong> above — nothing here runs a search by itself.',
+  'filters.leadNearby':
+    'These settings apply the <strong>next</strong> time you tap <strong>Show coffee near me</strong> above — nothing here runs a search by itself.',
   'filters.minRating': 'Minimum rating',
   'filters.ratingDisplay': '{{value}} stars',
   'filters.radius': 'Search radius from midpoint',
+  'filters.radiusNearby': 'Search radius',
   'filters.radiusHelp':
     'Google searches in a circle around the <strong>midpoint between A and B</strong>, not around each address. The A and B distances on each card are from each person, so they are often larger than this radius when A and B are far apart.',
+  'filters.radiusHelpNearby':
+    'Google searches in a circle around <strong>your current location</strong>. Cafés outside this radius are excluded from the results.',
   'filters.placeType': 'Meetup spot type',
   'filters.placeTypeHint':
     'Cafés are the default for coffee meetups. Switch when you plan a meal, drinks, or a stay — still centered on your midpoint.',
@@ -112,6 +117,7 @@ export const messages: MessageDict = {
   'filters.placeLodging': 'Hotels & lodging',
   'filters.placeBar': 'Bars & pubs',
   'filters.keywordCafe': 'Narrow cafés by name',
+  'filters.keywordOther': 'Narrow by name',
   'filters.sortMode': 'Sort results by',
   'filters.sortRating': 'Rating (default)',
   'filters.sortFairness': 'Fairness between A and B',
@@ -120,12 +126,17 @@ export const messages: MessageDict = {
   'filters.openNowShort': 'Open now',
   'filters.openNowHint': 'Hides cafés that are closed or have unknown hours.',
   'filters.keywordPlaceholderCafe': 'e.g. espresso, brunch, roaster',
+  'filters.keywordPlaceholderOther': 'e.g. vegan, ramen, rooftop',
   'filters.keywordHintCafe':
     'Optional. Each word must appear in the café name (the map API has no free-text search). Leave empty or use “coffee” for all nearby cafés.',
+  'filters.keywordHintOther':
+    'Optional. Each word must appear in the place name (the map API has no free-text search). Leave empty for all matching places.',
   'filters.widenIntro': 'Too few results after searching?',
   'filters.loosen': 'Loosen filters only',
   'filters.widenHint':
     'Moves radius +1 km and minimum rating -0.5 (not below {{min}} stars). Then tap <strong>Find Meetup Spot</strong> again — this button does not search.',
+  'filters.widenHintNearby':
+    'Moves radius +1 km and minimum rating -0.5 (not below {{min}} stars). Then tap <strong>Show coffee near me</strong> again — this button does not search.',
 
   'map.loadError': 'Failed to load Google Maps. Please check your API key.',
   'map.loading': 'Loading map...',

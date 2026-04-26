@@ -98,11 +98,16 @@ export const messages: MessageDict = {
   'filters.title': '詳細フィルター（任意）',
   'filters.lead':
     'デフォルトは<strong>カフェ待ち合わせ</strong>向けです。ここでの設定は、次に<strong>待ち合わせ地点を検索</strong>を押したときに使われます。入力だけでは検索は走りません。',
+  'filters.leadNearby':
+    'ここでの設定は、次に<strong>近くのカフェを表示</strong>を押したときに使われます。入力だけでは検索は走りません。',
   'filters.minRating': '最低評価',
   'filters.ratingDisplay': '{{value}} つ星',
   'filters.radius': '中間地点からの検索半径',
+  'filters.radiusNearby': '検索半径',
   'filters.radiusHelp':
     'Googleの検索は<strong>AとBの中間地点</strong>を中心とした円の内側です。カード上のA/Bの距離はそれぞれの住所からの距離なので、二人が離れていると半径より大きく見えることがあります。',
+  'filters.radiusHelpNearby':
+    'Googleの検索は<strong>現在地</strong>を中心とした円の内側です。この半径より外のカフェは結果に含まれません。',
   'filters.placeType': '待ち合わせの種類',
   'filters.placeTypeHint':
     '基本はカフェです。食事・飲み・宿泊に切り替えられます（検索の中心は中間地点のまま）。',
@@ -111,6 +116,7 @@ export const messages: MessageDict = {
   'filters.placeLodging': 'ホテル・宿泊',
   'filters.placeBar': 'バー・パブ',
   'filters.keywordCafe': 'カフェ名で絞り込み',
+  'filters.keywordOther': '名前で絞り込み',
   'filters.sortMode': '並び順',
   'filters.sortRating': '評価（デフォルト）',
   'filters.sortFairness': 'A/B の公平さ',
@@ -119,12 +125,17 @@ export const messages: MessageDict = {
   'filters.openNowShort': '営業中',
   'filters.openNowHint': '閉店中や営業時間不明のお店を除外します。',
   'filters.keywordPlaceholderCafe': '例：エスプレッソ、ブランチ、ロースター',
+  'filters.keywordPlaceholderOther': '例：ヴィーガン、ラーメン、ルーフトップ',
   'filters.keywordHintCafe':
     '任意。各語が店名に含まれるものだけ残します（地図 API は自由テキスト検索に非対応）。空欄または「coffee」で近くのカフェすべて。',
+  'filters.keywordHintOther':
+    '任意。各語が店名に含まれるものだけ残します（地図 API は自由テキスト検索に非対応）。空欄ですべての該当する店舗を表示。',
   'filters.widenIntro': '結果が少なすぎる場合',
   'filters.loosen': '条件だけ緩める',
   'filters.widenHint':
     '半径を +1 km、最低評価を -0.5（{{min}} 未満にはしません）。その後、もう一度<strong>待ち合わせ地点を検索</strong>を押してください。このボタン自体は検索しません。',
+  'filters.widenHintNearby':
+    '半径を +1 km、最低評価を -0.5（{{min}} 未満にはしません）。その後、もう一度<strong>近くのカフェを表示</strong>を押してください。このボタン自体は検索しません。',
 
   'map.loadError': 'Google マップを読み込めませんでした。APIキーを確認してください。',
   'map.loading': '地図を読み込み中…',

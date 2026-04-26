@@ -94,11 +94,16 @@ export const messages: MessageDict = {
   'filters.title': '可选筛选',
   'filters.lead':
     '默认面向<strong>咖啡会面</strong>。这些设置会在你<strong>下一次</strong>点击<strong>查找会面点</strong>时生效；仅修改设置不会自动搜索。',
+  'filters.leadNearby':
+    '这些设置会在你<strong>下一次</strong>点击<strong>显示附近的咖啡店</strong>时生效；仅修改设置不会自动搜索。',
   'filters.minRating': '最低评分',
   'filters.ratingDisplay': '{{value}} 星',
   'filters.radius': '以中点为中心的搜索半径',
+  'filters.radiusNearby': '搜索半径',
   'filters.radiusHelp':
     'Google 会以<strong>A 与 B 的中点</strong>为中心进行圆形搜索，而不是分别以两地为中心。卡片中的 A/B 距离是从各自地址计算，因此两人相距较远时，可能会大于该半径。',
+  'filters.radiusHelpNearby':
+    'Google 会以<strong>当前位置</strong>为中心进行圆形搜索；超出该半径的咖啡店不会出现在结果里。',
   'filters.placeType': '会面地点类型',
   'filters.placeTypeHint':
     '默认是咖啡馆；可切换为聚餐、小酌或住宿，搜索仍以两地中点为中心。',
@@ -107,6 +112,7 @@ export const messages: MessageDict = {
   'filters.placeLodging': '酒店 / 住宿',
   'filters.placeBar': '酒吧 / 餐吧',
   'filters.keywordCafe': '按店名筛选咖啡馆',
+  'filters.keywordOther': '按名称筛选',
   'filters.sortMode': '结果排序方式',
   'filters.sortRating': '评分（默认）',
   'filters.sortFairness': 'A/B 公平度',
@@ -115,12 +121,17 @@ export const messages: MessageDict = {
   'filters.openNowShort': '营业中',
   'filters.openNowHint': '隐藏已打烊或营业时间未知的店。',
   'filters.keywordPlaceholderCafe': '例如：espresso、brunch、手冲',
+  'filters.keywordPlaceholderOther': '例如：vegan、ramen、屋顶',
   'filters.keywordHintCafe':
     '可选。每个词都需在店名中出现（地图接口不支持自由文本搜索）。留空或填 coffee 表示不按名字筛选。',
+  'filters.keywordHintOther':
+    '可选。每个词都需在店名中出现（地图接口不支持自由文本搜索）。留空表示不按名字筛选。',
   'filters.widenIntro': '搜索结果太少？',
   'filters.loosen': '仅放宽筛选条件',
   'filters.widenHint':
     '搜索半径 +1 km，最低评分 -0.5（不低于 {{min}} 星）。之后请再次点击<strong>查找会面点</strong>；此按钮本身不会触发搜索。',
+  'filters.widenHintNearby':
+    '搜索半径 +1 km，最低评分 -0.5（不低于 {{min}} 星）。之后请再次点击<strong>显示附近的咖啡店</strong>；此按钮本身不会触发搜索。',
 
   'map.loadError': 'Google 地图加载失败，请检查 API Key。',
   'map.loading': '地图加载中…',
