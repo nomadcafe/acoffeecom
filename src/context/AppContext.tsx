@@ -747,7 +747,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           return next;
         });
       } catch (e) {
-        setError(e instanceof Error ? e.message : t('errors.generic'));
+        const raw = e instanceof Error ? e.message : '';
+        // places.ts throws this sentinel for DNS / connection failures so
+        // we can surface a clearer "check your VPN" message instead of the
+        // raw RPC error text.
+        if (raw === 'NETWORK_UNREACHABLE') {
+          setError(t('errors.network'));
+        } else {
+          setError(raw || t('errors.generic'));
+        }
       } finally {
         setIsLoading(false);
       }
@@ -813,7 +821,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           );
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : t('errors.generic'));
+        const raw = e instanceof Error ? e.message : '';
+        // places.ts throws this sentinel for DNS / connection failures so
+        // we can surface a clearer "check your VPN" message instead of the
+        // raw RPC error text.
+        if (raw === 'NETWORK_UNREACHABLE') {
+          setError(t('errors.network'));
+        } else {
+          setError(raw || t('errors.generic'));
+        }
       } finally {
         setIsLoading(false);
       }

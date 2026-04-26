@@ -362,6 +362,11 @@ export const messages: MessageDict = {
   'errors.bothAddresses': '请同时输入两个地址',
   'errors.mapNotLoaded': '地图尚未加载完成',
   'errors.generic': '发生错误',
+  'errors.network': '无法连接到 Google 地图，请检查网络或开启 VPN 后重试。',
+  'errors.networkTitle': '连不上 Google 服务',
+  'errors.networkBody': '地址建议和咖啡店搜索都需要访问 googleapis.com。如果你在屏蔽 Google 的网络下，请开 VPN 后再试。',
+  'errors.networkDismiss': '知道了',
+  'errors.networkDismissAria': '关闭网络提示',
   'errors.retry': '重试',
   'errors.dismiss': '关闭',
 };

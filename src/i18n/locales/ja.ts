@@ -370,6 +370,11 @@ export const messages: MessageDict = {
   'errors.bothAddresses': '両方の住所を入力してください',
   'errors.mapNotLoaded': '地図の読み込みがまだ終わっていません',
   'errors.generic': 'エラーが発生しました',
+  'errors.network': 'Google マップに接続できませんでした。ネットワークまたは VPN を確認してください。',
+  'errors.networkTitle': 'Google サービスに接続できません',
+  'errors.networkBody': '住所候補とカフェ検索は googleapis.com への接続が必要です。Google が利用できない地域にいる場合は VPN を有効にしてからお試しください。',
+  'errors.networkDismiss': 'はい',
+  'errors.networkDismissAria': 'ネットワーク警告を閉じる',
   'errors.retry': '再試行',
   'errors.dismiss': '閉じる',
 };

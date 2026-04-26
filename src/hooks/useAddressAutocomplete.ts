@@ -1,4 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
+import {
+  isLikelyNetworkError,
+  reportGoogleNetworkError,
+  reportGoogleNetworkOk,
+} from '../utils/networkStatus';
 
 type Suggestion = google.maps.places.AutocompleteSuggestion;
 
@@ -42,11 +47,13 @@ export function useAddressAutocomplete(language: string): UseAddressAutocomplete
         .then((res) => {
           if (myCallId !== callIdRef.current) return;
           setSuggestions(res.suggestions);
+          reportGoogleNetworkOk();
         })
         .catch((err) => {
           if (myCallId !== callIdRef.current) return;
           console.error('[autocomplete]', err);
           setSuggestions([]);
+          if (isLikelyNetworkError(err)) reportGoogleNetworkError();
         });
     },
     [language]

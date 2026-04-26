@@ -16,6 +16,7 @@ import { HeaderNavLinks } from './components/HeaderNavLinks';
 import { BottomSheet } from './components/BottomSheet';
 import { AppHero } from './components/AppHero';
 import { CoffeeNudge } from './components/CoffeeNudge';
+import { GoogleNetworkBanner } from './components/GoogleNetworkBanner';
 import { StreakReminder } from './components/StreakReminder';
 import { usePathname } from './hooks/usePathname';
 import { useInterceptInternalLinks } from './hooks/useInterceptInternalLinks';
@@ -133,6 +134,7 @@ function AppShell() {
 
       <AppHero />
 
+      <GoogleNetworkBanner />
       <CoffeeNudge />
       <StreakReminder />
 

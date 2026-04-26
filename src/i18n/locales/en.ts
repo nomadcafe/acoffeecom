@@ -375,6 +375,11 @@ export const messages: MessageDict = {
   'errors.bothAddresses': 'Please enter both addresses',
   'errors.mapNotLoaded': 'Map not loaded yet',
   'errors.generic': 'An error occurred',
+  'errors.network': "Couldn't reach Google Maps. Check your network or VPN and try again.",
+  'errors.networkTitle': "Can't reach Google services",
+  'errors.networkBody': 'Address suggestions and café search need a working connection to googleapis.com. If you’re in a region that blocks Google, turn on a VPN and try again.',
+  'errors.networkDismiss': 'Got it',
+  'errors.networkDismissAria': 'Dismiss network warning',
   'errors.retry': 'Try again',
   'errors.dismiss': 'Dismiss',
 };

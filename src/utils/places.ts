@@ -1,5 +1,10 @@
 import type { CoffeeShop, PlaceSearchCategory } from '../types';
 import { calculateDistance } from './midpoint';
+import {
+  isLikelyNetworkError,
+  reportGoogleNetworkError,
+  reportGoogleNetworkOk,
+} from './networkStatus';
 
 export const SEARCH_RADIUS_MIN_M = 400;
 export const SEARCH_RADIUS_MAX_M = 10_000;
@@ -175,8 +180,13 @@ export async function searchCoffeeShops(
       shops = shops.filter((s) => s.isOpen === true);
     }
 
+    reportGoogleNetworkOk();
     return { shops };
   } catch (e) {
+    if (isLikelyNetworkError(e)) {
+      reportGoogleNetworkError();
+      throw new Error('NETWORK_UNREACHABLE');
+    }
     const message = e instanceof Error ? e.message : String(e);
     throw new Error(
       `Places search failed: ${message}. Enable "Places API (New)" for this API key in Google Cloud Console.`
