@@ -235,7 +235,53 @@
 }
 
 .listSection .sectionTitle {
-  margin-bottom: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.timeFilterRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  margin-bottom: 0.85rem;
+  background: var(--ac-page-bg);
+  border-radius: 999px;
+  border: 1px solid var(--ac-border);
+}
+
+.timeFilterTab {
+  border: 0;
+  background: transparent;
+  color: var(--ac-text-muted);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  line-height: 1.2;
+}
+
+.timeFilterTab:hover:not(.timeFilterTabActive) {
+  background: rgba(111, 78, 55, 0.08);
+  color: var(--ac-text);
+}
+
+.timeFilterTabActive {
+  background: var(--ac-accent, #6f4e37);
+  color: #fff;
+  cursor: default;
+}
+
+.listEmpty {
+  margin: 0 0 0.85rem 0;
+  padding: 1rem;
+  text-align: center;
+  color: var(--ac-text-muted);
+  font-size: 0.88rem;
+  background: var(--ac-page-bg);
+  border-radius: 8px;
 }
 
 .list {

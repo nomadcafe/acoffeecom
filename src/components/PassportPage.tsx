@@ -30,6 +30,7 @@ export function PassportPage() {
   const [flashId, setFlashId] = useState<string | null>(null);
   const flashTimerRef = useRef<number | null>(null);
   const [cityFilter, setCityFilter] = useState<string | null>(null);
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week'>('all');
   const [expandedShopId, setExpandedShopId] = useState<string | null>(null);
 
   const handleTrajectoryMarkerClick = (shopId: string) => {
@@ -58,11 +59,30 @@ export function PassportPage() {
     [visitedShops],
   );
 
-  // City filter applies to the list only — stats/heatmap/trajectory still cover everything.
+  // List filters: city + time range. Stats/heatmap/trajectory keep showing
+  // the full lifetime picture so the filter UI doesn't change the headline
+  // numbers underneath the user.
   const filteredVisited = useMemo(() => {
-    if (!cityFilter) return sortedVisited;
-    return sortedVisited.filter((s) => (s.city && s.city.trim() ? s.city : null) === cityFilter);
-  }, [sortedVisited, cityFilter]);
+    let cutoff = -Infinity;
+    if (timeFilter === 'today' || timeFilter === 'week') {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      if (timeFilter === 'week') {
+        // Monday-start week, matching usePassportStats.
+        const daysSinceMon = (d.getDay() + 6) % 7;
+        d.setDate(d.getDate() - daysSinceMon);
+      }
+      cutoff = d.getTime();
+    }
+    return sortedVisited.filter((s) => {
+      if (cityFilter && (s.city && s.city.trim() ? s.city : null) !== cityFilter) return false;
+      if (cutoff !== -Infinity) {
+        const hasMatchingVisit = s.visits.some((ts) => ts >= cutoff);
+        if (!hasMatchingVisit) return false;
+      }
+      return true;
+    });
+  }, [sortedVisited, cityFilter, timeFilter]);
 
   const streakFires = streakFireEmoji(streak);
 
@@ -355,6 +375,36 @@ export function PassportPage() {
               <h2 className={styles.sectionTitle}>
                 {t('passport.listTitle', { count: filteredVisited.length })}
               </h2>
+              <div
+                className={styles.timeFilterRow}
+                role="tablist"
+                aria-label={t('passport.timeFilterAria')}
+              >
+                {(['all', 'today', 'week'] as const).map((kind) => {
+                  const active = timeFilter === kind;
+                  return (
+                    <button
+                      key={kind}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      className={`${styles.timeFilterTab}${active ? ' ' + styles.timeFilterTabActive : ''}`}
+                      onClick={() => setTimeFilter(kind)}
+                    >
+                      {t(
+                        kind === 'all'
+                          ? 'passport.timeAll'
+                          : kind === 'today'
+                            ? 'passport.timeToday'
+                            : 'passport.timeWeek',
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {filteredVisited.length === 0 ? (
+                <p className={styles.listEmpty}>{t('passport.listFilteredEmpty')}</p>
+              ) : null}
               <ul className={styles.list}>
                 {filteredVisited.map((snap) => {
                   const last = snap.visits[0];
