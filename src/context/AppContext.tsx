@@ -21,6 +21,7 @@ import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
 import {
   claimPassport,
   deleteVisitedShop,
+  pullVisited,
   pushVisitedShopWire,
   toWire as visitedToWire,
   type VisitedShopWire,
@@ -28,6 +29,7 @@ import {
 import {
   claimStarred,
   deleteStarredShop,
+  pullStarred,
   pushStarredShopWire,
   toWire as starredToWire,
   type StarredShopWire,
@@ -38,6 +40,7 @@ import {
   subscribeSize as subscribeQueueSize,
   type QueueEntry,
 } from '../utils/syncQueue';
+import { mergeRemoteStarred, mergeRemoteVisited } from '../utils/syncMerge';
 import type { StarredShopSnapshot, VisitedShopSnapshot } from '../types';
 import {
   searchCoffeeShops,
@@ -93,6 +96,9 @@ const AppContext = createContext<AppContextType | null>(null);
 const RECENT_SEARCHES_KEY = 'ACoffee-meetup-recent-searches';
 const ADDRESS_TEMPLATES_KEY = 'ACoffee-meetup-address-templates';
 const PLACE_CATEGORY_KEY = 'ACoffee-meetup-place-category';
+/** Scoped per user — cursor from one account makes no sense for another. */
+const PULL_CURSOR_KEY = (stream: 'visited' | 'starred', userId: string) =>
+  `ACoffee-meetup-pull-cursor-${stream}-${userId}`;
 
 function loadPlaceCategory(): PlaceSearchCategory {
   try {
@@ -305,6 +311,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const sessionUserId =
     authEnabled && !sessionLoading && session?.user?.id ? session.user.id : null;
   const lastSyncedRef = useRef<VisitedShopSnapshot[] | null>(null);
+  // Declared up front (paired with lastSyncedRef) so pullAndMerge below can
+  // see both without forward references.
+  const lastSyncedStarredRef = useRef<StarredShopSnapshot[] | null>(null);
 
   // Sync status: aggregates passport + starred sync activity. `inFlight` counts
   // concurrent ops; `idleTimer` clears the visible 'synced'/'error' badge after
@@ -388,6 +397,90 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [sessionUserId, beginSync, endSync, runMutation]);
 
+  // Cross-device pull: keep latest cursor + current state in refs so
+  // pullAndMerge doesn't need to depend on shifting visitedShops/starredShops
+  // (avoids re-binding visibility/online listeners on every state change).
+  const pullCursorVisitedRef = useRef<number>(0);
+  const pullCursorStarredRef = useRef<number>(0);
+  const pullInFlightRef = useRef<boolean>(false);
+  const visitedShopsRef = useRef(visitedShops);
+  visitedShopsRef.current = visitedShops;
+  const starredShopsRef = useRef(starredShops);
+  starredShopsRef.current = starredShops;
+
+  // Load cursors when a session attaches; clear when it detaches.
+  useEffect(() => {
+    if (!sessionUserId) {
+      pullCursorVisitedRef.current = 0;
+      pullCursorStarredRef.current = 0;
+      return;
+    }
+    try {
+      const v = Number(localStorage.getItem(PULL_CURSOR_KEY('visited', sessionUserId)));
+      const s = Number(localStorage.getItem(PULL_CURSOR_KEY('starred', sessionUserId)));
+      pullCursorVisitedRef.current = Number.isFinite(v) && v > 0 ? v : 0;
+      pullCursorStarredRef.current = Number.isFinite(s) && s > 0 ? s : 0;
+    } catch {
+      /* ignore */
+    }
+  }, [sessionUserId]);
+
+  /**
+   * Pull updates from other devices, merge into local state, advance cursor.
+   * Drains the queue first so our pending writes get to the server before we
+   * potentially overwrite local with the server's view. Single-flight per
+   * call — overlapping triggers (visibility + online firing close together)
+   * collapse to one network round trip.
+   */
+  const pullAndMerge = useCallback(async () => {
+    if (!sessionUserId) return;
+    if (pullInFlightRef.current) return;
+    pullInFlightRef.current = true;
+    beginSync();
+    try {
+      await drainQueue(runMutation);
+      const [vRes, sRes] = await Promise.all([
+        pullVisited(pullCursorVisitedRef.current),
+        pullStarred(pullCursorStarredRef.current),
+      ]);
+      if (vRes && vRes.shops.length > 0) {
+        const next = mergeRemoteVisited(visitedShopsRef.current, vRes.shops);
+        // Set the synced ref BEFORE state update so the diff effect sees no
+        // change and doesn't re-enqueue what we just received.
+        lastSyncedRef.current = next;
+        replaceVisited(next);
+      }
+      if (vRes) {
+        pullCursorVisitedRef.current = vRes.cursor;
+        try {
+          localStorage.setItem(PULL_CURSOR_KEY('visited', sessionUserId), String(vRes.cursor));
+        } catch {
+          /* ignore */
+        }
+      }
+      if (sRes && sRes.shops.length > 0) {
+        const next = mergeRemoteStarred(starredShopsRef.current, sRes.shops);
+        lastSyncedStarredRef.current = next;
+        replaceStarred(next);
+      }
+      if (sRes) {
+        pullCursorStarredRef.current = sRes.cursor;
+        try {
+          localStorage.setItem(PULL_CURSOR_KEY('starred', sessionUserId), String(sRes.cursor));
+        } catch {
+          /* ignore */
+        }
+      }
+      endSync(vRes != null && sRes != null);
+    } catch {
+      endSync(false);
+    } finally {
+      pullInFlightRef.current = false;
+    }
+    // lastSyncedStarredRef is declared further down; this callback captures
+    // them by reference at call time (refs, not state) so order is fine.
+  }, [sessionUserId, beginSync, endSync, runMutation, replaceVisited, replaceStarred]);
+
   useEffect(() => {
     if (!sessionUserId) {
       // Logged out / disabled — reset, do nothing else.
@@ -402,14 +495,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       beginSync();
       void (async () => {
         await drainQueue(runMutation);
-        const merged = await claimPassport(visitedShops);
+        const result = await claimPassport(visitedShops);
         if (cancelled) return;
-        if (merged == null) {
+        if (result == null) {
           endSync(false);
           return;
         }
-        lastSyncedRef.current = merged;
-        replaceVisited(merged);
+        lastSyncedRef.current = result.shops;
+        replaceVisited(result.shops);
+        // Cursor seeds the delta-pull so subsequent visibility changes only
+        // fetch what other devices added after this moment.
+        pullCursorVisitedRef.current = result.cursor;
+        try {
+          localStorage.setItem(PULL_CURSOR_KEY('visited', sessionUserId), String(result.cursor));
+        } catch {
+          /* ignore */
+        }
         endSync(true);
       })();
       return () => {
@@ -451,8 +552,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Parallel sync for starred shops. Same state machine as visited (claim once on
   // session change, then diff-push on local changes), but change detection looks at
   // membership + note instead of visit count.
-  const lastSyncedStarredRef = useRef<StarredShopSnapshot[] | null>(null);
-
   useEffect(() => {
     if (!sessionUserId) {
       lastSyncedStarredRef.current = null;
@@ -463,14 +562,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       beginSync();
       void (async () => {
         await drainQueue(runMutation);
-        const merged = await claimStarred(starredShops);
+        const result = await claimStarred(starredShops);
         if (cancelled) return;
-        if (merged == null) {
+        if (result == null) {
           endSync(false);
           return;
         }
-        lastSyncedStarredRef.current = merged;
-        replaceStarred(merged);
+        lastSyncedStarredRef.current = result.shops;
+        replaceStarred(result.shops);
+        pullCursorStarredRef.current = result.cursor;
+        try {
+          localStorage.setItem(PULL_CURSOR_KEY('starred', sessionUserId), String(result.cursor));
+        } catch {
+          /* ignore */
+        }
         endSync(true);
       })();
       return () => {
@@ -504,21 +609,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (pending > 0) void flushQueue();
   }, [starredShops, sessionUserId, replaceStarred, beginSync, endSync, runMutation, flushQueue]);
 
-  // Drain on connectivity / visibility changes so offline-queued mutations
-  // catch up automatically without the user having to do anything.
+  // Drain queue + pull cross-device updates on connectivity / visibility
+  // changes. pullAndMerge already drains internally, so we only need to call
+  // it (it's single-flight, so close-together visibility+online events
+  // collapse to one round trip).
   useEffect(() => {
     if (!sessionUserId) return;
     const onResume = () => {
-      if (document.visibilityState === 'visible') void flushQueue();
+      if (document.visibilityState === 'visible') void pullAndMerge();
     };
-    const onOnline = () => void flushQueue();
+    const onOnline = () => void pullAndMerge();
     window.addEventListener('online', onOnline);
     document.addEventListener('visibilitychange', onResume);
     return () => {
       window.removeEventListener('online', onOnline);
       document.removeEventListener('visibilitychange', onResume);
     };
-  }, [sessionUserId, flushQueue]);
+  }, [sessionUserId, pullAndMerge]);
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const coffeeShops = useMemo(

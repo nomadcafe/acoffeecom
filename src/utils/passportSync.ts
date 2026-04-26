@@ -42,9 +42,14 @@ export function fromWire(w: VisitedShopWire): VisitedShopSnapshot {
   };
 }
 
+export interface ClaimResult {
+  shops: VisitedShopSnapshot[];
+  cursor: number;
+}
+
 export async function claimPassport(
   shops: VisitedShopSnapshot[],
-): Promise<VisitedShopSnapshot[] | null> {
+): Promise<ClaimResult | null> {
   try {
     const res = await fetch('/api/passport/claim', {
       method: 'POST',
@@ -55,10 +60,31 @@ export async function claimPassport(
       console.error('passport claim failed:', res.status);
       return null;
     }
-    const json = (await res.json()) as { shops: VisitedShopWire[] };
-    return json.shops.map(fromWire);
+    const json = (await res.json()) as { shops: VisitedShopWire[]; cursor?: number };
+    return { shops: json.shops.map(fromWire), cursor: json.cursor ?? 0 };
   } catch (e) {
     console.error('passport claim error:', e);
+    return null;
+  }
+}
+
+export interface PullResult {
+  /** Includes tombstones (deleted=true) so the caller can prune local state. */
+  shops: VisitedShopWire[];
+  cursor: number;
+}
+
+export async function pullVisited(since: number): Promise<PullResult | null> {
+  try {
+    const res = await fetch(`/api/passport?since=${encodeURIComponent(since)}`);
+    if (!res.ok) {
+      console.error('passport pull failed:', res.status);
+      return null;
+    }
+    const json = (await res.json()) as { shops: VisitedShopWire[]; cursor?: number };
+    return { shops: json.shops, cursor: json.cursor ?? since };
+  } catch (e) {
+    console.error('passport pull error:', e);
     return null;
   }
 }

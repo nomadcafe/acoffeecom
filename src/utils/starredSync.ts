@@ -39,9 +39,14 @@ export function fromWire(w: StarredShopWire): StarredShopSnapshot {
   };
 }
 
+export interface ClaimResult {
+  shops: StarredShopSnapshot[];
+  cursor: number;
+}
+
 export async function claimStarred(
   shops: StarredShopSnapshot[],
-): Promise<StarredShopSnapshot[] | null> {
+): Promise<ClaimResult | null> {
   try {
     const res = await fetch('/api/starred/claim', {
       method: 'POST',
@@ -52,10 +57,30 @@ export async function claimStarred(
       console.error('starred claim failed:', res.status);
       return null;
     }
-    const json = (await res.json()) as { shops: StarredShopWire[] };
-    return json.shops.map(fromWire);
+    const json = (await res.json()) as { shops: StarredShopWire[]; cursor?: number };
+    return { shops: json.shops.map(fromWire), cursor: json.cursor ?? 0 };
   } catch (e) {
     console.error('starred claim error:', e);
+    return null;
+  }
+}
+
+export interface PullResult {
+  shops: StarredShopWire[];
+  cursor: number;
+}
+
+export async function pullStarred(since: number): Promise<PullResult | null> {
+  try {
+    const res = await fetch(`/api/starred?since=${encodeURIComponent(since)}`);
+    if (!res.ok) {
+      console.error('starred pull failed:', res.status);
+      return null;
+    }
+    const json = (await res.json()) as { shops: StarredShopWire[]; cursor?: number };
+    return { shops: json.shops, cursor: json.cursor ?? since };
+  } catch (e) {
+    console.error('starred pull error:', e);
     return null;
   }
 }

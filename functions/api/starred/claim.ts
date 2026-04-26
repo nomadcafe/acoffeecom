@@ -70,10 +70,16 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     }
   }
 
-  const all = await db
+  const allRows = await db
     .select()
     .from(starredShops)
-    .where(and(eq(starredShops.userId, user.id), eq(starredShops.deleted, false)));
+    .where(eq(starredShops.userId, user.id));
+  let cursor = 0;
+  for (const r of allRows) {
+    const ms = r.updatedAt instanceof Date ? r.updatedAt.getTime() : Number(r.updatedAt);
+    if (ms > cursor) cursor = ms;
+  }
 
-  return Response.json({ shops: all.map(rowToWire) });
+  const alive = allRows.filter((r) => !r.deleted);
+  return Response.json({ shops: alive.map(rowToWire), cursor });
 };

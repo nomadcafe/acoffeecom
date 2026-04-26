@@ -78,10 +78,18 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     }
   }
 
-  const all = await db
+  // Compute cursor over EVERY row (incl. tombstones) so the client's pull
+  // cursor starts past anything currently on the server.
+  const allRows = await db
     .select()
     .from(visitedShops)
-    .where(and(eq(visitedShops.userId, user.id), eq(visitedShops.deleted, false)));
+    .where(eq(visitedShops.userId, user.id));
+  let cursor = 0;
+  for (const r of allRows) {
+    const ms = r.updatedAt instanceof Date ? r.updatedAt.getTime() : Number(r.updatedAt);
+    if (ms > cursor) cursor = ms;
+  }
 
-  return Response.json({ shops: all.map(rowToWire) });
+  const alive = allRows.filter((r) => !r.deleted);
+  return Response.json({ shops: alive.map(rowToWire), cursor });
 };
