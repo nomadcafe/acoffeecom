@@ -12,11 +12,43 @@
   --ac-border-strong: #d6c7bb;
   --ac-accent: #6f4e37;
   --ac-accent-dark: #5a3f2d;
+  /* Secondary accent — muted sage. Used sparingly for "this is the moment
+     of commit" actions: search submit, booking submit. Brown stays for
+     navigation, info, default surfaces; sage signals "go forward / create"
+     so visitors don't have to read the label to spot the primary CTA. */
+  --ac-accent-2: #5e7a52;
+  --ac-accent-2-dark: #4c6342;
   --ac-text: #2c1810;
   --ac-text-muted: #6b5848;
   --ac-shadow-card: 0 1px 3px rgba(111, 78, 55, 0.06), 0 4px 16px rgba(111, 78, 55, 0.05);
   --ac-shadow-card-hover: 0 2px 6px rgba(111, 78, 55, 0.1), 0 8px 24px rgba(111, 78, 55, 0.08);
   --ac-shadow-pop: 0 12px 40px rgba(44, 24, 16, 0.14);
+
+  /* Spacing scale — pick from this instead of inventing a new value
+     in every component. Roughly 4/8/12/16/24/32/48px. */
+  --ac-space-1: 0.25rem;
+  --ac-space-2: 0.5rem;
+  --ac-space-3: 0.75rem;
+  --ac-space-4: 1rem;
+  --ac-space-5: 1.5rem;
+  --ac-space-6: 2rem;
+  --ac-space-7: 3rem;
+
+  /* Radii — sm for inputs, md for cards, lg for hero/overlay surfaces. */
+  --ac-radius-sm: 8px;
+  --ac-radius-md: 12px;
+  --ac-radius-lg: 16px;
+  --ac-radius-pill: 999px;
+
+  /* Motion — fast for state changes (hover, focus), base for layout
+     transitions (sheets, drawers). Curve mirrors Material's standard. */
+  --ac-motion-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ac-motion-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Focus rings — single source for keyboard a11y so every interactive
+     surface in the app feels the same when tabbed to. */
+  --ac-focus-ring: 0 0 0 3px rgba(111, 78, 55, 0.18);
+  --ac-focus-ring-2: 0 0 0 3px rgba(94, 122, 82, 0.22);
 
   /* Display font (serif, loaded from Google Fonts in index.html) for headline
      surfaces: brand wordmark, hero title, page titles. Body/UI stays system sans. */

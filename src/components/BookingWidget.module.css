@@ -208,19 +208,26 @@
 .submit {
   flex: 1;
   padding: 0.7rem 1rem;
-  border-radius: 999px;
+  border-radius: var(--ac-radius-pill);
   border: 0;
-  background: var(--ac-accent, #a36b3e);
+  /* Sage = "this is the moment of commit" — same visual cue as the search
+     submit button on the home page. */
+  background: var(--ac-accent-2, #5e7a52);
   color: #fff;
   font-size: 0.95rem;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--ac-motion-fast);
+}
+
+.submit:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring-2);
 }
 
 .submit:hover:not(:disabled) {
-  background: #8c5a31;
+  background: var(--ac-accent-2-dark, #4c6342);
 }
 
 .submit:disabled {

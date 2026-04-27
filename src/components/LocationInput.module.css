@@ -182,21 +182,28 @@
 .button {
   width: 100%;
   padding: 0.95rem 1rem;
-  background: var(--ac-accent);
+  /* Sage accent — search submit is the primary "create result" moment in
+     the app. Brown is reserved for navigation / secondary surfaces. */
+  background: var(--ac-accent-2);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--ac-radius-sm);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s ease;
+  transition: background var(--ac-motion-base), transform var(--ac-motion-fast);
   margin-top: 0.5rem;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring-2);
 }
 
 @media (hover: hover) {
   .button:hover:not(:disabled) {
-    background: var(--ac-accent-dark);
+    background: var(--ac-accent-2-dark);
     transform: translateY(-1px);
   }
 }
