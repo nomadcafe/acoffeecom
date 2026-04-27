@@ -38,6 +38,7 @@ export function createAuth(env: AuthEnv) {
         socialLinks: { type: 'string', required: false, defaultValue: '[]' },
         homeBaseAddress: { type: 'string', required: false },
         availabilitySlots: { type: 'string', required: false, defaultValue: '{}' },
+        timezone: { type: 'string', required: false, defaultValue: 'UTC' },
       },
     },
     session: {

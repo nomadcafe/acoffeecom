@@ -78,6 +78,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       displayName: user.displayName,
       homeBaseAddress: user.homeBaseAddress,
       availabilitySlots: user.availabilitySlots,
+      timezone: user.timezone,
       profilePublic: user.profilePublic,
     })
     .from(user)
@@ -88,7 +89,8 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   }
 
   const availability = parseAvailability(organizer.availabilitySlots);
-  if (!isSlotInAvailability(slotMs, duration, availability)) {
+  const tz = organizer.timezone || 'UTC';
+  if (!isSlotInAvailability(slotMs, duration, availability, tz)) {
     return jsonError('That slot is outside the host\'s available hours', 400);
   }
 

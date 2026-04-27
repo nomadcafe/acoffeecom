@@ -31,6 +31,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
       id: user.id,
       homeBaseAddress: user.homeBaseAddress,
       availabilitySlots: user.availabilitySlots,
+      timezone: user.timezone,
     })
     .from(user)
     .where(and(eq(user.username, username), eq(user.profilePublic, true)));
@@ -40,11 +41,12 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
   }
 
   const availability = parseAvailability(organizer.availabilitySlots);
+  const tz = organizer.timezone || 'UTC';
   // No enabled days → return empty slots without hitting the bookings table.
   const anyEnabled = Object.values(availability).some((s) => s?.enabled);
   if (!anyEnabled) {
     return Response.json(
-      { durationMinutes: DEFAULT_DURATION_MIN, slots: [] },
+      { durationMinutes: DEFAULT_DURATION_MIN, timezone: tz, slots: [] },
       { headers: { 'cache-control': 'public, max-age=60' } },
     );
   }
@@ -74,10 +76,11 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
     granularityMin: SLOT_GRANULARITY_MIN,
     now,
     daysAhead: DAYS_AHEAD,
+    timezone: tz,
   });
 
   return Response.json(
-    { durationMinutes: DEFAULT_DURATION_MIN, slots },
+    { durationMinutes: DEFAULT_DURATION_MIN, timezone: tz, slots },
     {
       // Short cache — bookings change as new ones come in. 60s is the
       // sweet spot between visitor staleness and DB load on a popular

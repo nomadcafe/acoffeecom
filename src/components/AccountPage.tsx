@@ -1282,6 +1282,15 @@ function BookingSetupCard({ initialAddress, initialAvailability }: BookingSetupP
     // shape on the server. Empty object = "no availability".
     const payload: Record<Weekday, DaySlot> = {} as Record<Weekday, DaySlot>;
     for (const d of WEEKDAYS) payload[d] = days[d];
+    // Capture the browser's IANA tz so the server can interpret
+    // "Mon 14:00-17:00" as 2-5pm in the organizer's actual hometown
+    // rather than UTC wall-clock.
+    let tz = 'UTC';
+    try {
+      tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      /* fall back to UTC */
+    }
     try {
       const res = await fetch('/api/account', {
         method: 'PATCH',
@@ -1289,6 +1298,7 @@ function BookingSetupCard({ initialAddress, initialAvailability }: BookingSetupP
         body: JSON.stringify({
           homeBaseAddress: address.trim() ? address.trim() : null,
           availabilitySlots: payload,
+          timezone: tz,
         }),
       });
       if (!res.ok) {

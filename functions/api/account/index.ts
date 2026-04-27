@@ -75,6 +75,10 @@ const PatchSchema = z.object({
   socialLinks: z.array(SocialLinkSchema).max(5).optional(),
   homeBaseAddress: z.string().trim().max(200).nullable().optional(),
   availabilitySlots: AvailabilitySchema.optional(),
+  /* IANA tz captured from the organizer's browser when they save
+   * availability. Length cap is generous; longest realistic IANA name is
+   * about 30 chars (`America/Argentina/Buenos_Aires`). */
+  timezone: z.string().trim().min(1).max(64).optional(),
 });
 
 /** Patch toggles + bio fields for the user account. profilePublic /
@@ -119,6 +123,9 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
   }
   if (input.availabilitySlots !== undefined) {
     patch.availabilitySlots = JSON.stringify(input.availabilitySlots);
+  }
+  if (input.timezone !== undefined) {
+    patch.timezone = input.timezone;
   }
 
   if (Object.keys(patch).length > 1) {

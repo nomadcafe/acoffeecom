@@ -35,6 +35,12 @@ export const user = sqliteTable('user', {
    * stale lat/lng if the user moves. */
   homeBaseAddress: text('home_base_address'),
   availabilitySlots: text('availability_slots').notNull().default('{}'),
+  /* IANA tz like 'Asia/Tokyo' / 'America/New_York'. Captured from the
+   * browser when the organizer saves availability. The booking flow
+   * interprets availability HH:MM as wall-clock in *this* timezone — so
+   * "Mon 14:00-17:00" means 2-5pm in the organizer's hometown, no matter
+   * where the visitor is browsing from. */
+  timezone: text('timezone').notNull().default('UTC'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });
