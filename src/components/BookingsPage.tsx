@@ -41,11 +41,31 @@ export function BookingsPage() {
   const { data: session, isPending } = useSession();
   const homeHref = buildLocalizedPathname('/', locale);
 
-  const sessionUser = session?.user as { email?: string } | undefined;
+  const sessionUser = session?.user as
+    | { email?: string; timezone?: string | null }
+    | undefined;
   const signedIn = !!sessionUser?.email;
 
+  // Two timezones the organizer might want to read times in: their home
+  // base (saved when they configured availability — also the zone the
+  // visitor sees in their confirmation email) and wherever they currently
+  // are. Default to home so it matches what the visitor sees; let them
+  // flip to local while travelling.
+  const homeTz = sessionUser?.timezone || 'UTC';
+  const localTz = (() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  })();
+  const tzMatches = homeTz === localTz;
+  const [tzMode, setTzMode] = useState<'home' | 'local'>('home');
+  const effectiveTz = tzMode === 'home' ? homeTz : localTz;
+
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<BookingWire | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -103,21 +123,22 @@ export function BookingsPage() {
   }
 
   // ----- Signed in: render list -----
-  const handleCancel = async (id: string) => {
-    if (!window.confirm(t('bookings.confirmCancel'))) return;
-    setCancellingId(id);
+  const confirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
     setCancelError(null);
     try {
-      const r = await fetch(`/api/bookings/${encodeURIComponent(id)}`, {
+      const r = await fetch(`/api/bookings/${encodeURIComponent(cancelTarget.id)}`, {
         method: 'DELETE',
         credentials: 'include',
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      setCancelTarget(null);
       await refresh();
     } catch {
       setCancelError(t('bookings.cancelFailed'));
     } finally {
-      setCancellingId(null);
+      setCancelling(false);
     }
   };
 
@@ -129,6 +150,30 @@ export function BookingsPage() {
           <h1 className={accountStyles.pageTitle}>{t('bookings.title')}</h1>
           <p className={accountStyles.lead}>{t('bookings.lead')}</p>
         </div>
+
+        {!tzMatches ? (
+          <p className={styles.tzBar}>
+            <span className={styles.tzLabel}>{t('bookings.tzShowing')}</span>
+            <span className={styles.tzGroup} role="group" aria-label={t('bookings.tzShowing')}>
+              <button
+                type="button"
+                className={`${styles.tzOption} ${tzMode === 'home' ? styles.tzOptionSelected : ''}`}
+                onClick={() => setTzMode('home')}
+                aria-pressed={tzMode === 'home'}
+              >
+                {t('bookings.tzHome', { zone: homeTz })}
+              </button>
+              <button
+                type="button"
+                className={`${styles.tzOption} ${tzMode === 'local' ? styles.tzOptionSelected : ''}`}
+                onClick={() => setTzMode('local')}
+                aria-pressed={tzMode === 'local'}
+              >
+                {t('bookings.tzLocal', { zone: localTz })}
+              </button>
+            </span>
+          </p>
+        ) : null}
 
         {state.kind === 'loading' ? (
           <section className={accountStyles.card} aria-busy="true">
@@ -142,14 +187,112 @@ export function BookingsPage() {
         ) : (
           <BookingsList
             rows={state.bookings}
-            onCancel={handleCancel}
-            cancellingId={cancellingId}
+            onCancelClick={setCancelTarget}
+            cancellingId={cancelling ? cancelTarget?.id ?? null : null}
             cancelError={cancelError}
             locale={locale}
+            timezone={effectiveTz}
             t={t}
           />
         )}
       </main>
+
+      {cancelTarget ? (
+        <CancelConfirmModal
+          target={cancelTarget}
+          locale={locale}
+          timezone={effectiveTz}
+          busy={cancelling}
+          onClose={() => {
+            if (!cancelling) {
+              setCancelTarget(null);
+              setCancelError(null);
+            }
+          }}
+          onConfirm={() => void confirmCancel()}
+          t={t}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+interface CancelModalProps {
+  target: BookingWire;
+  locale: string;
+  timezone: string;
+  busy: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  t: ReturnType<typeof useI18n>['t'];
+}
+
+function CancelConfirmModal({
+  target,
+  locale,
+  timezone,
+  busy,
+  onClose,
+  onConfirm,
+  t,
+}: CancelModalProps) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const start = new Date(target.scheduledAt);
+  const when = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: timezone,
+  }).format(start);
+
+  return (
+    <div
+      className={styles.modalOverlay}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cancel-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className={styles.modalDialog}>
+        <h3 id="cancel-modal-title" className={styles.modalTitle}>
+          {t('bookings.cancelModalTitle')}
+        </h3>
+        <p className={styles.modalBody}>{t('bookings.confirmCancel')}</p>
+        <div className={styles.modalSummary}>
+          <strong>{target.visitorName}</strong> · {when}
+          <br />
+          {target.placeName}
+        </div>
+        <div className={styles.modalActions}>
+          <button
+            type="button"
+            className={styles.modalKeep}
+            onClick={onClose}
+            disabled={busy}
+          >
+            {t('bookings.cancelModalKeep')}
+          </button>
+          <button
+            type="button"
+            className={styles.modalConfirm}
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? t('bookings.cancelling') : t('bookings.cancelModalConfirm')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -179,14 +322,23 @@ function PageHeader({ homeHref }: { homeHref: string }) {
 
 interface ListProps {
   rows: BookingWire[];
-  onCancel: (id: string) => void;
+  onCancelClick: (row: BookingWire) => void;
   cancellingId: string | null;
   cancelError: string | null;
   locale: string;
+  timezone: string;
   t: ReturnType<typeof useI18n>['t'];
 }
 
-function BookingsList({ rows, onCancel, cancellingId, cancelError, locale, t }: ListProps) {
+function BookingsList({
+  rows,
+  onCancelClick,
+  cancellingId,
+  cancelError,
+  locale,
+  timezone,
+  t,
+}: ListProps) {
   // The "is this in the past?" cut is a render-time check; if the user leaves
   // the page open across a slot start the row will still appear under
   // "Upcoming" until the next data refresh, which is fine for our purposes.
@@ -227,10 +379,11 @@ function BookingsList({ rows, onCancel, cancellingId, cancelError, locale, t }: 
                 key={row.id}
                 row={row}
                 locale={locale}
+                timezone={timezone}
                 t={t}
                 cancellable
                 cancelling={cancellingId === row.id}
-                onCancel={() => onCancel(row.id)}
+                onCancel={() => onCancelClick(row)}
               />
             ))}
           </ul>
@@ -242,7 +395,7 @@ function BookingsList({ rows, onCancel, cancellingId, cancelError, locale, t }: 
           <h2 className={styles.sectionTitle}>{t('bookings.pastTitle')}</h2>
           <ul className={styles.list}>
             {archived.map((row) => (
-              <BookingRow key={row.id} row={row} locale={locale} t={t} />
+              <BookingRow key={row.id} row={row} locale={locale} timezone={timezone} t={t} />
             ))}
           </ul>
         </section>
@@ -254,13 +407,22 @@ function BookingsList({ rows, onCancel, cancellingId, cancelError, locale, t }: 
 interface RowProps {
   row: BookingWire;
   locale: string;
+  timezone: string;
   t: ReturnType<typeof useI18n>['t'];
   cancellable?: boolean;
   cancelling?: boolean;
   onCancel?: () => void;
 }
 
-function BookingRow({ row, locale, t, cancellable, cancelling, onCancel }: RowProps) {
+function BookingRow({
+  row,
+  locale,
+  timezone,
+  t,
+  cancellable,
+  cancelling,
+  onCancel,
+}: RowProps) {
   // Same trade-off as BookingsList — past/future status is recomputed each
   // render; tab left open across a slot start gets the styling on the next
   // refresh.
@@ -272,16 +434,35 @@ function BookingRow({ row, locale, t, cancellable, cancelling, onCancel }: RowPr
     .join(' ');
   const start = new Date(row.scheduledAt);
   const end = new Date(row.scheduledAt + row.durationMinutes * 60_000);
+  // Year only when not the current year — keeps the line tight for the
+  // common case but stays unambiguous near year boundaries / long-tail
+  // bookings. Resolve current year in the configured TZ so it matches the
+  // visible date.
+  const startYearInTz = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(start),
+  );
+  const nowYearInTz = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(new Date()),
+  );
   const dateLine = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
-    year: start.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
+    year: startYearInTz === nowYearInTz ? undefined : 'numeric',
+    timeZone: timezone,
   }).format(start);
   const timeLine =
-    new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(start) +
+    new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: timezone,
+    }).format(start) +
     ' – ' +
-    new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(end);
+    new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: timezone,
+    }).format(end);
   const mapsHref =
     row.placeId
       ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(row.placeId)}`

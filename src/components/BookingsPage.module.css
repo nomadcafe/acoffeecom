@@ -139,3 +139,145 @@
     align-items: flex-start;
   }
 }
+
+/* ---------- TZ toggle ---------- */
+.tzBar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--ac-text-muted);
+  margin: 0 0 0.85rem;
+}
+
+.tzLabel {
+  font-weight: 500;
+}
+
+.tzGroup {
+  display: inline-flex;
+  border: 1px solid var(--ac-border, #ece4db);
+  border-radius: var(--ac-radius-pill, 999px);
+  background: #fff;
+  padding: 2px;
+}
+
+.tzOption {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0.25rem 0.65rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ac-text-muted);
+  cursor: pointer;
+  border-radius: var(--ac-radius-pill, 999px);
+  transition: background var(--ac-motion-fast, 120ms), color var(--ac-motion-fast, 120ms);
+}
+
+.tzOption:hover:not(:disabled) {
+  color: var(--ac-text);
+}
+
+.tzOptionSelected {
+  background: var(--ac-text, #2c1810);
+  color: #fff;
+}
+
+.tzOptionSelected:hover {
+  color: #fff;
+}
+
+/* ---------- cancel confirmation modal ---------- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(20, 16, 13, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modalDialog {
+  width: 100%;
+  max-width: 420px;
+  background: var(--ac-surface, #fff);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  padding: 1.2rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ac-text, #2c1810);
+}
+
+.modalBody {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ac-text-muted, #6b5848);
+}
+
+.modalSummary {
+  background: #faf6f1;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--ac-text, #2c1810);
+  line-height: 1.45;
+}
+
+.modalSummary strong {
+  font-weight: 600;
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.modalKeep {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--ac-border, #ece4db);
+  background: #fff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--ac-text, #2c1810);
+  font-family: inherit;
+}
+
+.modalConfirm {
+  padding: 0.55rem 1rem;
+  border: 0;
+  background: #8b3d28;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.modalConfirm:hover:not(:disabled) {
+  background: #71301f;
+}
+
+.modalConfirm:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

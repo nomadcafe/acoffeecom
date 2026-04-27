@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { track } from '../utils/analytics';
 import styles from './BookingWidget.module.css';
@@ -64,30 +64,40 @@ export function BookingWidget({ username, displayName }: Props) {
   const [visitorAddress, setVisitorAddress] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Loader is reusable so the 409 handler below can refresh availability
+  // when a slot gets snatched between the visitor's load and submit. Adds
+  // a `bypassCache` cache-buster so the SW / CDN doesn't keep handing back
+  // the stale slot list right after a booking just took it.
+  const loadAvailability = useCallback(
+    async (bypassCache = false) => {
+      const url =
+        `/api/profile/${encodeURIComponent(username)}/availability` +
+        (bypassCache ? `?_=${Date.now()}` : '');
+      const r = await fetch(url, { cache: bypassCache ? 'no-store' : 'default' });
+      if (r.status === 404) {
+        setState({ kind: 'unavailable' });
+        return;
+      }
+      if (!r.ok) {
+        setState({ kind: 'error' });
+        return;
+      }
+      const json = (await r.json()) as AvailabilityWire;
+      setData(json);
+      if (json.slots.length === 0) {
+        setState({ kind: 'unavailable' });
+        return;
+      }
+      setState({ kind: 'picking' });
+    },
+    [username],
+  );
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch(`/api/profile/${encodeURIComponent(username)}/availability`);
-        if (cancelled) return;
-        if (r.status === 404) {
-          // Host hasn't enabled bookings — show the friendly placeholder.
-          setState({ kind: 'unavailable' });
-          return;
-        }
-        if (!r.ok) {
-          setState({ kind: 'error' });
-          return;
-        }
-        const json = (await r.json()) as AvailabilityWire;
-        setData(json);
-        if (json.slots.length === 0) {
-          // Profile is set up but no slots in the next 14d — same UX as
-          // unavailable; we just show the "no time slots right now" line.
-          setState({ kind: 'unavailable' });
-          return;
-        }
-        setState({ kind: 'picking' });
+        await loadAvailability();
       } catch {
         if (!cancelled) setState({ kind: 'error' });
       }
@@ -95,7 +105,7 @@ export function BookingWidget({ username, displayName }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [username]);
+  }, [loadAvailability]);
 
   // Group slots by viewer-local YYYY-MM-DD. Visitors think about their day
   // in their own TZ — "is there anything on Tuesday?" — not the host's.
@@ -156,6 +166,22 @@ export function BookingWidget({ username, displayName }: Props) {
         error?: string;
       };
       if (!r.ok || !json.booking || !json.cafe) {
+        // 409 means another visitor grabbed the slot in the gap between this
+        // visitor seeing it and pressing submit. Refresh availability so the
+        // taken slot disappears, drop the now-invalid selection, and surface
+        // a clearer message than the generic "submit failed".
+        if (r.status === 409) {
+          setSelectedSlotMs(null);
+          setSubmitError(t('bookingWidget.slotTaken'));
+          setState({ kind: 'picking' });
+          try {
+            await loadAvailability(true);
+          } catch {
+            // Refresh failure is fine — the user still sees the error and
+            // the existing (slightly stale) list to retry from.
+          }
+          return;
+        }
         setSubmitError(json.error ?? t('bookingWidget.submitFailed'));
         setState({ kind: 'picking' });
         return;
