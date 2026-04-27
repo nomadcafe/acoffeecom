@@ -11,6 +11,12 @@ export interface AuthEnv extends DbEnv {
   RESEND_FROM_EMAIL: string;
   /** Shared secret for the /api/cron/* endpoints. Set in CF dashboard. */
   CRON_SECRET?: string;
+  /** Server-side Google Maps key — used for geocoding + Places searches
+   *  triggered by booking flow. Can match VITE_GOOGLE_MAPS_API_KEY in dev,
+   *  but production should use a separate key restricted by application
+   *  (Pages function origin) so a leak of the client key doesn't grant
+   *  server-side quota. */
+  GOOGLE_MAPS_SERVER_KEY?: string;
 }
 
 export function createAuth(env: AuthEnv) {
