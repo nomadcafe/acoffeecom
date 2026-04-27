@@ -36,6 +36,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  /* Background is set inline via avatarGradient(email). The fallback here
+     covers the brief moment before React has hydrated the inline style. */
   background: var(--ac-accent);
   color: #fff;
   border: none;
@@ -44,6 +46,9 @@
   cursor: pointer;
   text-transform: uppercase;
   transition: opacity 0.15s ease;
+  /* Same legibility insurance as the big profile avatar — keeps the
+     letter readable when the gradient lands on a light hue. */
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 @media (hover: hover) {

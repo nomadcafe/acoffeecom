@@ -8,6 +8,7 @@ import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SocialIcon } from './SocialIcon';
 import { SyncIndicator } from './SyncIndicator';
+import { avatarGradient } from '../utils/avatarGradient';
 import { identifyBrand } from '../utils/socialBrand';
 import styles from './PublicProfilePage.module.css';
 
@@ -153,7 +154,13 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
   return (
     <>
       <section className={styles.heroCard} aria-label={t('profile.heroAria')}>
-        <div className={styles.avatar} aria-hidden>{initialChar}</div>
+        <div
+          className={styles.avatar}
+          aria-hidden
+          style={{ background: avatarGradient(profile.username) }}
+        >
+          {initialChar}
+        </div>
         {profile.displayName ? (
           <h1 className={styles.handle}>{profile.displayName}</h1>
         ) : null}

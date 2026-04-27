@@ -69,6 +69,8 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
+  /* Background is set inline via avatarGradient(username) — leaves a flat
+     fallback for the loading skeleton that overrides this rule. */
   background: var(--ac-accent, #6f4e37);
   color: #fff;
   font-family: var(--ac-font-display);
@@ -78,6 +80,9 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  /* Subtle drop so the initial stays legible across the lighter half of
+     any hue-randomized gradient. */
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
 }
 
 .handle {

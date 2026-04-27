@@ -3,6 +3,7 @@ import { useI18n } from '../context/I18nContext';
 import { authClient, useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { ACCOUNT_PATH, BOOKINGS_PATH } from '../routes';
+import { avatarGradient } from '../utils/avatarGradient';
 import { SavePassportToast } from './SavePassportToast';
 import styles from './AccountMenu.module.css';
 
@@ -79,6 +80,7 @@ export function AccountMenu() {
       <button
         type="button"
         className={styles.avatarButton}
+        style={{ background: avatarGradient(email) }}
         onClick={() => setDropdownOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={dropdownOpen}
