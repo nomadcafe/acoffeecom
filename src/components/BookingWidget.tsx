@@ -17,13 +17,19 @@ interface AvailabilityWire {
 }
 
 interface BookingResponse {
-  booking: { id: string; scheduledAt: number; durationMinutes: number };
+  booking: {
+    id: string;
+    scheduledAt: number;
+    durationMinutes: number;
+    status?: 'unconfirmed' | 'pending';
+  };
   cafe: {
     placeId: string;
     name: string;
     address: string;
     googleMapsUri?: string | null;
   };
+  pendingEmailConfirmation?: boolean;
 }
 
 type FlowState =
@@ -234,13 +240,25 @@ export function BookingWidget({ username, displayName }: Props) {
     const mapsHref = r.cafe.googleMapsUri
       ? r.cafe.googleMapsUri
       : `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(r.cafe.placeId)}`;
+    // Until the visitor clicks the email confirm link, the booking is
+    // unconfirmed and the host hasn't been told. The success state
+    // should reflect this — show the auto-picked café (the moat) but
+    // nudge the visitor to check their email instead of saying
+    // "you're on the calendar".
+    const pendingConfirm = r.pendingEmailConfirmation || r.booking.status === 'unconfirmed';
     return (
       <section className={styles.section}>
         <div className={styles.success}>
           <div className={styles.successEmoji} aria-hidden>☕</div>
-          <h2 className={styles.successTitle}>{t('bookingWidget.successTitle')}</h2>
+          <h2 className={styles.successTitle}>
+            {pendingConfirm
+              ? t('bookingWidget.checkEmailTitle')
+              : t('bookingWidget.successTitle')}
+          </h2>
           <p className={styles.successBody}>
-            {t('bookingWidget.successBody', { handle, when: startStr })}
+            {pendingConfirm
+              ? t('bookingWidget.checkEmailBody', { handle, when: startStr, email: visitorEmail })
+              : t('bookingWidget.successBody', { handle, when: startStr })}
           </p>
           <div className={styles.successCafe}>
             <p className={styles.successCafeName}>{r.cafe.name}</p>
@@ -254,7 +272,11 @@ export function BookingWidget({ username, displayName }: Props) {
               {t('bookingWidget.openInMaps')} →
             </a>
           </div>
-          <p className={styles.successBody}>{t('bookingWidget.successFollowUp')}</p>
+          <p className={styles.successBody}>
+            {pendingConfirm
+              ? t('bookingWidget.checkEmailFollowUp')
+              : t('bookingWidget.successFollowUp')}
+          </p>
         </div>
       </section>
     );

@@ -25,6 +25,7 @@ import { isUpdatesPath } from './i18n/changelog';
 import {
   isAccountPath,
   isBookingCancelPath,
+  isBookingConfirmPath,
   isBookingsPath,
   isPassportPath,
   matchProfileUsername,
@@ -74,6 +75,11 @@ const BookingsPage = lazy(() =>
 const CancelBookingPage = lazy(() =>
   reloadOnChunkError(
     import('./components/CancelBookingPage').then((m) => ({ default: m.CancelBookingPage })),
+  ),
+);
+const ConfirmBookingPage = lazy(() =>
+  reloadOnChunkError(
+    import('./components/ConfirmBookingPage').then((m) => ({ default: m.ConfirmBookingPage })),
   ),
 );
 const PublicProfilePage = lazy(() =>
@@ -231,6 +237,12 @@ function AppRoute() {
     body = (
       <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
         <CancelBookingPage />
+      </Suspense>
+    );
+  } else if (isBookingConfirmPath(logicalPath)) {
+    body = (
+      <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+        <ConfirmBookingPage />
       </Suspense>
     );
   } else if (matchProfileUsername(logicalPath) != null) {

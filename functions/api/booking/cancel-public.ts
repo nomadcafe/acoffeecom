@@ -78,11 +78,22 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return Response.json(resp);
   }
 
+  // Cancelling an unconfirmed (visitor never clicked confirm) doesn't
+  // notify the organizer — they were never told about this booking in
+  // the first place. Just flip status, return ok.
+  const wasUnconfirmed = row.status === 'unconfirmed';
   await db.update(bookings).set({ status: 'cancelled' }).where(eq(bookings.id, input.id));
 
   // Notify organizer when there's still time on the calendar — past
   // bookings get the silent treatment same as the organizer-side cancel.
-  if (startMs > Date.now() && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && organizer?.email) {
+  // Skip when the row was unconfirmed (organizer never knew it existed).
+  if (
+    !wasUnconfirmed &&
+    startMs > Date.now() &&
+    env.RESEND_API_KEY &&
+    env.RESEND_FROM_EMAIL &&
+    organizer?.email
+  ) {
     const startStr = formatTimePair(
       startMs,
       { tz: organizer.timezone || 'UTC', label: 'host' },

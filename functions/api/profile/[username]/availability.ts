@@ -1,4 +1,4 @@
-import { and, eq, gte } from 'drizzle-orm';
+import { and, eq, gte, inArray } from 'drizzle-orm';
 import type { AuthEnv } from '../../../_lib/auth';
 import { getDb } from '../../../_lib/db';
 import { bookings, user } from '../../../_lib/db/schema';
@@ -62,7 +62,12 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
     .where(
       and(
         eq(bookings.organizerUserId, organizer.id),
-        eq(bookings.status, 'pending'),
+        // Both unconfirmed and pending hold the slot. An unconfirmed
+        // booking older than the visitor confirmation window won't
+        // exist in practice (visitor either clicks or it sits — at
+        // current scale we don't sweep), but if it does the slot still
+        // shouldn't be offered while it's an outstanding hold.
+        inArray(bookings.status, ['unconfirmed', 'pending']),
         gte(bookings.scheduledAt, now),
       ),
     );

@@ -28,22 +28,43 @@ async function sign(secret: string, payload: string): Promise<string> {
   return base64url(new Uint8Array(sig));
 }
 
+async function constantTimeEqual(a: string, b: string): Promise<boolean> {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 export async function makeCancelToken(secret: string, bookingId: string): Promise<string> {
   return sign(secret, `cancel:${bookingId}`);
 }
 
-/** Constant-time compare via XOR-of-codepoints — same length is also enforced. */
 export async function verifyCancelToken(
   secret: string,
   bookingId: string,
   token: string,
 ): Promise<boolean> {
   if (typeof token !== 'string' || token.length === 0) return false;
-  const expected = await makeCancelToken(secret, bookingId);
-  if (expected.length !== token.length) return false;
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) {
-    diff |= expected.charCodeAt(i) ^ token.charCodeAt(i);
-  }
-  return diff === 0;
+  return constantTimeEqual(await makeCancelToken(secret, bookingId), token);
+}
+
+/**
+ * Confirm tokens use a different payload prefix from cancel tokens so a
+ * leaked link from one channel can't be used for the other. Visitor
+ * confirmation emails embed the confirm token; the post-confirm
+ * notification email embeds the cancel token.
+ */
+export async function makeConfirmToken(secret: string, bookingId: string): Promise<string> {
+  return sign(secret, `confirm:${bookingId}`);
+}
+
+export async function verifyConfirmToken(
+  secret: string,
+  bookingId: string,
+  token: string,
+): Promise<boolean> {
+  if (typeof token !== 'string' || token.length === 0) return false;
+  return constantTimeEqual(await makeConfirmToken(secret, bookingId), token);
 }

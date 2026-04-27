@@ -26,6 +26,13 @@ export function isBookingCancelPath(logicalPath: string): boolean {
   return logicalPath === BOOKING_CANCEL_PATH;
 }
 
+/** Visitor-side double-opt-in confirmation link. */
+export const BOOKING_CONFIRM_PATH = '/booking/confirm';
+
+export function isBookingConfirmPath(logicalPath: string): boolean {
+  return logicalPath === BOOKING_CONFIRM_PATH;
+}
+
 /** Same shape the server enforces in functions/_lib/username.ts.
  *  Anything matching this AND not already a known route is a profile slug. */
 const USERNAME_PATH_REGEX = /^\/([a-z][a-z0-9_-]{2,29})$/;

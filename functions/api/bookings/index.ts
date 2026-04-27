@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { bookings } from '../../_lib/db/schema';
@@ -15,10 +15,19 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
   if (!ctx) return jsonError('Unauthorized', 401);
 
   const db = getDb(env);
+  // Hide unconfirmed bookings from the organizer — those are between the
+  // visitor and the system until they click their confirmation link.
+  // Showing them would surface "ghost" bookings that may never confirm
+  // and add noise to the inbox.
   const rows = await db
     .select()
     .from(bookings)
-    .where(eq(bookings.organizerUserId, ctx.user.id));
+    .where(
+      and(
+        eq(bookings.organizerUserId, ctx.user.id),
+        ne(bookings.status, 'unconfirmed'),
+      ),
+    );
 
   const wire = rows
     .map((r) => ({
