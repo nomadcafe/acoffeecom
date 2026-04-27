@@ -1,24 +1,24 @@
 import type { MessageDict } from '../messages';
 
 export const messages: MessageDict = {
-  'meta.title': 'A Coffee Meetup Finder',
+  'meta.title': 'ACoffee',
   'seo.description':
     'Enter two addresses, see the midpoint on a map, and discover highly rated coffee shops nearby. Plan an easy meetup at a café that works for both of you.',
   'seo.keywords':
     'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, meet halfway, halfway between two addresses, cafe between two locations, equidistant cafe, meeting point finder, coffee date spot, first date cafe, top rated coffee shops, coffee shop near me, specialty coffee, cafe map, meetup planner, friends meetup, business meeting cafe',
-  'seo.ogTitle': 'A Coffee Meetup Finder | Cafés halfway between two places',
+  'seo.ogTitle': 'ACoffee — Best Meetup Place Finder',
   'seo.ogDescription':
     'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
   'seo.ogLocale': 'en_US',
-  'seo.twitterTitle': 'A Coffee Meetup Finder | Cafés halfway between two places',
+  'seo.twitterTitle': 'ACoffee — Best Meetup Place Finder',
   'seo.twitterDescription':
     'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
-  'seo.schemaName': 'A Coffee Meetup Finder',
+  'seo.schemaName': 'ACoffee',
   'seo.schemaDescription':
     'Find highly rated coffee shops near the geographic midpoint between two addresses using an interactive map.',
 
   'app.logoAlt': 'A Coffee',
-  'app.title': 'ACoffee Agent',
+  'app.title': 'ACoffee',
   'app.tagline': 'Top-rated cafés at your meetup midpoint.',
 
   'lang.selectAria': 'Language',
@@ -395,14 +395,14 @@ export const messages: MessageDict = {
   'saved.notePlaceholder': 'Add a private note (quiet, outlets, etc.)',
   'saved.noteAriaLabel': 'Private note for {{name}}',
 
-  'changelog.metaTitle': 'Update log | A Coffee Meetup Finder',
+  'changelog.metaTitle': 'Update log · ACoffee',
   'changelog.metaDescription':
     'Product updates and UX changes for the coffee meetup finder — saved places, languages, and more.',
   'changelog.metaKeywords': 'acoffee, updates, changelog, coffee meetup',
-  'changelog.ogTitle': 'Update log | A Coffee Meetup Finder',
+  'changelog.ogTitle': 'Update log · ACoffee',
   'changelog.ogDescription':
     'What changed recently: new features and improvements for finding cafés halfway between two places.',
-  'changelog.twitterTitle': 'Update log | A Coffee Meetup Finder',
+  'changelog.twitterTitle': 'Update log · ACoffee',
   'changelog.twitterDescription':
     'What changed recently in the coffee meetup finder — features and UX updates.',
 

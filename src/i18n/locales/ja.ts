@@ -1,24 +1,24 @@
 import type { MessageDict } from '../messages';
 
 export const messages: MessageDict = {
-  'meta.title': 'A Coffee Meetup Finder（カフェ合流）',
+  'meta.title': 'ACoffee',
   'seo.description':
     '2つの住所を入力すると中間地点を地図で表示し、その周辺の高評価カフェを見つけられます。待ち合わせ場所を簡単に決められます。',
   'seo.keywords':
     'カフェ 待ち合わせ, 待ち合わせ場所, 中間地点, 中点, 合流場所, 中間 カフェ, 2地点の中間, 2人の中間, デート カフェ, 初デート カフェ, 打ち合わせ カフェ, 商談 カフェ, 駅近 カフェ, 人気カフェ, 高評価 カフェ, おすすめ カフェ, コーヒーショップ 検索, カフェ 地図, カフェ検索, meet in the middle, acoffee',
-  'seo.ogTitle': 'A Coffee Meetup Finder | 2地点の中間カフェ検索',
+  'seo.ogTitle': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.ogDescription':
     '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
   'seo.ogLocale': 'ja_JP',
-  'seo.twitterTitle': 'A Coffee Meetup Finder | 2地点の中間カフェ検索',
+  'seo.twitterTitle': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.twitterDescription':
     '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
-  'seo.schemaName': 'A Coffee Meetup Finder',
+  'seo.schemaName': 'ACoffee',
   'seo.schemaDescription':
     '2つの住所の中間地点近くで、高評価のカフェを地図から探せるWebアプリです。',
 
   'app.logoAlt': 'A Coffee',
-  'app.title': 'ACoffee Agent',
+  'app.title': 'ACoffee',
   'app.tagline': '待ち合わせの中点で、高評価カフェを。',
 
   'lang.selectAria': '言語',
@@ -391,14 +391,14 @@ export const messages: MessageDict = {
   'saved.notePlaceholder': 'メモを追加（静か、電源あり など）',
   'saved.noteAriaLabel': '{{name}} のメモ',
 
-  'changelog.metaTitle': '更新ログ | カフェ面談ファインダー',
+  'changelog.metaTitle': '更新ログ · ACoffee',
   'changelog.metaDescription':
-    'カフェ面談ファインダーの機能・UI の更新履歴です（保存、言語、その他）。',
+    'ACoffeeの機能・UI の更新履歴です（保存、言語、その他）。',
   'changelog.metaKeywords': 'acoffee, 更新, 変更履歴, カフェ',
-  'changelog.ogTitle': '更新ログ | カフェ面談ファインダー',
+  'changelog.ogTitle': '更新ログ · ACoffee',
   'changelog.ogDescription': '最近の変更内容：二人の中間付近のカフェを探すアプリの改善点。',
-  'changelog.twitterTitle': '更新ログ | カフェ面談ファインダー',
-  'changelog.twitterDescription': 'カフェ面談ファインダーの最近の機能・UI 更新。',
+  'changelog.twitterTitle': '更新ログ · ACoffee',
+  'changelog.twitterDescription': 'ACoffeeの最近の機能・UI 更新。',
 
   'changelog.pageTitle': '更新ログ',
   'changelog.pageLead': '選択中の言語で表示しています。今後の変更もここに追記します。',

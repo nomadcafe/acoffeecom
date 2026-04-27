@@ -1,21 +1,21 @@
 import type { MessageDict } from '../messages';
 
 export const messages: MessageDict = {
-  'meta.title': 'A Coffee Meetup Finder（咖啡见面）',
+  'meta.title': 'ACoffee',
   'seo.description':
     '输入两个地址，在地图上查看中点并找到附近高评分咖啡店，快速决定双方都方便的会面地点。',
   'seo.keywords':
     '咖啡 见面, 咖啡馆, 咖啡店 推荐, 中间点, 中点 咖啡, 中间位置, 两地之间, 两人中间, 见面地点, 约会地点, 约会 咖啡, 相亲 咖啡, 朋友见面, 商务会面, 会面地点, 高评分 咖啡店, 附近 咖啡店, 地铁站 咖啡, 咖啡馆 地图, 找咖啡, meet in the middle, acoffee',
-  'seo.ogTitle': 'A Coffee Meetup Finder | 两地中点咖啡店',
+  'seo.ogTitle': 'ACoffee — 找到最合适的会面咖啡店',
   'seo.ogDescription': '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
   'seo.ogLocale': 'zh_CN',
-  'seo.twitterTitle': 'A Coffee Meetup Finder | 两地中点咖啡店',
+  'seo.twitterTitle': 'ACoffee — 找到最合适的会面咖啡店',
   'seo.twitterDescription': '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
-  'seo.schemaName': 'A Coffee Meetup Finder',
+  'seo.schemaName': 'ACoffee',
   'seo.schemaDescription': '帮助两个人根据中间地点快速找到合适咖啡店的 Web 应用。',
 
   'app.logoAlt': 'A Coffee',
-  'app.title': 'ACoffee Agent',
+  'app.title': 'ACoffee',
   'app.tagline': '在中点，为你挑一家好咖啡。',
 
   'lang.selectAria': '语言',
@@ -385,13 +385,13 @@ export const messages: MessageDict = {
   'saved.notePlaceholder': '添加私人备注（安静、有插座等）',
   'saved.noteAriaLabel': '{{name}} 的备注',
 
-  'changelog.metaTitle': '更新日志 | 咖啡会面查找',
+  'changelog.metaTitle': '更新日志 · ACoffee',
   'changelog.metaDescription': '本站功能与界面更新说明（收藏、多语言等）。',
   'changelog.metaKeywords': 'acoffee, 更新, 日志, 咖啡',
-  'changelog.ogTitle': '更新日志 | 咖啡会面查找',
+  'changelog.ogTitle': '更新日志 · ACoffee',
   'changelog.ogDescription': '近期改动：帮助两人在中间位置找咖啡馆的小工具更新与优化。',
-  'changelog.twitterTitle': '更新日志 | 咖啡会面查找',
-  'changelog.twitterDescription': '咖啡会面查找的近期功能与界面更新。',
+  'changelog.twitterTitle': '更新日志 · ACoffee',
+  'changelog.twitterDescription': 'ACoffee的近期功能与界面更新。',
 
   'changelog.pageTitle': '更新日志',
   'changelog.pageLead': '以下内容随当前所选语言展示，后续更新会陆续记在这里。',
