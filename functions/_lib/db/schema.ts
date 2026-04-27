@@ -112,6 +112,41 @@ export const visitedShops = sqliteTable(
   }),
 );
 
+// Coffee bookings made through `acoffee.com/<username>`. The visitor isn't
+// necessarily an ACoffee user — only the organizer needs an account. We
+// store the visitor's address + lat/lng for the record (both for showing
+// the organizer who's coming and for the auto-pick audit trail), but never
+// surface the address publicly.
+export const bookings = sqliteTable(
+  'bookings',
+  {
+    id: text('id').primaryKey(),
+    organizerUserId: text('organizer_user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    visitorEmail: text('visitor_email').notNull(),
+    visitorName: text('visitor_name').notNull(),
+    visitorAddress: text('visitor_address').notNull(),
+    visitorLat: real('visitor_lat').notNull(),
+    visitorLng: real('visitor_lng').notNull(),
+    /** Scheduled start as ms-since-epoch (UTC). Frontend renders in viewer-local TZ. */
+    scheduledAt: integer('scheduled_at', { mode: 'timestamp_ms' }).notNull(),
+    durationMinutes: integer('duration_minutes').notNull().default(60),
+    placeId: text('place_id').notNull(),
+    placeName: text('place_name').notNull(),
+    placeAddress: text('place_address').notNull(),
+    placeLat: real('place_lat').notNull(),
+    placeLng: real('place_lng').notNull(),
+    /** 'pending' (default) | 'cancelled'. Cancellation flow lands later;
+     *  for now status stays at 'pending' for the lifetime of the booking. */
+    status: text('status').notNull().default('pending'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => ({
+    organizerSlotIdx: index('bookings_org_slot_idx').on(t.organizerUserId, t.scheduledAt),
+  }),
+);
+
 // Starred shops — user's saved favorites. Mirrors StarredShopSnapshot in src/types/index.ts.
 // `note` is freeform user-editable text, optional.
 export const starredShops = sqliteTable(

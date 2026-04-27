@@ -57,6 +57,13 @@
       "when": 1777249833467,
       "tag": "0007_amazing_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1777256240742,
+      "tag": "0008_ambitious_chronomancer",
+      "breakpoints": true
     }
   ]
 }
