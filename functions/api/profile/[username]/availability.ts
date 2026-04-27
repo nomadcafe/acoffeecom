@@ -4,6 +4,7 @@ import { getDb } from '../../../_lib/db';
 import { bookings, user } from '../../../_lib/db/schema';
 import { jsonError } from '../../../_lib/passport';
 import { enumerateOpenSlots, parseAvailability } from '../../../_lib/booking';
+import { fetchBusyWindows } from '../../../_lib/icsBusy';
 
 /**
  * Public read — returns the next two weeks of bookable slots for the
@@ -32,6 +33,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
       homeBaseAddress: user.homeBaseAddress,
       availabilitySlots: user.availabilitySlots,
       timezone: user.timezone,
+      busyCalendarIcsUrl: user.busyCalendarIcsUrl,
     })
     .from(user)
     .where(and(eq(user.username, username), eq(user.profilePublic, true)));
@@ -68,6 +70,33 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
     scheduledAt: b.scheduledAt instanceof Date ? b.scheduledAt.getTime() : Number(b.scheduledAt),
     durationMinutes: b.durationMinutes,
   }));
+
+  // Calendar sync: if the organizer subscribed an iCal URL, fetch + parse
+  // any busy events in the same window and treat them as ad-hoc bookings
+  // so enumerateOpenSlots' overlap check excludes them. Failure is
+  // soft — better to show possibly-conflicting slots than to block the
+  // entire profile because Google had a hiccup. (We log so the
+  // organizer can debug from CF dashboard if their calendar feed is
+  // chronically broken.)
+  if (organizer.busyCalendarIcsUrl) {
+    const windowStartMs = now.getTime();
+    const windowEndMs = windowStartMs + DAYS_AHEAD * 86_400_000;
+    try {
+      const busy = await fetchBusyWindows(
+        organizer.busyCalendarIcsUrl,
+        windowStartMs,
+        windowEndMs,
+      );
+      for (const w of busy) {
+        existing.push({
+          scheduledAt: w.startMs,
+          durationMinutes: Math.max(1, Math.round((w.endMs - w.startMs) / 60_000)),
+        });
+      }
+    } catch (e) {
+      console.warn('[availability] iCal fetch failed', organizer.id, e);
+    }
+  }
 
   const slots = enumerateOpenSlots({
     availability,

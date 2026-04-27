@@ -39,6 +39,8 @@ export function createAuth(env: AuthEnv) {
         homeBaseAddress: { type: 'string', required: false },
         availabilitySlots: { type: 'string', required: false, defaultValue: '{}' },
         timezone: { type: 'string', required: false, defaultValue: 'UTC' },
+        busyCalendarIcsUrl: { type: 'string', required: false },
+        busyCalendarSyncedAt: { type: 'date', required: false },
       },
     },
     session: {

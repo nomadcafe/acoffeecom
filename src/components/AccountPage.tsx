@@ -189,6 +189,8 @@ interface SignedInProps {
     socialLinks?: string;
     homeBaseAddress?: string | null;
     availabilitySlots?: string;
+    busyCalendarIcsUrl?: string | null;
+    busyCalendarSyncedAt?: string | Date | number | null;
   };
   initialUsername: string;
   stats: ReturnType<typeof usePassportStats>;
@@ -549,6 +551,18 @@ function SignedInAccountPage({
           initialAvailability={parseInitialAvailability(
             (sessionUser as { availabilitySlots?: string }).availabilitySlots,
           )}
+        />
+
+        <CalendarSyncCard
+          initialUrl={sessionUser.busyCalendarIcsUrl ?? ''}
+          initialSyncedAt={(() => {
+            const v = sessionUser.busyCalendarSyncedAt;
+            if (!v) return null;
+            if (v instanceof Date) return v.getTime();
+            if (typeof v === 'number') return v;
+            const n = Date.parse(v);
+            return Number.isFinite(n) ? n : null;
+          })()}
         />
 
         <MonthlyRecapCard
@@ -1388,6 +1402,133 @@ function BookingSetupCard({ initialAddress, initialAvailability }: BookingSetupP
             {t('account.bookingInvalidRange')}
           </p>
         ) : status ? (
+          <p
+            className={status.kind === 'err' ? styles.errorMsg : styles.successMsg}
+            role="status"
+          >
+            {status.message}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+interface CalendarSyncProps {
+  initialUrl: string;
+  initialSyncedAt: number | null;
+}
+
+/**
+ * iCal URL subscription. Whatever the organizer publishes here gets
+ * fetched by the availability endpoint to subtract real busy events from
+ * the offered slots — so a recurring stand-up on Mon 14:00 doesn't show
+ * up as bookable just because their weekly availability says
+ * "Mon 14:00–17:00".
+ *
+ * Save calls /api/account which probe-fetches the URL and 400s if the
+ * feed is unreachable / not iCalendar — surfacing the parser error
+ * directly so the user knows whether they pasted the wrong URL.
+ */
+function CalendarSyncCard({ initialUrl, initialSyncedAt }: CalendarSyncProps) {
+  const { t, locale } = useI18n();
+  const [url, setUrl] = useState(initialUrl);
+  const [syncedAt, setSyncedAt] = useState<number | null>(initialSyncedAt);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<
+    { kind: 'ok' | 'err'; message: string } | null
+  >(null);
+  const dirty = url.trim() !== initialUrl.trim();
+
+  async function send(payload: { busyCalendarIcsUrl: string | null }) {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        setStatus({
+          kind: 'err',
+          message: j.error ?? t('account.calendarSaveFailed'),
+        });
+        return;
+      }
+      if (payload.busyCalendarIcsUrl == null) {
+        setSyncedAt(null);
+      } else {
+        setSyncedAt(Date.now());
+      }
+      setStatus({ kind: 'ok', message: t('account.calendarSaved') });
+    } catch {
+      setStatus({ kind: 'err', message: t('account.calendarSaveFailed') });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={styles.card} aria-label={t('account.calendarTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.calendarTitle')}</h2>
+      <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+        {t('account.calendarHint')}
+      </p>
+
+      <label className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.calendarUrlLabel')}</span>
+        <input
+          type="url"
+          className={styles.usernameInput}
+          maxLength={500}
+          inputMode="url"
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
+          placeholder={t('account.calendarUrlPlaceholder')}
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        <span className={styles.usernameHint}>{t('account.calendarUrlHelp')}</span>
+      </label>
+
+      {syncedAt ? (
+        <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+          {t('account.calendarLastSync', {
+            date: new Intl.DateTimeFormat(locale, {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            }).format(new Date(syncedAt)),
+          })}
+        </p>
+      ) : null}
+
+      <div className={styles.formRow}>
+        <button
+          type="button"
+          className={styles.saveButton}
+          onClick={() => void send({ busyCalendarIcsUrl: url.trim() ? url.trim() : null })}
+          disabled={busy || (!dirty && initialUrl.trim() === '')}
+        >
+          {busy ? t('account.saving') : t('account.calendarSave')}
+        </button>
+        {initialUrl.trim() ? (
+          <button
+            type="button"
+            className={styles.signOutButton}
+            onClick={() => {
+              setUrl('');
+              void send({ busyCalendarIcsUrl: null });
+            }}
+            disabled={busy}
+            style={{ marginLeft: '0.5rem' }}
+          >
+            {t('account.calendarDisconnect')}
+          </button>
+        ) : null}
+        {status ? (
           <p
             className={status.kind === 'err' ? styles.errorMsg : styles.successMsg}
             role="status"

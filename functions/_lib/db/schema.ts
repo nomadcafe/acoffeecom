@@ -41,6 +41,16 @@ export const user = sqliteTable('user', {
    * "Mon 14:00-17:00" means 2-5pm in the organizer's hometown, no matter
    * where the visitor is browsing from. */
   timezone: text('timezone').notNull().default('UTC'),
+  /* iCal URL subscription. Google Calendar, Apple iCloud, and Outlook all
+   * expose a "secret iCal URL" per calendar; pasted here, the availability
+   * endpoint fetches + parses the feed to subtract any VEVENT that overlaps
+   * an offered slot. Read-only — we don't write events back. The URL is
+   * effectively a secret, so we never expose it via /api/profile, only via
+   * /api/account when the owner reads their own settings. */
+  busyCalendarIcsUrl: text('busy_calendar_ics_url'),
+  /** ms-since-epoch of the last successful fetch+parse — diagnostics so the
+   *  AccountPage card can show "last synced X ago" or surface a stale feed. */
+  busyCalendarSyncedAt: integer('busy_calendar_synced_at', { mode: 'timestamp_ms' }),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });

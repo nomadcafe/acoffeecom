@@ -5,6 +5,7 @@ import { getDb } from '../../_lib/db';
 import { user } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
 import { GoogleMapsError, geocodeAddress, lookupTimezone } from '../../_lib/googleMaps';
+import { fetchBusyWindows } from '../../_lib/icsBusy';
 
 /**
  * Hard-delete the signed-in user's account. FK constraints in schema.ts
@@ -80,6 +81,19 @@ const PatchSchema = z.object({
    * availability. Length cap is generous; longest realistic IANA name is
    * about 30 chars (`America/Argentina/Buenos_Aires`). */
   timezone: z.string().trim().min(1).max(64).optional(),
+  /* iCal subscription URL. Empty / null clears it. We probe-fetch on save
+   * so the user gets immediate feedback if they pasted a wrong URL or
+   * their calendar's "secret iCal" is mis-shared. */
+  busyCalendarIcsUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .nullable()
+    .optional()
+    .refine(
+      (v) => v == null || v === '' || /^(https?|webcal):\/\//i.test(v),
+      'Calendar URL must start with http(s) or webcal://',
+    ),
 });
 
 /** Patch toggles + bio fields for the user account. profilePublic /
@@ -146,6 +160,28 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
   // (or it didn't change) — home_base lookup wins above.
   if (input.timezone !== undefined && patch.timezone === undefined) {
     patch.timezone = input.timezone;
+  }
+  if (input.busyCalendarIcsUrl !== undefined) {
+    const next = input.busyCalendarIcsUrl ? input.busyCalendarIcsUrl.trim() : null;
+    if (next) {
+      // Probe-fetch a small window so the user knows immediately if their
+      // pasted URL is unreachable / not actually iCal. Failure → 400 with
+      // the parser's error so the form can show a useful message.
+      try {
+        const now = Date.now();
+        await fetchBusyWindows(next, now, now + 7 * 86_400_000);
+      } catch (e) {
+        return jsonError(
+          `Couldn't read that calendar — ${e instanceof Error ? e.message : 'unknown error'}`,
+          400,
+        );
+      }
+      patch.busyCalendarIcsUrl = next;
+      patch.busyCalendarSyncedAt = new Date();
+    } else {
+      patch.busyCalendarIcsUrl = null;
+      patch.busyCalendarSyncedAt = null;
+    }
   }
 
   if (Object.keys(patch).length > 1) {
