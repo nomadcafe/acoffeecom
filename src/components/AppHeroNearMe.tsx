@@ -6,8 +6,9 @@ import styles from './AppHeroNearMe.module.css';
 
 /**
  * Secondary entry point in the hero: "just find me coffee nearby" — no A/B
- * locations needed. Asks for browser geolocation, falls back to the cached
- * IP location that Map.tsx wrote earlier, then kicks off a nearby search.
+ * locations needed. Asks for browser geolocation; if denied/unavailable, does
+ * a fresh IP-location lookup (never reads cached sessionStorage value, since
+ * the user may have moved since the page loaded).
  */
 export function AppHeroNearMe() {
   const { t } = useI18n();
@@ -25,22 +26,33 @@ export function AppHeroNearMe() {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => resolve(null),
-        { enableHighAccuracy: true, maximumAge: 60_000, timeout: 10_000 },
+        // Force a fresh fix — explicit user click means we must not return
+        // a stale "last known position" from when the user was somewhere else.
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10_000 },
       );
     });
 
     let loc = precise;
     if (!loc) {
       try {
-        const raw = sessionStorage.getItem('ipLocation');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
-            loc = { lat: parsed.lat, lng: parsed.lng };
-          }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5_000);
+        const r = await fetch('https://ipapi.co/json/', {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        const data = await r.json();
+        if (
+          data &&
+          !data.error &&
+          typeof data.latitude === 'number' &&
+          typeof data.longitude === 'number'
+        ) {
+          loc = { lat: data.latitude, lng: data.longitude };
         }
       } catch {
-        // ignore parse errors
+        // ignore — surfaced as nearMeUnavailable below
       }
     }
 

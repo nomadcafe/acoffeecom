@@ -49,12 +49,10 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//, /^\/_/],
         runtimeCaching: [
           {
+            // Always hit network for IP location — caching it means a stale
+            // location follows the user when they move to a new place.
             urlPattern: /^https:\/\/ipapi\.co\//,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'ip-location',
-              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 7 },
-            },
+            handler: 'NetworkOnly',
           },
         ],
       },
