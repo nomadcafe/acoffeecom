@@ -62,6 +62,9 @@ export function BookingWidget({ username, displayName }: Props) {
   const [visitorName, setVisitorName] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
   const [visitorAddress, setVisitorAddress] = useState('');
+  // Honeypot: hidden input bots fill but humans don't. Tracked in state so
+  // we can include it in the payload — server rejects any non-empty value.
+  const [website, setWebsite] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Loader is reusable so the 409 handler below can refresh availability
@@ -160,6 +163,7 @@ export function BookingWidget({ username, displayName }: Props) {
           visitorAddress: visitorAddress.trim(),
           scheduledAt: selectedSlotMs,
           durationMinutes: data.durationMinutes,
+          website,
         }),
       });
       const json = (await r.json().catch(() => ({}))) as Partial<BookingResponse> & {
@@ -326,6 +330,20 @@ export function BookingWidget({ username, displayName }: Props) {
               when: formatDateTime(new Date(selectedSlotMs), locale),
             })}
           </p>
+          {/* Honeypot — hidden offscreen, ignored by humans, filled by bots. */}
+          <div className={styles.honeypot} aria-hidden="true">
+            <label>
+              Website
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+              />
+            </label>
+          </div>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>{t('bookingWidget.fieldName')}</span>
             <input

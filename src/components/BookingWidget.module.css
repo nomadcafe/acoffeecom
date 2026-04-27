@@ -314,3 +314,16 @@
   font-size: 0.78rem;
   color: var(--ac-text-muted);
 }
+
+/* Honeypot field: rendered offscreen so dumb bots fill it but a human
+   reading the form (visually or via screen reader) skips it.
+   `aria-hidden`, `tabIndex={-1}`, and `autoComplete="off"` on the input
+   itself round out the strategy. */
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  top: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

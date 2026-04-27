@@ -128,6 +128,23 @@ export const visitedShops = sqliteTable(
   }),
 );
 
+// Booking attempt log — one row per POST /api/booking that passed input
+// validation. Used to rate-limit per-IP and for abuse-pattern auditing.
+// Failed attempts are logged so a determined bot can't burn through quota
+// by sending invalid bodies for free. Index on (ip, attempted_at) lets the
+// rate-limit count query be a single short range scan.
+export const bookingAttempts = sqliteTable(
+  'booking_attempts',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    ip: text('ip').notNull(),
+    attemptedAt: integer('attempted_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => ({
+    ipIdx: index('booking_attempts_ip_idx').on(t.ip, t.attemptedAt),
+  }),
+);
+
 // Coffee bookings made through `acoffee.com/<username>`. The visitor isn't
 // necessarily an ACoffee user — only the organizer needs an account. We
 // store the visitor's address + lat/lng for the record (both for showing
