@@ -1,0 +1,164 @@
+/**
+ * HTML rendering for booking confirmation + cancellation emails. Kept in
+ * one file so visual style stays consistent across the four variants
+ * (organizer-confirm, visitor-confirm, organizer-cancel, visitor-cancel).
+ *
+ * Each renderer takes a structured params object and produces a complete
+ * `<!DOCTYPE html>` document — Resend just sends the string.
+ */
+
+function escape(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Format the start time twice — once in each side's local zone — so the
+ * recipient never has to mentally convert. Both labels are inlined; if the
+ * two timezones happen to be the same we collapse to one line.
+ */
+export function formatTimePair(
+  startMs: number,
+  zoneA: { tz: string; label: string },
+  zoneB: { tz: string; label: string } | null,
+): string {
+  const fmt = (tz: string) =>
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    }).format(new Date(startMs));
+  const a = fmt(zoneA.tz);
+  if (!zoneB || zoneB.tz === zoneA.tz) return a;
+  const b = fmt(zoneB.tz);
+  return `${a} (${zoneA.label}) · ${b} (${zoneB.label})`;
+}
+
+const SHELL_OPEN = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#faf6f1;margin:0;padding:24px;">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:14px;padding:28px 26px;">`;
+
+const SHELL_CLOSE = `    <p style="margin:24px 0 0;color:#a09080;font-size:12px;">
+      Sent by <a href="https://acoffee.com/" style="color:#a36b3e;text-decoration:none;">ACoffee</a>.
+    </p>
+  </div>
+</body></html>`;
+
+function whereCard(name: string, address: string, mapsUri: string | null): string {
+  const link = mapsUri
+    ? `<div style="margin-top:10px;"><a href="${escape(mapsUri)}" style="color:#a36b3e;text-decoration:none;">Open in Maps →</a></div>`
+    : '';
+  return `<div style="margin:24px 0;padding:16px 18px;background:#faf6f1;border-radius:10px;">
+      <div style="font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Where</div>
+      <div style="font-size:18px;font-weight:600;color:#2c1810;">${escape(name)}</div>
+      <div style="font-size:14px;color:#5c4030;margin-top:4px;">${escape(address)}</div>
+      ${link}
+    </div>`;
+}
+
+// ---------- new booking ----------
+
+export interface ConfirmationParams {
+  startStr: string;
+  cafeName: string;
+  cafeAddress: string;
+  cafeMaps: string | null;
+  visitorName: string;
+  visitorEmail: string;
+  visitorAddress: string;
+  hostHandle: string;
+  hostHomeBase: string;
+  /** Visitor-only: link to cancel this booking. */
+  cancelUrl?: string;
+}
+
+export function renderOrganizerConfirmationHtml(p: ConfirmationParams): string {
+  return `${SHELL_OPEN}
+    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">${escape(p.visitorName)} booked a coffee with you ☕</h1>
+    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
+    ${whereCard(p.cafeName, p.cafeAddress, p.cafeMaps)}
+    <div style="margin:0 0 8px;font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Visitor</div>
+    <div style="font-size:14px;color:#2c1810;line-height:1.6;margin-bottom:18px;">
+      <strong>${escape(p.visitorName)}</strong><br>
+      <a href="mailto:${escape(p.visitorEmail)}" style="color:#a36b3e;text-decoration:none;">${escape(p.visitorEmail)}</a><br>
+      <span style="color:#5c4030;">Coming from ${escape(p.visitorAddress)}</span>
+    </div>
+    <p style="margin:0 0 8px;color:#5c4030;font-size:14px;line-height:1.5;">
+      We auto-picked the café halfway between ${escape(p.hostHomeBase)} and ${escape(p.visitorAddress)}.
+    </p>
+    <p style="margin:0;color:#7a6a60;font-size:13px;">
+      The .ics attachment will add this to your calendar. To cancel, manage your bookings at
+      <a href="https://acoffee.com/bookings" style="color:#a36b3e;text-decoration:none;">acoffee.com/bookings</a>.
+    </p>
+${SHELL_CLOSE}`;
+}
+
+export function renderVisitorConfirmationHtml(p: ConfirmationParams): string {
+  const cancelLine = p.cancelUrl
+    ? `<p style="margin:8px 0 0;color:#7a6a60;font-size:13px;">
+        Need to cancel? <a href="${escape(p.cancelUrl)}" style="color:#a36b3e;text-decoration:none;">Cancel this coffee →</a>
+      </p>`
+    : '';
+  return `${SHELL_OPEN}
+    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Coffee with ${escape(p.hostHandle)} ☕</h1>
+    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
+    ${whereCard(p.cafeName, p.cafeAddress, p.cafeMaps)}
+    <p style="margin:0 0 8px;color:#5c4030;font-size:14px;line-height:1.5;">
+      We picked this café automatically based on the midpoint between
+      ${escape(p.visitorName)} and ${escape(p.hostHandle)}'s home base.
+    </p>
+    <p style="margin:0;color:#7a6a60;font-size:13px;">
+      The .ics attachment will add this to your calendar.
+    </p>
+    ${cancelLine}
+${SHELL_CLOSE}`;
+}
+
+// ---------- cancellation ----------
+
+export interface CancellationParams {
+  hostHandle: string;
+  visitorName: string;
+  startStr: string;
+  cafeName: string;
+  cafeAddress: string;
+}
+
+export function renderVisitorCancellationHtml(p: CancellationParams): string {
+  return `${SHELL_OPEN}
+    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Coffee with ${escape(p.hostHandle)} — cancelled</h1>
+    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
+    <div style="margin:24px 0;padding:16px 18px;background:#faf6f1;border-radius:10px;">
+      <div style="font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Was at</div>
+      <div style="font-size:18px;font-weight:600;color:#2c1810;">${escape(p.cafeName)}</div>
+      <div style="font-size:14px;color:#5c4030;margin-top:4px;">${escape(p.cafeAddress)}</div>
+    </div>
+    <p style="margin:0 0 8px;color:#5c4030;font-size:14px;line-height:1.5;">
+      Hi ${escape(p.visitorName)} — ${escape(p.hostHandle)} cancelled this coffee.
+      Sorry about that. You can pick a new time on their profile when you're ready.
+    </p>
+${SHELL_CLOSE}`;
+}
+
+export function renderOrganizerCancellationHtml(p: CancellationParams): string {
+  return `${SHELL_OPEN}
+    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">${escape(p.visitorName)} cancelled their coffee</h1>
+    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
+    <div style="margin:24px 0;padding:16px 18px;background:#faf6f1;border-radius:10px;">
+      <div style="font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Was at</div>
+      <div style="font-size:18px;font-weight:600;color:#2c1810;">${escape(p.cafeName)}</div>
+      <div style="font-size:14px;color:#5c4030;margin-top:4px;">${escape(p.cafeAddress)}</div>
+    </div>
+    <p style="margin:0 0 8px;color:#5c4030;font-size:14px;line-height:1.5;">
+      The slot is free again — anyone visiting acoffee.com/${escape(p.hostHandle.replace(/^@/, ''))} can take it.
+    </p>
+${SHELL_CLOSE}`;
+}

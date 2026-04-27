@@ -19,6 +19,13 @@ export function isBookingsPath(logicalPath: string): boolean {
   return logicalPath === BOOKINGS_PATH || logicalPath.startsWith(`${BOOKINGS_PATH}/`);
 }
 
+/** Visitor-side cancel link from their confirmation email. */
+export const BOOKING_CANCEL_PATH = '/booking/cancel';
+
+export function isBookingCancelPath(logicalPath: string): boolean {
+  return logicalPath === BOOKING_CANCEL_PATH;
+}
+
 /** Same shape the server enforces in functions/_lib/username.ts.
  *  Anything matching this AND not already a known route is a profile slug. */
 const USERNAME_PATH_REGEX = /^\/([a-z][a-z0-9_-]{2,29})$/;

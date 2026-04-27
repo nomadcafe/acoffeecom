@@ -22,7 +22,13 @@ import { usePathname } from './hooks/usePathname';
 import { useInterceptInternalLinks } from './hooks/useInterceptInternalLinks';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
-import { isAccountPath, isBookingsPath, isPassportPath, matchProfileUsername } from './routes';
+import {
+  isAccountPath,
+  isBookingCancelPath,
+  isBookingsPath,
+  isPassportPath,
+  matchProfileUsername,
+} from './routes';
 import { useTrackPageViews } from './utils/analytics';
 import './App.css';
 
@@ -63,6 +69,11 @@ const AccountPage = lazy(() =>
 const BookingsPage = lazy(() =>
   reloadOnChunkError(
     import('./components/BookingsPage').then((m) => ({ default: m.BookingsPage })),
+  ),
+);
+const CancelBookingPage = lazy(() =>
+  reloadOnChunkError(
+    import('./components/CancelBookingPage').then((m) => ({ default: m.CancelBookingPage })),
   ),
 );
 const PublicProfilePage = lazy(() =>
@@ -215,6 +226,12 @@ function AppRoute() {
         </Suspense>
         <SiteBottomNav />
       </>
+    );
+  } else if (isBookingCancelPath(logicalPath)) {
+    body = (
+      <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+        <CancelBookingPage />
+      </Suspense>
     );
   } else if (matchProfileUsername(logicalPath) != null) {
     const username = matchProfileUsername(logicalPath)!;

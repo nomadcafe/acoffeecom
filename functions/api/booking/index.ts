@@ -18,6 +18,12 @@ import {
   isSlotInAvailability,
   parseAvailability,
 } from '../../_lib/booking';
+import {
+  formatTimePair,
+  renderOrganizerConfirmationHtml,
+  renderVisitorConfirmationHtml,
+} from '../../_lib/bookingEmails';
+import { makeCancelToken } from '../../_lib/cancelToken';
 
 /**
  * Public booking endpoint — visitor submits their address + a chosen slot
@@ -161,9 +167,14 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
 
   // Fire-and-forget the two emails. A failure logs but doesn't roll back —
   // the booking is real, we just lose the invite. Manual resend later.
+  // Each side gets a tailored email: organizer sees who's coming, visitor
+  // sees host info + a self-serve cancel link.
   const handle = organizer.displayName?.trim() || `@${organizer.username ?? 'host'}`;
-  const subject = `Coffee with ${handle} confirmed ☕`;
-  const startStr = new Date(slotMs).toUTCString();
+  const startStr = formatTimePair(
+    slotMs,
+    { tz: organizer.timezone || 'UTC', label: 'host' },
+    null,
+  );
   const ics = buildIcs({
     uid: `${id}@acoffee.com`,
     startMs: slotMs,
@@ -179,69 +190,41 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   });
   const icsB64 = btoa(ics);
 
-  const recipients = [organizer.email, input.visitorEmail];
-  const html = renderHtml({
-    handle,
+  const cancelToken = await makeCancelToken(env.AUTH_SECRET, id);
+  const cancelUrl = `https://acoffee.com/booking/cancel?id=${encodeURIComponent(id)}&t=${encodeURIComponent(cancelToken)}`;
+
+  const sharedConfirm = {
     startStr,
     cafeName: cafe.name,
     cafeAddress: cafe.address,
     cafeMaps: cafe.googleMapsUri,
     visitorName: input.visitorName,
-  });
+    visitorEmail: input.visitorEmail,
+    visitorAddress: input.visitorAddress,
+    hostHandle: handle,
+    hostHomeBase: organizer.homeBaseAddress,
+  };
+
   const resend = new Resend(env.RESEND_API_KEY);
-  await Promise.allSettled(
-    recipients.map((to) =>
-      resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
-        to,
-        subject,
-        html,
-        attachments: [{ filename: 'coffee.ics', content: icsB64 }],
-      }),
-    ),
-  );
+  await Promise.allSettled([
+    resend.emails.send({
+      from: env.RESEND_FROM_EMAIL,
+      to: organizer.email,
+      subject: `${input.visitorName} booked a coffee with you ☕`,
+      html: renderOrganizerConfirmationHtml(sharedConfirm),
+      attachments: [{ filename: 'coffee.ics', content: icsB64 }],
+    }),
+    resend.emails.send({
+      from: env.RESEND_FROM_EMAIL,
+      to: input.visitorEmail,
+      subject: `Coffee with ${handle} confirmed ☕`,
+      html: renderVisitorConfirmationHtml({ ...sharedConfirm, cancelUrl }),
+      attachments: [{ filename: 'coffee.ics', content: icsB64 }],
+    }),
+  ]);
 
   return Response.json({
     booking: { id, scheduledAt: slotMs, durationMinutes: duration },
     cafe,
   });
 };
-
-function renderHtml(p: {
-  handle: string;
-  startStr: string;
-  cafeName: string;
-  cafeAddress: string;
-  cafeMaps: string | null;
-  visitorName: string;
-}): string {
-  const escape = (s: string) =>
-    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const mapsLink = p.cafeMaps
-    ? `<a href="${escape(p.cafeMaps)}" style="color:#a36b3e;text-decoration:none;">Open in Maps →</a>`
-    : '';
-  return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"></head>
-<body style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#faf6f1;margin:0;padding:24px;">
-  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:14px;padding:28px 26px;">
-    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Coffee with ${escape(p.handle)} ☕</h1>
-    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
-    <div style="margin:24px 0;padding:16px 18px;background:#faf6f1;border-radius:10px;">
-      <div style="font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Where</div>
-      <div style="font-size:18px;font-weight:600;color:#2c1810;">${escape(p.cafeName)}</div>
-      <div style="font-size:14px;color:#5c4030;margin-top:4px;">${escape(p.cafeAddress)}</div>
-      ${mapsLink ? `<div style="margin-top:10px;">${mapsLink}</div>` : ''}
-    </div>
-    <p style="margin:0 0 8px;color:#5c4030;font-size:14px;line-height:1.5;">
-      We picked this café automatically based on the midpoint between
-      ${escape(p.visitorName)} and ${escape(p.handle)}'s home base.
-    </p>
-    <p style="margin:0;color:#7a6a60;font-size:13px;">
-      The .ics attachment will add this to your calendar.
-    </p>
-    <p style="margin:24px 0 0;color:#a09080;font-size:12px;">
-      Sent by <a href="https://acoffee.com/" style="color:#a36b3e;text-decoration:none;">ACoffee</a>.
-    </p>
-  </div>
-</body></html>`;
-}
