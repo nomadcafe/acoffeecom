@@ -187,6 +187,8 @@ interface SignedInProps {
     displayName?: string | null;
     bio?: string | null;
     socialLinks?: string;
+    homeBaseAddress?: string | null;
+    availabilitySlots?: string;
   };
   initialUsername: string;
   stats: ReturnType<typeof usePassportStats>;
@@ -537,6 +539,15 @@ function SignedInAccountPage({
           initialBio={(sessionUser as { bio?: string | null }).bio ?? ''}
           initialSocialLinks={parseInitialSocialLinks(
             (sessionUser as { socialLinks?: string }).socialLinks,
+          )}
+        />
+
+        <BookingSetupCard
+          initialAddress={
+            (sessionUser as { homeBaseAddress?: string | null }).homeBaseAddress ?? ''
+          }
+          initialAvailability={parseInitialAvailability(
+            (sessionUser as { availabilitySlots?: string }).availabilitySlots,
           )}
         />
 
@@ -1177,6 +1188,194 @@ function ProfileContentCard({
         {hasInvalidLink ? (
           <p className={styles.errorMsg} role="alert">
             {t('account.linkInvalid')}
+          </p>
+        ) : status ? (
+          <p
+            className={status.kind === 'err' ? styles.errorMsg : styles.successMsg}
+            role="status"
+          >
+            {status.message}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+const WEEKDAYS: readonly Weekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+interface DaySlot {
+  enabled: boolean;
+  start: string;
+  end: string;
+}
+
+type Availability = Record<Weekday, DaySlot>;
+
+const DEFAULT_SLOT: DaySlot = { enabled: false, start: '14:00', end: '17:00' };
+
+function emptyAvailability(): Availability {
+  const out = {} as Availability;
+  for (const d of WEEKDAYS) out[d] = { ...DEFAULT_SLOT };
+  return out;
+}
+
+function parseInitialAvailability(raw: string | undefined): Availability {
+  const out = emptyAvailability();
+  if (!raw) return out;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return out;
+    for (const d of WEEKDAYS) {
+      const slot = (parsed as Record<string, unknown>)[d];
+      if (
+        slot &&
+        typeof slot === 'object' &&
+        typeof (slot as DaySlot).enabled === 'boolean' &&
+        typeof (slot as DaySlot).start === 'string' &&
+        typeof (slot as DaySlot).end === 'string'
+      ) {
+        out[d] = { ...(slot as DaySlot) };
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return out;
+}
+
+interface BookingSetupProps {
+  initialAddress: string;
+  initialAvailability: Availability;
+}
+
+/**
+ * Phase 2.A: organizer-side booking config. Address is one endpoint of the
+ * midpoint search; weekly availability says when bookings are accepted.
+ * The actual booking widget on /yourname (Phase 2.B) reads these two and
+ * renders a "pick a slot" UI for visitors. Until both are filled in, the
+ * widget stays in its "coming soon" placeholder state on profile pages.
+ */
+function BookingSetupCard({ initialAddress, initialAvailability }: BookingSetupProps) {
+  const { t } = useI18n();
+  const [address, setAddress] = useState(initialAddress);
+  const [days, setDays] = useState<Availability>(initialAvailability);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+
+  function setDay(day: Weekday, patch: Partial<DaySlot>) {
+    setDays((prev) => ({ ...prev, [day]: { ...prev[day], ...patch } }));
+  }
+
+  // A day is "valid" if it's disabled OR start < end. The Save button blocks
+  // on any inverted range so the server doesn't have to bounce a 400.
+  const invalidDay = WEEKDAYS.find(
+    (d) => days[d].enabled && days[d].start >= days[d].end,
+  );
+
+  async function handleSave() {
+    if (busy || invalidDay) return;
+    setBusy(true);
+    setStatus(null);
+    // Wire format: only send days that are enabled OR explicitly set; same
+    // shape on the server. Empty object = "no availability".
+    const payload: Record<Weekday, DaySlot> = {} as Record<Weekday, DaySlot>;
+    for (const d of WEEKDAYS) payload[d] = days[d];
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          homeBaseAddress: address.trim() ? address.trim() : null,
+          availabilitySlots: payload,
+        }),
+      });
+      if (!res.ok) {
+        setStatus({ kind: 'err', message: t('account.bookingSaveFailed') });
+        return;
+      }
+      setStatus({ kind: 'ok', message: t('account.bookingSaved') });
+      track('booking_config_set', {
+        hasAddress: !!address.trim(),
+        enabledDays: WEEKDAYS.filter((d) => days[d].enabled).length,
+      });
+    } catch {
+      setStatus({ kind: 'err', message: t('account.bookingSaveFailed') });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={styles.card} aria-label={t('account.bookingTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.bookingTitle')}</h2>
+      <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+        {t('account.bookingHint')}
+      </p>
+
+      <label className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.homeBaseLabel')}</span>
+        <input
+          type="text"
+          className={styles.usernameInput}
+          maxLength={200}
+          placeholder={t('account.homeBasePlaceholder')}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        <span className={styles.usernameHint}>{t('account.homeBaseHint')}</span>
+      </label>
+
+      <div className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.availabilityLabel')}</span>
+        {WEEKDAYS.map((d) => {
+          const slot = days[d];
+          const inverted = slot.enabled && slot.start >= slot.end;
+          return (
+            <div key={d} className={styles.dayRow}>
+              <label className={styles.dayToggle}>
+                <input
+                  type="checkbox"
+                  checked={slot.enabled}
+                  onChange={(e) => setDay(d, { enabled: e.target.checked })}
+                />
+                <span className={styles.dayName}>{t(`account.weekday.${d}`)}</span>
+              </label>
+              <input
+                type="time"
+                className={styles.timeInput}
+                value={slot.start}
+                disabled={!slot.enabled}
+                onChange={(e) => setDay(d, { start: e.target.value })}
+                aria-invalid={inverted || undefined}
+              />
+              <span className={styles.timeSep} aria-hidden>→</span>
+              <input
+                type="time"
+                className={styles.timeInput}
+                value={slot.end}
+                disabled={!slot.enabled}
+                onChange={(e) => setDay(d, { end: e.target.value })}
+                aria-invalid={inverted || undefined}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className={styles.formRow}>
+        <button
+          type="button"
+          className={styles.saveButton}
+          onClick={() => void handleSave()}
+          disabled={busy || invalidDay !== undefined}
+        >
+          {busy ? t('account.saving') : t('account.bookingSave')}
+        </button>
+        {invalidDay ? (
+          <p className={styles.errorMsg} role="alert">
+            {t('account.bookingInvalidRange')}
           </p>
         ) : status ? (
           <p

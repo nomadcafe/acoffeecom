@@ -29,6 +29,8 @@ export function createAuth(env: AuthEnv) {
         displayName: { type: 'string', required: false },
         bio: { type: 'string', required: false },
         socialLinks: { type: 'string', required: false, defaultValue: '[]' },
+        homeBaseAddress: { type: 'string', required: false },
+        availabilitySlots: { type: 'string', required: false, defaultValue: '{}' },
       },
     },
     session: {

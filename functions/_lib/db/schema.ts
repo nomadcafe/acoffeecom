@@ -26,6 +26,15 @@ export const user = sqliteTable('user', {
   displayName: text('display_name'),
   bio: text('bio'),
   socialLinks: text('social_links').notNull().default('[]'),
+  /* Booking config — anchor address used as one endpoint of the midpoint
+   * search when a visitor books a coffee, plus a JSON map of weekday →
+   * { enabled, start, end } describing weekly recurring availability.
+   * Both empty by default; the booking widget on /yourname renders only
+   * once both are filled in. Stored as text to keep the migration small;
+   * geocoding happens server-side at booking time to avoid persisting
+   * stale lat/lng if the user moves. */
+  homeBaseAddress: text('home_base_address'),
+  availabilitySlots: text('availability_slots').notNull().default('{}'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });

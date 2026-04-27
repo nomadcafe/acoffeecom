@@ -408,6 +408,77 @@
   color: var(--ac-text);
 }
 
+/* ---------- booking setup (home base + weekly availability) ---------- */
+
+.dayRow {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) auto auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.dayToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.dayName {
+  color: var(--ac-text);
+  font-weight: 500;
+}
+
+.timeInput {
+  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--ac-text);
+  outline: none;
+  /* Date/time inputs render too narrow without an explicit width — Safari
+     in particular shrinks them to the placeholder. */
+  min-width: 6.5rem;
+}
+
+.timeInput:focus {
+  border-color: var(--ac-accent, #6f4e37);
+  box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
+}
+
+.timeInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.timeInput[aria-invalid='true'] {
+  border-color: #fecaca;
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1);
+}
+
+.timeSep {
+  color: var(--ac-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .dayRow {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    padding: 0.55rem 0.65rem;
+    background: var(--ac-page-bg);
+    border-radius: 8px;
+  }
+  .timeSep {
+    display: none;
+  }
+}
+
 /* ---------- visibility toggle ---------- */
 
 .toggleRow {

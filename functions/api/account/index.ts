@@ -40,12 +40,41 @@ const SocialLinkSchema = z.object({
     .refine((u) => /^https?:\/\//i.test(u), 'URL must start with http(s)'),
 });
 
+/* "HH:MM" 24-hour clock — narrow enough to validate at the schema level so
+ * downstream code can assume well-formed times. */
+const TIME_OF_DAY = /^([01]\d|2[0-3]):[0-5]\d$/;
+const DaySlotSchema = z
+  .object({
+    enabled: z.boolean(),
+    start: z.string().regex(TIME_OF_DAY),
+    end: z.string().regex(TIME_OF_DAY),
+  })
+  .refine((s) => !s.enabled || s.start < s.end, {
+    message: 'end time must be after start',
+  });
+/* Availability is a sparse map of weekday → slot. Missing keys mean the day
+ * is off; we don't enforce all 7 keys to be present so /account can PATCH
+ * just the day that changed if we ever go granular. */
+const AvailabilitySchema = z
+  .object({
+    mon: DaySlotSchema.optional(),
+    tue: DaySlotSchema.optional(),
+    wed: DaySlotSchema.optional(),
+    thu: DaySlotSchema.optional(),
+    fri: DaySlotSchema.optional(),
+    sat: DaySlotSchema.optional(),
+    sun: DaySlotSchema.optional(),
+  })
+  .strict();
+
 const PatchSchema = z.object({
   profilePublic: z.boolean().optional(),
   monthlyRecapEmail: z.boolean().optional(),
   displayName: z.string().trim().max(50).nullable().optional(),
   bio: z.string().trim().max(160).nullable().optional(),
   socialLinks: z.array(SocialLinkSchema).max(5).optional(),
+  homeBaseAddress: z.string().trim().max(200).nullable().optional(),
+  availabilitySlots: AvailabilitySchema.optional(),
 });
 
 /** Patch toggles + bio fields for the user account. profilePublic /
@@ -84,6 +113,12 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
   }
   if (input.socialLinks !== undefined) {
     patch.socialLinks = JSON.stringify(input.socialLinks);
+  }
+  if (input.homeBaseAddress !== undefined) {
+    patch.homeBaseAddress = input.homeBaseAddress ? input.homeBaseAddress : null;
+  }
+  if (input.availabilitySlots !== undefined) {
+    patch.availabilitySlots = JSON.stringify(input.availabilitySlots);
   }
 
   if (Object.keys(patch).length > 1) {
