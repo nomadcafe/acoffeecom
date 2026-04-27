@@ -25,10 +25,17 @@ export class GoogleMapsError extends Error {
   }
 }
 
+/* Prefer the dedicated server key but fall back to the client one — both
+ * are configured in the Pages dashboard and the client one is already there
+ * for the SPA. Separate-key hardening can come later. */
 function requireKey(env: AuthEnv): string {
-  const key = env.GOOGLE_MAPS_SERVER_KEY;
+  const key = env.GOOGLE_MAPS_SERVER_KEY || env.VITE_GOOGLE_MAPS_API_KEY;
   if (!key) {
-    throw new GoogleMapsError('GOOGLE_MAPS_SERVER_KEY not configured', 500, 'config');
+    throw new GoogleMapsError(
+      'No Google Maps API key configured (GOOGLE_MAPS_SERVER_KEY or VITE_GOOGLE_MAPS_API_KEY)',
+      500,
+      'config',
+    );
   }
   return key;
 }
