@@ -3,6 +3,7 @@ import { useI18n } from '../context/I18nContext';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { formatAbsoluteDate } from '../utils/relativeTime';
 import { AccountMenu } from './AccountMenu';
+import { BookingWidget } from './BookingWidget';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SocialIcon } from './SocialIcon';
@@ -223,12 +224,7 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
         </section>
       ) : null}
 
-      <section className={styles.bookSection} aria-label={t('profile.bookTitle')}>
-        <p className={styles.bookHint}>{t('profile.bookHint')}</p>
-        <button type="button" className={styles.bookButton} disabled>
-          {t('profile.bookComingSoon')}
-        </button>
-      </section>
+      <BookingWidget username={profile.username} displayName={profile.displayName} />
     </>
   );
 }

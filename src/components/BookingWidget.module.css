@@ -1,0 +1,309 @@
+.section {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border-radius: 12px;
+  padding: 1.1rem 1.2rem 1.2rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ac-text-strong, #2c1810);
+  margin: 0 0 0.35rem;
+}
+
+.lead {
+  margin: 0 0 1rem;
+  color: var(--ac-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.placeholder {
+  text-align: center;
+  padding: 1.4rem 0.5rem;
+  color: var(--ac-text-muted);
+  font-size: 0.9rem;
+}
+
+.errorRow {
+  background: #fdecec;
+  border: 1px solid #f3c2c2;
+  color: #8b3d28;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ---------- date chips ---------- */
+.dateLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ac-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.dateRow {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+  margin: 0 -0.2rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.dateChip {
+  flex: 0 0 auto;
+  min-width: 4.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.55rem 0.7rem 0.6rem;
+  border: 1px solid var(--ac-border, #e3d8cb);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ac-text, #3c2918);
+  cursor: pointer;
+  font-family: inherit;
+  scroll-snap-align: start;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.dateChip:hover:not(:disabled) {
+  border-color: var(--ac-accent, #a36b3e);
+  color: var(--ac-accent, #a36b3e);
+}
+
+.dateChipSelected {
+  background: var(--ac-accent, #a36b3e);
+  color: #fff;
+  border-color: var(--ac-accent, #a36b3e);
+}
+
+.dateChipSelected:hover:not(:disabled) {
+  color: #fff;
+}
+
+.dateChipWeekday {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.dateChipDay {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+/* ---------- time slots ---------- */
+.slotLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ac-text-muted);
+  margin: 1rem 0 0.5rem;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr));
+  gap: 0.4rem;
+}
+
+.slotChip {
+  padding: 0.55rem 0.4rem;
+  border: 1px solid var(--ac-border, #e3d8cb);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ac-text, #3c2918);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.slotChip:hover:not(:disabled) {
+  border-color: var(--ac-accent, #a36b3e);
+  color: var(--ac-accent, #a36b3e);
+}
+
+.slotChipSelected {
+  background: var(--ac-accent, #a36b3e);
+  color: #fff;
+  border-color: var(--ac-accent, #a36b3e);
+}
+
+.slotChipSelected:hover:not(:disabled) {
+  color: #fff;
+}
+
+/* ---------- form ---------- */
+.formCard {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ac-border, #e3d8cb);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.fieldLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-text-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.field {
+  display: block;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--ac-border, #e3d8cb);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: #fff;
+  color: var(--ac-text, #3c2918);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--ac-accent, #a36b3e);
+  box-shadow: 0 0 0 3px rgba(163, 107, 62, 0.15);
+}
+
+.formChosen {
+  font-size: 0.85rem;
+  color: var(--ac-text-muted);
+  margin: 0 0 0.4rem;
+}
+
+.formChosen strong {
+  color: var(--ac-text, #3c2918);
+}
+
+.formActions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.submit {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 0;
+  background: var(--ac-accent, #a36b3e);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.submit:hover:not(:disabled) {
+  background: #8c5a31;
+}
+
+.submit:disabled {
+  background: #c8b39a;
+  cursor: progress;
+}
+
+.back {
+  padding: 0.7rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--ac-border, #e3d8cb);
+  background: #fff;
+  color: var(--ac-text, #3c2918);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.back:hover {
+  border-color: var(--ac-text-muted);
+}
+
+/* ---------- success ---------- */
+.success {
+  text-align: center;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.successEmoji {
+  font-size: 1.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.successTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ac-text-strong, #2c1810);
+  margin: 0 0 0.35rem;
+}
+
+.successBody {
+  font-size: 0.9rem;
+  color: var(--ac-text-muted);
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+}
+
+.successCafe {
+  background: #faf6f1;
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+  margin-bottom: 0.6rem;
+}
+
+.successCafeName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ac-text-strong, #2c1810);
+  margin: 0;
+}
+
+.successCafeAddress {
+  font-size: 0.85rem;
+  color: var(--ac-text-muted);
+  margin: 0.2rem 0 0;
+}
+
+.successMapsLink {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--ac-accent, #a36b3e);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.successMapsLink:hover {
+  text-decoration: underline;
+}
+
+.tzNote {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+}
