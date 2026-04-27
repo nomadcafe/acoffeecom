@@ -22,7 +22,7 @@ import { usePathname } from './hooks/usePathname';
 import { useInterceptInternalLinks } from './hooks/useInterceptInternalLinks';
 import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
-import { isAccountPath, isPassportPath, matchProfileUsername } from './routes';
+import { isAccountPath, isBookingsPath, isPassportPath, matchProfileUsername } from './routes';
 import { useTrackPageViews } from './utils/analytics';
 import './App.css';
 
@@ -58,6 +58,11 @@ const PassportPage = lazy(() =>
 const AccountPage = lazy(() =>
   reloadOnChunkError(
     import('./components/AccountPage').then((m) => ({ default: m.AccountPage })),
+  ),
+);
+const BookingsPage = lazy(() =>
+  reloadOnChunkError(
+    import('./components/BookingsPage').then((m) => ({ default: m.BookingsPage })),
   ),
 );
 const PublicProfilePage = lazy(() =>
@@ -198,6 +203,15 @@ function AppRoute() {
       <>
         <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
           <AccountPage />
+        </Suspense>
+        <SiteBottomNav />
+      </>
+    );
+  } else if (isBookingsPath(logicalPath)) {
+    body = (
+      <>
+        <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+          <BookingsPage />
         </Suspense>
         <SiteBottomNav />
       </>

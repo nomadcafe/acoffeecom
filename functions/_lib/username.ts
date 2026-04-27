@@ -16,6 +16,7 @@ export const RESERVED_USERNAMES = new Set([
   'api',
   'app',
   'auth',
+  'bookings',
   'help',
   'login',
   'logout',

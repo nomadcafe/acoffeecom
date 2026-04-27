@@ -1,0 +1,141 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem 1rem;
+  align-items: start;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  background: #faf6f1;
+  border: 1px solid rgba(60, 30, 0, 0.06);
+}
+
+.rowCancelled {
+  opacity: 0.62;
+}
+
+.rowPast {
+  opacity: 0.85;
+}
+
+.when {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c1810;
+  margin: 0 0 0.25rem;
+  line-height: 1.25;
+}
+
+.whenSecondary {
+  font-size: 0.8rem;
+  color: #7a6a60;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #5c4030;
+  line-height: 1.4;
+}
+
+.body strong {
+  color: #2c1810;
+  font-weight: 600;
+}
+
+.email {
+  color: #5c4030;
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(92, 64, 48, 0.3);
+}
+
+.email:hover {
+  border-bottom-color: rgba(92, 64, 48, 0.6);
+}
+
+.cafeLink {
+  color: #a36b3e;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.cafeLink:hover {
+  text-decoration: underline;
+}
+
+.statusPill {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  background: rgba(150, 80, 60, 0.12);
+  color: #8b3d28;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-end;
+}
+
+.cancelButton {
+  background: transparent;
+  border: 1px solid rgba(150, 80, 60, 0.4);
+  color: #8b3d28;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: rgba(150, 80, 60, 0.08);
+  border-color: rgba(150, 80, 60, 0.6);
+}
+
+.cancelButton:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c1810;
+  margin: 0 0 0.75rem;
+}
+
+.empty {
+  font-size: 0.95rem;
+  color: #7a6a60;
+  margin: 0;
+}
+
+@media (max-width: 540px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+  .actions {
+    align-items: flex-start;
+  }
+}

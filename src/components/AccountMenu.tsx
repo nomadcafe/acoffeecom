@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { authClient, useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
-import { ACCOUNT_PATH } from '../routes';
+import { ACCOUNT_PATH, BOOKINGS_PATH } from '../routes';
 import { SavePassportToast } from './SavePassportToast';
 import styles from './AccountMenu.module.css';
 
@@ -14,6 +14,7 @@ export function AccountMenu() {
   const { t, locale } = useI18n();
   const { data: session, isPending } = useSession();
   const accountHref = buildLocalizedPathname(ACCOUNT_PATH, locale);
+  const bookingsHref = buildLocalizedPathname(BOOKINGS_PATH, locale);
   const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -97,6 +98,14 @@ export function AccountMenu() {
             onClick={() => setDropdownOpen(false)}
           >
             {t('auth.accountSettings')}
+          </a>
+          <a
+            className={styles.menuItem}
+            role="menuitem"
+            href={bookingsHref}
+            onClick={() => setDropdownOpen(false)}
+          >
+            {t('auth.myBookings')}
           </a>
           <button
             type="button"
