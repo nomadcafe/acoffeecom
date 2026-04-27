@@ -18,6 +18,17 @@ export type ChangelogEntry = {
 export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   en: [
     {
+      isoDate: '2026-04-28',
+      title: 'Bookings shipped end-to-end',
+      bullets: [
+        'Public profiles now have a real booking flow at acoffee.com/yourname — pick a date and time, see the café we auto-picked between you, confirm by email.',
+        'New Calendar sync: paste your Google / Apple / Outlook iCal URL in Account and your real busy times disappear from the offered slots automatically.',
+        'New "My bookings" page — hosts see who\'s coming, switch between home and current timezones while travelling, and cancel with one tap.',
+        'Visitors get a cancel link in their confirmation email, so cancellation isn\'t host-only.',
+        'Small polish: bigger brand wordmark, hash-based gradient avatars, a soft sage accent on "create" buttons.',
+      ],
+    },
+    {
       isoDate: '2026-04-27',
       title: 'Public profiles and share previews',
       bullets: [
@@ -113,6 +124,17 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   ],
   ja: [
     {
+      isoDate: '2026-04-28',
+      title: '予約機能が一通り揃いました',
+      bullets: [
+        'acoffee.com/yourname に本物の予約フローが実装されました — 日時を選び、双方の中間に自動選定されたカフェを見て、メールで確定。',
+        'カレンダー連携が新登場：Google / Apple / Outlook の iCal URL をアカウントに貼り付けるだけで、実際の予定の時間帯は予約候補から自動的に除外されます。',
+        '「予約一覧」ページを追加 — ホストは誰が来るかを確認でき、出張中は常駐地と現在地の時間表示を切り替えられ、ワンタップでキャンセル可能。',
+        '訪問者の確認メールにキャンセルリンクが含まれるようになり、ホスト以外もキャンセルできるように。',
+        '細かな改善：ブランド表記を大きく、ハッシュ生成のグラデーションアバター、「作成」ボタンに柔らかなセージ系アクセントを追加。',
+      ],
+    },
+    {
       isoDate: '2026-04-27',
       title: '公開プロフィールと共有プレビュー',
       bullets: [
@@ -207,6 +229,17 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
     },
   ],
   zh: [
+    {
+      isoDate: '2026-04-28',
+      title: '预约功能完整上线',
+      bullets: [
+        'acoffee.com/yourname 上的"约咖啡"现在是真表单了 — 选日期、选时间，看我们自动挑给你们俩的咖啡店，邮件确认即生效。',
+        '新增日历同步：把 Google / Apple / Outlook 的 iCal URL 贴到账号设置里，已有会议的时间段会自动从可约时段里排除。',
+        '新增"我的预约"页 — 主理人能看到谁约了自己，出差时可在常驻地与当前时区之间切换，一键取消。',
+        '访客的确认邮件里附带取消链接，不再需要主理人亲自取消。',
+        '细节打磨：品牌字号变大、根据用户名/邮箱哈希生成的渐变头像、"创建"按钮换上一抹柔和的鼠尾草绿。',
+      ],
+    },
     {
       isoDate: '2026-04-27',
       title: '公开主页与分享预览',
