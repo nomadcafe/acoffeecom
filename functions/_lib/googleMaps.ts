@@ -188,6 +188,46 @@ export async function searchNearbyCafes(
     .filter((c): c is NearbyCafe => c != null);
 }
 
+/**
+ * Look up the IANA timezone for a lat/lng using Google's Time Zone API.
+ * Used by /api/account PATCH to derive a correct timezone from the
+ * organizer's home base, so "Mon 14:00-17:00" means 2-5pm in the city
+ * the meetup actually happens, regardless of what timezone the
+ * organizer's browser is in.
+ */
+export async function lookupTimezone(env: AuthEnv, point: LatLng): Promise<string> {
+  const key = requireKey(env);
+  const url = new URL('https://maps.googleapis.com/maps/api/timezone/json');
+  url.searchParams.set('location', `${point.lat},${point.lng}`);
+  // The API needs a reference timestamp to disambiguate DST; current time
+  // is fine — we want "the timezone in effect at this point right now."
+  url.searchParams.set('timestamp', String(Math.floor(Date.now() / 1000)));
+  url.searchParams.set('key', key);
+
+  let res: Response;
+  try {
+    res = await fetch(url.toString());
+  } catch (e) {
+    throw new GoogleMapsError(
+      `Time Zone network error: ${e instanceof Error ? e.message : String(e)}`,
+      502,
+      'network',
+    );
+  }
+  if (!res.ok) {
+    throw new GoogleMapsError(`Time Zone HTTP ${res.status}`, 502, 'geocode');
+  }
+  const json = (await res.json()) as { status?: string; timeZoneId?: string; errorMessage?: string };
+  if (json.status !== 'OK' || !json.timeZoneId) {
+    throw new GoogleMapsError(
+      json.errorMessage || `Time Zone failed: ${json.status ?? 'unknown'}`,
+      502,
+      'geocode',
+    );
+  }
+  return json.timeZoneId;
+}
+
 /** Score = rating × log(userRatingCount + 1) — Wilson-ish. Penalises a 5★
  *  spot with one review against a 4.5★ with 200 reviews. Returns the top
  *  hit; null if the array is empty. */

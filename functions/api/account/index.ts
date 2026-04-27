@@ -4,6 +4,7 @@ import { type AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { user } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
+import { GoogleMapsError, geocodeAddress, lookupTimezone } from '../../_lib/googleMaps';
 
 /**
  * Hard-delete the signed-in user's account. FK constraints in schema.ts
@@ -119,12 +120,31 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
     patch.socialLinks = JSON.stringify(input.socialLinks);
   }
   if (input.homeBaseAddress !== undefined) {
-    patch.homeBaseAddress = input.homeBaseAddress ? input.homeBaseAddress : null;
+    const next = input.homeBaseAddress ? input.homeBaseAddress : null;
+    patch.homeBaseAddress = next;
+    // Address is the source of truth for timezone — geocode it then ask
+    // Google what TZ governs that point, so "Mon 14:00-17:00" always
+    // means 2-5pm at the place the meetup happens. Browser-sent TZ is
+    // ignored when we have an address (it stays as a fallback for users
+    // who haven't set one yet).
+    if (next) {
+      try {
+        const loc = await geocodeAddress(env, next);
+        patch.timezone = await lookupTimezone(env, loc);
+      } catch (e) {
+        if (e instanceof GoogleMapsError) {
+          return jsonError(`Couldn't validate that address — ${e.message}`, e.status);
+        }
+        throw e;
+      }
+    }
   }
   if (input.availabilitySlots !== undefined) {
     patch.availabilitySlots = JSON.stringify(input.availabilitySlots);
   }
-  if (input.timezone !== undefined) {
+  // Browser-sent timezone only sticks when there's no home base address
+  // (or it didn't change) — home_base lookup wins above.
+  if (input.timezone !== undefined && patch.timezone === undefined) {
     patch.timezone = input.timezone;
   }
 
