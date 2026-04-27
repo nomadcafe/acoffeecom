@@ -5,6 +5,9 @@ import { getDb, type DbEnv } from './db';
 /**
  * Lowercase letters/digits/`_`/`-`, 3–30 chars, must start with a letter so a
  * pure-numeric `acoffee.com/123` doesn't end up looking like a placeholder.
+ * The user-facing AccountPage form tightens this to 4+ chars so super-short
+ * slugs are reserved; the server stays permissive so existing 3-char names
+ * keep working and so we can hand-pick short slugs in D1 later.
  * Reserved words (api, account, passport, etc.) collide with our own routes
  * — block them at write time so the future `/yourname` surface stays safe.
  */

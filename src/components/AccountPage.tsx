@@ -13,7 +13,7 @@ import { LanguageSwitcher } from './LanguageSwitcher';
 import { SyncIndicator } from './SyncIndicator';
 import styles from './AccountPage.module.css';
 
-const USERNAME_REGEX = /^[a-z][a-z0-9_-]{2,29}$/;
+const USERNAME_REGEX = /^[a-z][a-z0-9_-]{3,29}$/;
 const CHECK_DEBOUNCE_MS = 350;
 const DELETE_CONFIRM_PHRASE = 'DELETE';
 
