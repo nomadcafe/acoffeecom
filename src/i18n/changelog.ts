@@ -18,6 +18,15 @@ export type ChangelogEntry = {
 export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   en: [
     {
+      isoDate: '2026-04-27',
+      title: 'Public profiles and share previews',
+      bullets: [
+        'Public profile pages at acoffee.com/yourname — display name, bio, and social links with brand icons.',
+        'Sharing your profile link now shows a rich preview image with your café stats.',
+        'New Account section to set your home base and weekly availability — public booking is coming soon.',
+      ],
+    },
+    {
       isoDate: '2026-04-25',
       title: 'Mobile polish',
       bullets: [
@@ -104,6 +113,15 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   ],
   ja: [
     {
+      isoDate: '2026-04-27',
+      title: '公開プロフィールと共有プレビュー',
+      bullets: [
+        'acoffee.com/yourname に公開プロフィールページを追加 — 表示名・自己紹介・SNS リンク（ブランドアイコン付き）。',
+        'プロフィールリンクを共有すると、カフェの統計入りの綺麗なプレビュー画像が表示されます。',
+        'アカウント設定にホーム拠点と週間予定を追加 — 公開予約機能は近日公開予定。',
+      ],
+    },
+    {
       isoDate: '2026-04-25',
       title: 'スマホ周りの調整',
       bullets: [
@@ -189,6 +207,15 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
     },
   ],
   zh: [
+    {
+      isoDate: '2026-04-27',
+      title: '公开主页与分享预览',
+      bullets: [
+        '新增公开主页 acoffee.com/yourname — 展示昵称、简介与社交链接（自动识别品牌图标）。',
+        '分享主页链接时会生成带有咖啡数据的精美预览图。',
+        '账号设置新增"常驻地"与"每周可约时段" — 公开预约功能即将上线。',
+      ],
+    },
     {
       isoDate: '2026-04-25',
       title: '手机端打磨',
