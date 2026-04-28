@@ -3,7 +3,7 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.description':
-    '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、誰でもワンタップでコーヒーの予約ができます。',
+    '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、友人も顧客もワンタップでコーヒーの予約ができます。',
   'seo.keywords':
     'カフェ 待ち合わせ, 待ち合わせ場所, 中間地点, 中点, 合流場所, 中間 カフェ, 2地点の中間, 2人の中間, 3人の中間, グループ 待ち合わせ, デート カフェ, 初デート カフェ, 打ち合わせ カフェ, 商談 カフェ, 駅近 カフェ, 人気カフェ, 高評価 カフェ, おすすめ カフェ, コーヒーショップ 検索, カフェ 地図, カフェ検索, コーヒー 予約, コーヒー スケジュール, Calendly コーヒー, コーヒー プロフィール, meet in the middle, acoffee',
   'seo.ogTitle': 'ACoffee — 待ち合わせに最適なカフェを探す',

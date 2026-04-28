@@ -3,7 +3,7 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — Best Meetup Place Finder',
   'seo.description':
-    'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so anyone can book a coffee with you — café auto-picked at the midpoint.',
+    'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so friends or clients can book a coffee with you — café auto-picked at the midpoint.',
   'seo.keywords':
     'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, meet halfway, halfway between two addresses, cafe between two locations, three-person midpoint, group meetup, equidistant cafe, meeting point finder, coffee date spot, first date cafe, top rated coffee shops, coffee shop near me, specialty coffee, cafe map, meetup planner, friends meetup, business meeting cafe, coffee booking, schedule a coffee, calendly for coffee, coffee profile, book a coffee with me',
   'seo.ogTitle': 'ACoffee — Best Meetup Place Finder',

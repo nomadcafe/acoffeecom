@@ -56,7 +56,7 @@ const SEO_COPY: Record<Locale, {
   en: {
     title: 'ACoffee — Best Meetup Place Finder',
     description:
-      'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so anyone can book a coffee with you — café auto-picked at the midpoint.',
+      'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so friends or clients can book a coffee with you — café auto-picked at the midpoint.',
     ogTitle: 'ACoffee — Best Meetup Place Finder',
     ogDescription:
       'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
@@ -69,7 +69,7 @@ const SEO_COPY: Record<Locale, {
   ja: {
     title: 'ACoffee — 待ち合わせに最適なカフェを探す',
     description:
-      '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、誰でもワンタップでコーヒーの予約ができます。',
+      '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、友人も顧客もワンタップでコーヒーの予約ができます。',
     ogTitle: 'ACoffee — 待ち合わせに最適なカフェを探す',
     ogDescription:
       '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
@@ -82,12 +82,12 @@ const SEO_COPY: Record<Locale, {
   zh: {
     title: 'ACoffee — 找到最合适的会面咖啡店',
     description:
-      '输入二到三个地址，自动在地图上找到中间的高评分咖啡店。分享你的公开主页 acoffee.com/yourname，朋友一键就能约你喝咖啡——咖啡店自动挑在中间。',
+      '输入二到三个地址，自动在地图上找到中间的高评分咖啡店。分享你的公开主页 acoffee.com/yourname，朋友或客户都能一键约你喝咖啡——咖啡店自动挑在中间。',
     ogTitle: 'ACoffee — 找到最合适的会面咖啡店',
-    ogDescription: '在两到三人之间挑一家高评分咖啡店；还能用 acoffee.com/yourname 让朋友一键约你喝咖啡。',
+    ogDescription: '在两到三人之间挑一家高评分咖啡店；用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
     ogLocale: 'zh_CN',
     twitterTitle: 'ACoffee — 找到最合适的会面咖啡店',
-    twitterDescription: '在两到三人之间挑一家高评分咖啡店；还能用 acoffee.com/yourname 让朋友一键约你喝咖啡。',
+    twitterDescription: '在两到三人之间挑一家高评分咖啡店；用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
     htmlLang: 'zh-CN',
   },
 };
