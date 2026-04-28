@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { CoffeeShop } from '../types';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { useSession } from '../utils/authClient';
 import { track } from '../utils/analytics';
 import styles from './ProposeButton.module.css';
+
+// AuthModal pulled in only when the user clicks Propose without being
+// signed in — most card-tap interactions don't need it loaded.
+const AuthModal = lazy(() => import('./AuthModal').then((m) => ({ default: m.AuthModal })));
 
 interface Props {
   shop: CoffeeShop;
@@ -51,7 +56,10 @@ function defaultScheduledAt(): number {
 export function ProposeButton({ shop }: Props) {
   const { t } = useI18n();
   const { coffeeShops, addressA, addressB, addressC, agentMode } = useApp();
+  const { data: session } = useSession();
   const [flash, setFlash] = useState<Flash>('idle');
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const signedIn = !!(session?.user as { email?: string } | undefined)?.email;
 
   useEffect(() => {
     if (flash !== 'copied' && flash !== 'error') return;
@@ -62,6 +70,13 @@ export function ProposeButton({ shop }: Props) {
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (flash === 'creating') return;
+    // Gate behind sign-in: without a sender email there's no
+    // notification path back when the receiver taps Accept / shift /
+    // next-cafe — the proposal would be a one-way write into the void.
+    if (!signedIn) {
+      setAuthModalOpen(true);
+      return;
+    }
     setFlash('creating');
 
     // Pull the next N candidates after the chosen shop as alts so the
@@ -128,16 +143,23 @@ export function ProposeButton({ shop }: Props) {
           : t('propose.label');
 
   return (
-    <button
-      type="button"
-      className={`${styles.button} ${flash === 'copied' ? styles.copied : ''}`}
-      onClick={(e) => void handleClick(e)}
-      disabled={flash === 'creating'}
-      aria-label={label}
-      title={t('propose.tooltip')}
-    >
-      <span aria-hidden>📨</span>
-      <span className={styles.text}>{label}</span>
-    </button>
+    <>
+      <button
+        type="button"
+        className={`${styles.button} ${flash === 'copied' ? styles.copied : ''}`}
+        onClick={(e) => void handleClick(e)}
+        disabled={flash === 'creating'}
+        aria-label={label}
+        title={signedIn ? t('propose.tooltip') : t('propose.signInTooltip')}
+      >
+        <span aria-hidden>📨</span>
+        <span className={styles.text}>{label}</span>
+      </button>
+      {authModalOpen ? (
+        <Suspense fallback={null}>
+          <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+        </Suspense>
+      ) : null}
+    </>
   );
 }

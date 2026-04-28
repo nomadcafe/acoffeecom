@@ -5,15 +5,18 @@ import { proposals } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
 
 /**
- * Create a lightweight coffee meetup proposal. Sender posts the cafe
- * + alternates + suggested time + addresses; we mint a UUID and return
- * the share URL `/p/<id>`. The id is the only secret — UUID v4 has 122
- * bits of entropy so direct enumeration isn't realistic. No email
- * verification, no host account required.
+ * Create a lightweight coffee meetup proposal. Sender must be signed in
+ * (for the "Alice accepted your coffee" notification path); receiver
+ * stays fully anonymous — `/p/<uuid>` resolves for anyone with the
+ * link. The id is the only secret — UUID v4 has 122 bits of entropy so
+ * direct enumeration isn't realistic.
  *
  * Distinct from /api/booking which is the full Calendly-for-coffee
  * flow (double-opt-in, .ics, host calendar). Proposals are for casual
- * "want to grab coffee?" pings between friends.
+ * "want to grab coffee?" pings between friends. The sender-must-sign-in
+ * rule is what makes the receiver's tweak buttons functional — without
+ * a sender email there'd be no notification path back, and the buttons
+ * would be decoration.
  */
 
 const CafeSchema = z.object({
@@ -44,10 +47,15 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return jsonError(err instanceof Error ? err.message : 'Invalid request body', 400);
   }
 
-  // Optional sender-id — anonymous proposals still work, but logged-in
-  // senders get the row tied to their account so a future "my proposals"
-  // dashboard can list them.
+  // Sender must be signed in. Their email is what powers the
+  // "receiver accepted" notification — without it, the tweak buttons
+  // on the proposal page would just silently mutate the DB and the
+  // sender would never know. UI gates the button on auth state, so a
+  // 401 here means the user bypassed that gate.
   const sessionUser = await getSessionUser(env, request).catch(() => null);
+  if (!sessionUser) {
+    return jsonError('Sign in to create a proposal', 401);
+  }
 
   const id = crypto.randomUUID();
   const now = new Date();
@@ -56,7 +64,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   const db = getDb(env);
   await db.insert(proposals).values({
     id,
-    senderUserId: sessionUser?.id ?? null,
+    senderUserId: sessionUser.id,
     cafePlaceId: input.cafe.placeId,
     cafeName: input.cafe.name,
     cafeAddress: input.cafe.address,

@@ -99,6 +99,7 @@ export const messages: MessageDict = {
 
   'propose.label': '约一杯',
   'propose.tooltip': '一键生成约见链接，已复制到剪贴板',
+  'propose.signInTooltip': '先登录，对方接受时我们会通知你',
   'propose.creating': '生成中…',
   'propose.copied': '链接已复制 ✓',
   'propose.failed': '生成失败',

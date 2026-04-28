@@ -102,6 +102,7 @@ export const messages: MessageDict = {
 
   'propose.label': '提案する',
   'propose.tooltip': 'ワンタップで待ち合わせ提案リンクを作成 — クリップボードにコピーされます',
+  'propose.signInTooltip': 'まずサインインを — 相手が承諾したらお知らせします',
   'propose.creating': '作成中…',
   'propose.copied': 'リンクをコピーしました ✓',
   'propose.failed': '作成できませんでした',

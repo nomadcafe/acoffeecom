@@ -1,9 +1,15 @@
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
+import { Resend } from 'resend';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
-import { proposals } from '../../_lib/db/schema';
+import { proposals, user } from '../../_lib/db/schema';
 import { jsonError } from '../../_lib/passport';
+import {
+  renderProposalAcceptedHtml,
+  renderProposalCafeChangedHtml,
+  renderProposalTimeShiftedHtml,
+} from '../../_lib/proposalEmails';
 
 /**
  * View + tweak a proposal. GET returns the rendered shape (cafe at
@@ -128,14 +134,23 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
     return jsonError('Proposal was cancelled', 410);
   }
 
+  // Track which kind of mutation happened for notification dispatch.
+  // Avoids re-checking by re-comparing the row to its previous state.
+  let changeKind: 'accept' | 'next-cafe' | 'shift-time' | null = null;
+
   if (input.action === 'accept') {
     if (row.status !== 'accepted') {
       await db.update(proposals).set({ status: 'accepted' }).where(eq(proposals.id, id));
+      changeKind = 'accept';
     }
+    // Idempotent: re-clicking accept doesn't re-fire the email.
   } else if (input.action === 'next-cafe') {
     const altCount = parseJsonArray<CafeAlt>(row.altCafesJson).length + 1; // +main
     const nextIdx = (row.cafeIndex + 1) % Math.max(altCount, 1);
-    await db.update(proposals).set({ cafeIndex: nextIdx }).where(eq(proposals.id, id));
+    if (nextIdx !== row.cafeIndex) {
+      await db.update(proposals).set({ cafeIndex: nextIdx }).where(eq(proposals.id, id));
+      changeKind = 'next-cafe';
+    }
   } else if (input.action === 'shift-time') {
     const cur =
       row.scheduledAt instanceof Date
@@ -146,12 +161,86 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
     // when it's already 4:30pm is meaningless).
     const floor = Date.now() + 5 * 60_000;
     const safeNext = Math.max(next, floor);
-    await db
-      .update(proposals)
-      .set({ scheduledAt: new Date(safeNext) })
-      .where(eq(proposals.id, id));
+    if (safeNext !== cur) {
+      await db
+        .update(proposals)
+        .set({ scheduledAt: new Date(safeNext) })
+        .where(eq(proposals.id, id));
+      changeKind = 'shift-time';
+    }
   }
 
   const [updated] = await db.select().from(proposals).where(eq(proposals.id, id));
+
+  // Notify the sender — that's the whole reason proposal create requires
+  // login. Skip if no sender_user_id (very old anonymous rows from
+  // before the login requirement) or no Resend keys configured.
+  if (changeKind && updated.senderUserId && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+    void notifySender(env, updated, changeKind).catch((e) => {
+      // Email failure shouldn't block the user response — they've already
+      // tapped the button and seen the in-page state update.
+      console.warn('[proposals] notify failed', updated.id, e);
+    });
+  }
+
   return Response.json(rowToView(updated));
 };
+
+async function notifySender(
+  env: AuthEnv,
+  row: typeof proposals.$inferSelect,
+  changeKind: 'accept' | 'next-cafe' | 'shift-time',
+): Promise<void> {
+  const db = getDb(env);
+  const [sender] = await db
+    .select({ email: user.email })
+    .from(user)
+    .where(eq(user.id, row.senderUserId!));
+  if (!sender?.email) return;
+
+  // Re-derive current cafe from the row (cafeIndex points into
+  // [main, ...alts]; rowToView did the same dispatch but it's local).
+  const alts = parseJsonArray<CafeAlt>(row.altCafesJson);
+  const all = [
+    {
+      placeId: row.cafePlaceId,
+      name: row.cafeName,
+      address: row.cafeAddress,
+      lat: row.cafeLat,
+      lng: row.cafeLng,
+    },
+    ...alts,
+  ];
+  const cafe = all[Math.min(Math.max(row.cafeIndex, 0), all.length - 1)];
+  const startMs =
+    row.scheduledAt instanceof Date ? row.scheduledAt.getTime() : Number(row.scheduledAt);
+  const startStr = new Date(startMs).toUTCString();
+  const url = `https://acoffee.com/p/${row.id}`;
+
+  let subject: string;
+  let html: string;
+  const params = {
+    startStr,
+    cafeName: cafe.name,
+    cafeAddress: cafe.address,
+    url,
+  };
+  if (changeKind === 'accept') {
+    subject = 'Your coffee proposal was accepted ☕';
+    html = renderProposalAcceptedHtml(params);
+  } else if (changeKind === 'shift-time') {
+    subject = 'New time on your coffee proposal';
+    html = renderProposalTimeShiftedHtml(params);
+  } else {
+    subject = 'A different café on your coffee proposal';
+    html = renderProposalCafeChangedHtml(params);
+  }
+
+  const resend = new Resend(env.RESEND_API_KEY);
+  await resend.emails.send({
+    from: env.RESEND_FROM_EMAIL,
+    to: sender.email,
+    subject,
+    html,
+  });
+}

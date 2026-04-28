@@ -106,6 +106,7 @@ export const messages: MessageDict = {
 
   'propose.label': 'Propose',
   'propose.tooltip': 'Send a one-tap meetup proposal — link copies to your clipboard',
+  'propose.signInTooltip': 'Sign in first so we can let you know when they accept',
   'propose.creating': 'Creating…',
   'propose.copied': 'Link copied ✓',
   'propose.failed': 'Couldn\'t create',
