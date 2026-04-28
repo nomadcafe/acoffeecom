@@ -175,12 +175,20 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
   // Notify the sender — that's the whole reason proposal create requires
   // login. Skip if no sender_user_id (very old anonymous rows from
   // before the login requirement) or no Resend keys configured.
+  //
+  // We await rather than fire-and-forget: CF Pages Functions terminate
+  // the Worker the instant the response returns, so a `void promise`
+  // here never actually completed the Resend HTTP request — the
+  // notification would land in the void. ~300-500ms extra latency on
+  // the receiver's button tap is fine; reliability matters more.
   if (changeKind && updated.senderUserId && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
-    void notifySender(env, updated, changeKind).catch((e) => {
+    try {
+      await notifySender(env, updated, changeKind);
+    } catch (e) {
       // Email failure shouldn't block the user response — they've already
-      // tapped the button and seen the in-page state update.
+      // tapped the button and we're about to render the new state.
       console.warn('[proposals] notify failed', updated.id, e);
-    });
+    }
   }
 
   return Response.json(rowToView(updated));

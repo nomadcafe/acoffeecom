@@ -162,10 +162,13 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
     width: 1200,
     height: 630,
     headers: {
-      // Edge-cache for an hour — bio/stat changes are rare enough that the
-      // 1h freshness window is fine; users see their own profile with cache
-      // bypass via the SPA either way.
-      'cache-control': 'public, max-age=3600, s-maxage=3600',
+      // 10-minute cache: balances fresh share-cards (when a user updates
+      // bio / display name they want the social preview to catch up
+      // within minutes, not an hour) against re-generating workers-og
+      // PNGs on every link-preview bot hit. Bots typically cache the
+      // image themselves (Slack ~30d, Twitter ~7d) so actual workers-og
+      // load isn't proportional to share volume anyway.
+      'cache-control': 'public, max-age=600, s-maxage=600',
     },
   });
 };
