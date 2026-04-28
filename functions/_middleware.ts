@@ -5,27 +5,92 @@ import { user, visitedShops } from './_lib/db/schema';
 import { RESERVED_USERNAMES } from './_lib/username';
 
 /**
- * Root middleware that injects per-profile Open Graph / Twitter Card meta
- * tags into the SPA's index.html when the request matches a public profile
- * URL. Without this, every shared `acoffee.com/<username>` would show the
- * generic site preview on iMessage / Twitter / Slack / WhatsApp — losing
- * the acquisition lever that bio-link pages depend on.
+ * Root middleware that rewrites the SPA's static index.html for two
+ * surfaces that need SEO / link-preview metadata before the React app
+ * has a chance to update it client-side:
  *
- * The middleware bails fast on anything that isn't a navigation to a
- * /<username> or /<locale>/<username> path:
+ *   1. Public profile pages — `acoffee.com/<username>` and
+ *      `acoffee.com/<locale>/<username>`. Without injection every
+ *      shared profile would show the generic English site preview on
+ *      iMessage / Twitter / Slack / WhatsApp.
+ *
+ *   2. Localized homepages — `/`, `/en/`, `/ja/`, `/zh/`. The static
+ *      <title> / og:title / og:description / og:locale / canonical /
+ *      <html lang> are all English. When a Chinese or Japanese user
+ *      shares `acoffee.com/zh/`, the link-preview bot fetches the raw
+ *      HTML (no JS execution), so they see English copy. The
+ *      I18nContext fixes this in-browser but the bots never get there.
+ *
+ * Skip rules:
  *   - non-GET methods
  *   - non-HTML accept headers (assets, JSON fetches)
  *   - /api/ /_* /assets/ /sw.js /manifest.webmanifest
  *   - paths with extensions (.png, .ico, …)
- *   - reserved words (account, passport, updates, …)
- *
- * For matching paths we let the static handler serve index.html via
- * context.next(), then HTMLRewriter substitutes our OG tags into the
- * already-shipped <meta> elements. The page still hydrates the same SPA;
- * crawlers just see the right preview.
+ *   - reserved words (account, passport, updates, …) — they're SPA
+ *     routes that don't need bespoke OG yet, and bookings are auth-
+ *     gated so SEO doesn't apply
  */
 
 const USERNAME_RE = /^(?:\/(en|ja|zh))?\/([a-z][a-z0-9_-]{2,29})\/?$/;
+/** `/`, `/en`, `/en/`, `/ja`, `/ja/`, `/zh`, `/zh/`. */
+const HOME_PATH_RE = /^\/(?:(en|ja|zh)\/?)?$/;
+
+type Locale = 'en' | 'ja' | 'zh';
+
+/**
+ * Per-locale SEO copy. Mirrors the seo.* keys in src/i18n/locales/*.ts
+ * but lives here because Pages Functions can't import from the SPA
+ * source tree at build time. Keep in sync when those keys change —
+ * grep for `seo.ogTitle` in this file before editing the i18n locales.
+ */
+const SEO_COPY: Record<Locale, {
+  title: string;
+  description: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogLocale: string;
+  twitterTitle: string;
+  twitterDescription: string;
+  htmlLang: string;
+}> = {
+  en: {
+    title: 'ACoffee — Best Meetup Place Finder',
+    description:
+      'Enter two addresses, see the midpoint on a map, and discover highly rated coffee shops nearby. Plan an easy meetup at a café that works for both of you.',
+    ogTitle: 'ACoffee — Best Meetup Place Finder',
+    ogDescription:
+      'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+    ogLocale: 'en_US',
+    twitterTitle: 'ACoffee — Best Meetup Place Finder',
+    twitterDescription:
+      'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+    htmlLang: 'en',
+  },
+  ja: {
+    title: 'ACoffee — 待ち合わせに最適なカフェを探す',
+    description:
+      '2つの住所を入力すると中間地点を地図で表示し、その周辺の高評価カフェを見つけられます。待ち合わせ場所を簡単に決められます。',
+    ogTitle: 'ACoffee — 待ち合わせに最適なカフェを探す',
+    ogDescription:
+      '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+    ogLocale: 'ja_JP',
+    twitterTitle: 'ACoffee — 待ち合わせに最適なカフェを探す',
+    twitterDescription:
+      '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+    htmlLang: 'ja',
+  },
+  zh: {
+    title: 'ACoffee — 找到最合适的会面咖啡店',
+    description:
+      '输入两个地址，在地图上查看中点并找到附近高评分咖啡店，快速决定双方都方便的会面地点。',
+    ogTitle: 'ACoffee — 找到最合适的会面咖啡店',
+    ogDescription: '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+    ogLocale: 'zh_CN',
+    twitterTitle: 'ACoffee — 找到最合适的会面咖啡店',
+    twitterDescription: '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+    htmlLang: 'zh-CN',
+  },
+};
 
 const SKIP_PREFIXES = ['/api/', '/assets/', '/_'];
 const SKIP_PATHS = new Set([
@@ -137,6 +202,22 @@ class TitleSetter {
   }
 }
 
+class HtmlLangSetter {
+  constructor(private readonly lang: string) {}
+  element(el: Element) {
+    el.setAttribute('lang', this.lang);
+  }
+}
+
+class CanonicalSetter {
+  constructor(private readonly href: string) {}
+  element(el: Element) {
+    if (el.getAttribute('rel') === 'canonical') {
+      el.setAttribute('href', this.href);
+    }
+  }
+}
+
 export const onRequest: PagesFunction<AuthEnv> = async (context) => {
   const { request, env, next } = context;
   const url = new URL(request.url);
@@ -151,6 +232,32 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
 
   const accept = request.headers.get('accept') ?? '';
   if (!accept.includes('text/html')) return next();
+
+  // Localized homepages: `/`, `/en/`, `/ja/`, `/zh/`. Match before the
+  // username pattern because they would also match the more permissive
+  // username regex (e.g. `/en` could be parsed as username `en`, except
+  // we already reserved 'en' is too short — but be explicit).
+  const homeMatch = url.pathname.match(HOME_PATH_RE);
+  if (homeMatch) {
+    const locale = (homeMatch[1] as Locale | undefined) ?? 'en';
+    const copy = SEO_COPY[locale];
+    const canonicalHref = `${url.origin}${url.pathname.endsWith('/') ? url.pathname : url.pathname + '/'}`;
+    const response = await next();
+    const ctype = response.headers.get('content-type') ?? '';
+    if (!ctype.includes('text/html')) return response;
+    const rewriter = new HTMLRewriter()
+      .on('html', new HtmlLangSetter(copy.htmlLang))
+      .on('title', new TitleSetter(copy.title))
+      .on('meta[name="description"]', new MetaTagSetter('name', 'description', copy.description))
+      .on('meta[property="og:title"]', new MetaTagSetter('property', 'og:title', copy.ogTitle))
+      .on('meta[property="og:description"]', new MetaTagSetter('property', 'og:description', copy.ogDescription))
+      .on('meta[property="og:locale"]', new MetaTagSetter('property', 'og:locale', copy.ogLocale))
+      .on('meta[property="og:url"]', new MetaTagSetter('property', 'og:url', canonicalHref))
+      .on('meta[name="twitter:title"]', new MetaTagSetter('name', 'twitter:title', copy.twitterTitle))
+      .on('meta[name="twitter:description"]', new MetaTagSetter('name', 'twitter:description', copy.twitterDescription))
+      .on('link[rel="canonical"]', new CanonicalSetter(canonicalHref));
+    return rewriter.transform(response);
+  }
 
   const match = url.pathname.match(USERNAME_RE);
   if (!match) return next();
