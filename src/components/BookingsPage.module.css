@@ -131,6 +131,24 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+.rescheduleButton {
+  background: transparent;
+  border: 1px solid var(--ac-border-strong, #d6c7bb);
+  color: var(--ac-text, #2c1810);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  font-family: inherit;
+}
+
+.rescheduleButton:hover:not(:disabled) {
+  background: #fdf8f1;
+  border-color: var(--ac-accent, #a36b3e);
+}
+
 .cancelButton:hover:not(:disabled) {
   background: rgba(150, 80, 60, 0.08);
   border-color: rgba(150, 80, 60, 0.6);

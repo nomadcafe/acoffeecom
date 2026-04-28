@@ -551,6 +551,8 @@ function SignedInAccountPage({
           initialAvailability={parseInitialAvailability(
             (sessionUser as { availabilitySlots?: string }).availabilitySlots,
           )}
+          username={sessionUser.username ?? ''}
+          profilePublic={!!sessionUser.profilePublic}
         />
 
         <CalendarSyncCard
@@ -1262,6 +1264,12 @@ function parseInitialAvailability(raw: string | undefined): Availability {
 interface BookingSetupProps {
   initialAddress: string;
   initialAvailability: Availability;
+  /** Used to render the public booking link the user can copy/share. Empty
+   *  when the user hasn't claimed a username yet. */
+  username: string;
+  /** Whether the user has published their profile. The link only works if
+   *  profile_public=true, so we hide the share row otherwise. */
+  profilePublic: boolean;
 }
 
 /**
@@ -1271,12 +1279,31 @@ interface BookingSetupProps {
  * renders a "pick a slot" UI for visitors. Until both are filled in, the
  * widget stays in its "coming soon" placeholder state on profile pages.
  */
-function BookingSetupCard({ initialAddress, initialAvailability }: BookingSetupProps) {
+function BookingSetupCard({
+  initialAddress,
+  initialAvailability,
+  username,
+  profilePublic,
+}: BookingSetupProps) {
   const { t } = useI18n();
   const [address, setAddress] = useState(initialAddress);
   const [days, setDays] = useState<Availability>(initialAvailability);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
+
+  const bookingLink = username && profilePublic ? `https://acoffee.com/${username}` : null;
+  const handleCopyLink = async () => {
+    if (!bookingLink) return;
+    try {
+      await navigator.clipboard.writeText(bookingLink);
+      setCopyState('copied');
+      window.setTimeout(() => setCopyState('idle'), 2000);
+    } catch {
+      // Clipboard blocked (rare on https); silently no-op rather than
+      // surface an error UI for an action the user retries naturally.
+    }
+  };
 
   function setDay(day: Weekday, patch: Partial<DaySlot>) {
     setDays((prev) => ({ ...prev, [day]: { ...prev[day], ...patch } }));
@@ -1337,6 +1364,29 @@ function BookingSetupCard({ initialAddress, initialAvailability }: BookingSetupP
       <p className={styles.usernameHint} style={{ marginTop: 0 }}>
         {t('account.bookingHint')}
       </p>
+
+      {bookingLink ? (
+        <div className={styles.bookingLinkRow}>
+          <span className={styles.bookingLinkLabel}>{t('account.bookingLinkLabel')}</span>
+          <a
+            href={bookingLink}
+            target="_blank"
+            rel="noreferrer"
+            className={styles.bookingLinkValue}
+          >
+            {bookingLink.replace(/^https?:\/\//, '')}
+          </a>
+          <button
+            type="button"
+            className={styles.bookingLinkCopy}
+            onClick={() => void handleCopyLink()}
+          >
+            {copyState === 'copied'
+              ? t('account.bookingLinkCopied')
+              : t('account.bookingLinkCopy')}
+          </button>
+        </div>
+      ) : null}
 
       <label className={styles.fieldGroup}>
         <span className={styles.fieldLabel}>{t('account.homeBaseLabel')}</span>

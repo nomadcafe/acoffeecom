@@ -65,7 +65,12 @@ export function BookingsPage() {
   const effectiveTz = tzMode === 'home' ? homeTz : localTz;
 
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
-  const [cancelTarget, setCancelTarget] = useState<BookingWire | null>(null);
+  // The action modal handles both "cancel" and "reschedule" — same flow,
+  // just different wording and a different `?intent=` query param sent
+  // to the backend. Reschedule = cancel + auto-email visitor a "pick
+  // a new time" link to /yourname.
+  type Intent = 'cancel' | 'reschedule';
+  const [actionTarget, setActionTarget] = useState<{ row: BookingWire; intent: Intent } | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   // List = the original chronological row layout. Week = a 7-column grid
@@ -128,17 +133,20 @@ export function BookingsPage() {
   }
 
   // ----- Signed in: render list -----
-  const confirmCancel = async () => {
-    if (!cancelTarget) return;
+  const confirmAction = async () => {
+    if (!actionTarget) return;
     setCancelling(true);
     setCancelError(null);
     try {
-      const r = await fetch(`/api/bookings/${encodeURIComponent(cancelTarget.id)}`, {
+      const url =
+        `/api/bookings/${encodeURIComponent(actionTarget.row.id)}` +
+        (actionTarget.intent === 'reschedule' ? '?intent=reschedule' : '');
+      const r = await fetch(url, {
         method: 'DELETE',
         credentials: 'include',
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      setCancelTarget(null);
+      setActionTarget(null);
       await refresh();
     } catch {
       setCancelError(t('bookings.cancelFailed'));
@@ -216,7 +224,7 @@ export function BookingsPage() {
             rows={state.bookings}
             anchorMs={weekAnchorMs}
             onAnchorChange={setWeekAnchorMs}
-            onCancelClick={setCancelTarget}
+            onCancelClick={(row) => setActionTarget({ row, intent: 'cancel' })}
             locale={locale}
             timezone={effectiveTz}
             t={t}
@@ -224,8 +232,9 @@ export function BookingsPage() {
         ) : (
           <BookingsList
             rows={state.bookings}
-            onCancelClick={setCancelTarget}
-            cancellingId={cancelling ? cancelTarget?.id ?? null : null}
+            onCancelClick={(row) => setActionTarget({ row, intent: 'cancel' })}
+            onRescheduleClick={(row) => setActionTarget({ row, intent: 'reschedule' })}
+            cancellingId={cancelling ? actionTarget?.row.id ?? null : null}
             cancelError={cancelError}
             locale={locale}
             timezone={effectiveTz}
@@ -234,19 +243,20 @@ export function BookingsPage() {
         )}
       </main>
 
-      {cancelTarget ? (
-        <CancelConfirmModal
-          target={cancelTarget}
+      {actionTarget ? (
+        <ActionConfirmModal
+          target={actionTarget.row}
+          intent={actionTarget.intent}
           locale={locale}
           timezone={effectiveTz}
           busy={cancelling}
           onClose={() => {
             if (!cancelling) {
-              setCancelTarget(null);
+              setActionTarget(null);
               setCancelError(null);
             }
           }}
-          onConfirm={() => void confirmCancel()}
+          onConfirm={() => void confirmAction()}
           t={t}
         />
       ) : null}
@@ -254,8 +264,9 @@ export function BookingsPage() {
   );
 }
 
-interface CancelModalProps {
+interface ActionModalProps {
   target: BookingWire;
+  intent: 'cancel' | 'reschedule';
   locale: string;
   timezone: string;
   busy: boolean;
@@ -264,15 +275,16 @@ interface CancelModalProps {
   t: ReturnType<typeof useI18n>['t'];
 }
 
-function CancelConfirmModal({
+function ActionConfirmModal({
   target,
+  intent,
   locale,
   timezone,
   busy,
   onClose,
   onConfirm,
   t,
-}: CancelModalProps) {
+}: ActionModalProps) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -291,21 +303,29 @@ function CancelConfirmModal({
     timeZone: timezone,
   }).format(start);
 
+  const isReschedule = intent === 'reschedule';
+  const titleKey = isReschedule ? 'bookings.rescheduleModalTitle' : 'bookings.cancelModalTitle';
+  const bodyKey = isReschedule ? 'bookings.confirmReschedule' : 'bookings.confirmCancel';
+  const confirmKey = isReschedule
+    ? 'bookings.rescheduleModalConfirm'
+    : 'bookings.cancelModalConfirm';
+  const busyKey = isReschedule ? 'bookings.rescheduling' : 'bookings.cancelling';
+
   return (
     <div
       className={styles.modalOverlay}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="cancel-modal-title"
+      aria-labelledby="action-modal-title"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className={styles.modalDialog}>
-        <h3 id="cancel-modal-title" className={styles.modalTitle}>
-          {t('bookings.cancelModalTitle')}
+        <h3 id="action-modal-title" className={styles.modalTitle}>
+          {t(titleKey)}
         </h3>
-        <p className={styles.modalBody}>{t('bookings.confirmCancel')}</p>
+        <p className={styles.modalBody}>{t(bodyKey)}</p>
         <div className={styles.modalSummary}>
           <strong>{target.visitorName}</strong> · {when}
           <br />
@@ -326,7 +346,7 @@ function CancelConfirmModal({
             onClick={onConfirm}
             disabled={busy}
           >
-            {busy ? t('bookings.cancelling') : t('bookings.cancelModalConfirm')}
+            {busy ? t(busyKey) : t(confirmKey)}
           </button>
         </div>
       </div>
@@ -539,6 +559,7 @@ function WeekGridView({
 interface ListProps {
   rows: BookingWire[];
   onCancelClick: (row: BookingWire) => void;
+  onRescheduleClick: (row: BookingWire) => void;
   cancellingId: string | null;
   cancelError: string | null;
   locale: string;
@@ -549,6 +570,7 @@ interface ListProps {
 function BookingsList({
   rows,
   onCancelClick,
+  onRescheduleClick,
   cancellingId,
   cancelError,
   locale,
@@ -600,6 +622,7 @@ function BookingsList({
                 cancellable
                 cancelling={cancellingId === row.id}
                 onCancel={() => onCancelClick(row)}
+                onReschedule={() => onRescheduleClick(row)}
               />
             ))}
           </ul>
@@ -628,6 +651,7 @@ interface RowProps {
   cancellable?: boolean;
   cancelling?: boolean;
   onCancel?: () => void;
+  onReschedule?: () => void;
 }
 
 function BookingRow({
@@ -638,6 +662,7 @@ function BookingRow({
   cancellable,
   cancelling,
   onCancel,
+  onReschedule,
 }: RowProps) {
   // Same trade-off as BookingsList — past/future status is recomputed each
   // render; tab left open across a slot start gets the styling on the next
@@ -719,6 +744,16 @@ function BookingRow({
       </div>
       {cancellable && !isCancelled ? (
         <div className={styles.actions}>
+          {onReschedule ? (
+            <button
+              type="button"
+              className={styles.rescheduleButton}
+              onClick={onReschedule}
+              disabled={cancelling}
+            >
+              {t('bookings.reschedule')}
+            </button>
+          ) : null}
           <button
             type="button"
             className={styles.cancelButton}

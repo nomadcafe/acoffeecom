@@ -7,13 +7,19 @@ import { getSessionContext, jsonError } from '../../_lib/passport';
 import {
   formatTimePair,
   renderVisitorCancellationHtml,
+  renderVisitorRescheduleRequestHtml,
 } from '../../_lib/bookingEmails';
 
 /**
- * Cancels a booking. Only the organizer can cancel. Future bookings get a
- * cancellation email out to the visitor; past ones are just marked
- * cancelled (no email — telling someone "your meeting last Tuesday was
- * cancelled" makes no sense).
+ * Cancels a booking. Only the organizer can cancel. The same endpoint
+ * handles "reschedule" via `?intent=reschedule` — under the hood that's
+ * still a cancel, but the email to the visitor asks them to pick a new
+ * slot (with a CTA back to the host's profile) instead of just saying
+ * sorry. Either way the row flips to status='cancelled' so the slot is
+ * freed for the next booker.
+ *
+ * Past bookings are marked cancelled silently — telling someone "your
+ * meeting last Tuesday was cancelled" makes no sense.
  *
  * Idempotent: cancelling an already-cancelled booking returns 200, no email.
  */
@@ -23,6 +29,9 @@ export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env, pa
 
   const id = typeof params.id === 'string' ? params.id : '';
   if (!id) return jsonError('Missing booking id', 400);
+
+  const url = new URL(request.url);
+  const intent = url.searchParams.get('intent') === 'reschedule' ? 'reschedule' : 'cancel';
 
   const db = getDb(env);
   const [row] = await db
@@ -61,14 +70,34 @@ export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env, pa
       { tz: organizer?.timezone || 'UTC', label: 'host' },
       null,
     );
-    const html = renderVisitorCancellationHtml({
-      hostHandle: handle,
-      startStr,
-      cafeName: row.placeName,
-      cafeAddress: row.placeAddress,
-      visitorName: row.visitorName,
-    });
-    const subject = `Coffee with ${handle} — cancelled`;
+
+    let html: string;
+    let subject: string;
+    if (intent === 'reschedule' && organizer?.username) {
+      const rebookUrl = `https://acoffee.com/${encodeURIComponent(organizer.username)}`;
+      html = renderVisitorRescheduleRequestHtml({
+        hostHandle: handle,
+        startStr,
+        cafeName: row.placeName,
+        cafeAddress: row.placeAddress,
+        visitorName: row.visitorName,
+        rebookUrl,
+      });
+      subject = `Coffee with ${handle} — let's reschedule`;
+    } else {
+      // Either explicit cancel or a reschedule request from a host who
+      // doesn't have a username (so no /yourname link to send) —
+      // fall back to the cancellation email.
+      html = renderVisitorCancellationHtml({
+        hostHandle: handle,
+        startStr,
+        cafeName: row.placeName,
+        cafeAddress: row.placeAddress,
+        visitorName: row.visitorName,
+      });
+      subject = `Coffee with ${handle} — cancelled`;
+    }
+
     const resend = new Resend(env.RESEND_API_KEY);
     await Promise.allSettled([
       resend.emails.send({
@@ -84,5 +113,5 @@ export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env, pa
     ]);
   }
 
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, intent });
 };

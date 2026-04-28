@@ -294,6 +294,63 @@
   font-weight: 700;
 }
 
+/* ---------- booking share link row ---------- */
+
+.bookingLinkRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: #faf6f1;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  margin: 0.85rem 0 0;
+  font-size: 0.9rem;
+}
+
+.bookingLinkLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-text-muted);
+}
+
+.bookingLinkValue {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--ac-text, #2c1810);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.bookingLinkValue:hover {
+  text-decoration: underline;
+  color: var(--ac-accent, #a36b3e);
+}
+
+.bookingLinkCopy {
+  appearance: none;
+  border: 1px solid var(--ac-border-strong, #d6c7bb);
+  background: #fff;
+  color: var(--ac-text, #2c1810);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--ac-radius-pill, 999px);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.bookingLinkCopy:hover {
+  border-color: var(--ac-accent, #a36b3e);
+  background: #fdf8f1;
+}
+
 /* ---------- profile content editor ---------- */
 
 .fieldGroup {
