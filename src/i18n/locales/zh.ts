@@ -91,6 +91,8 @@ export const messages: MessageDict = {
   'card.distanceA': '距 A 点的直线距离',
   'card.distanceB': '距 B 点的直线距离',
   'card.distanceC': '距 C 点的直线距离',
+  'card.fairnessTooltip': '公平度评分 — 大家通勤时间是否相近。100 = 每个人完全一样。',
+  'card.fairnessAria': '公平度评分：{{score}} / 100',
   'card.distanceM': '距会面中点的距离（搜索半径以此为准）',
   'card.distanceYou': '距你当前位置的直线距离',
   'card.distanceYouShort': '你',

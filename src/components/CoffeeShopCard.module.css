@@ -180,6 +180,22 @@
   align-self: center;
 }
 
+/* Fairness Score badge — sage to match the "create / commit" accent
+ * (this is the agent telling you "we picked this for fairness"). */
+.fairnessBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: var(--ac-accent-2, #5e7a52);
+  color: #fff;
+  padding: 0.05rem 0.45rem;
+  border-radius: var(--ac-radius-pill, 999px);
+  cursor: help;
+}
+
 .openStatus {
   font-size: 0.75rem;
   font-weight: 500;

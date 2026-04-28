@@ -203,3 +203,65 @@ export async function searchCoffeeShops(
   }
 }
 
+/**
+ * Mutates `shops` in place by adding `durationFromA/B/C` (seconds) for
+ * the top N candidates, calling the server-side Routes proxy so the
+ * client never sees the API key. Caps the matrix size to keep cost
+ * bounded — see the endpoint's input schema for the per-side caps.
+ *
+ * Soft-fails on any error: returns the original shops unchanged so a
+ * Routes outage doesn't block the search. Caller can detect
+ * "no durations populated" and fall back to distance-based fairness.
+ *
+ * Single-party / nearby-mode searches skip the call entirely (no
+ * fairness to compute when there's only one origin).
+ */
+export async function enrichWithDurations(
+  shops: CoffeeShop[],
+  parties: Array<{ lat: number; lng: number } | null>,
+  topN: number = 8,
+): Promise<void> {
+  const origins = parties.filter((p): p is { lat: number; lng: number } => p != null);
+  if (origins.length < 2) return;
+  if (shops.length === 0) return;
+
+  const candidates = shops.slice(0, topN);
+  try {
+    const r = await fetch('/api/places/eta', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        origins,
+        destinations: candidates.map((s) => ({ lat: s.lat, lng: s.lng })),
+        mode: 'TRANSIT',
+      }),
+    });
+    if (!r.ok) return;
+    const json = (await r.json()) as { matrix?: (number | null)[][] };
+    const matrix = json.matrix;
+    if (!matrix || matrix.length === 0) return;
+    // Map back from origins-array index to A/B/C field names. parties
+    // is sparse (some may be null when fewer than 3 set), so we walk
+    // along it tracking the contiguous origin index.
+    const partyToOrigin: number[] = [];
+    let next = 0;
+    for (const p of parties) partyToOrigin.push(p ? next++ : -1);
+
+    const idxA = partyToOrigin[0];
+    const idxB = partyToOrigin[1];
+    const idxC = partyToOrigin[2];
+
+    for (let i = 0; i < candidates.length; i++) {
+      const c = candidates[i];
+      const dA = idxA >= 0 ? matrix[idxA]?.[i] : null;
+      const dB = idxB >= 0 ? matrix[idxB]?.[i] : null;
+      const dC = idxC >= 0 ? matrix[idxC]?.[i] : null;
+      if (typeof dA === 'number') c.durationFromA = dA;
+      if (typeof dB === 'number') c.durationFromB = dB;
+      if (typeof dC === 'number') c.durationFromC = dC;
+    }
+  } catch {
+    // Silent — distance-based fairness still works.
+  }
+}
+

@@ -44,6 +44,7 @@ import { mergeRemoteStarred, mergeRemoteVisited } from '../utils/syncMerge';
 import type { StarredShopSnapshot, VisitedShopSnapshot } from '../types';
 import {
   searchCoffeeShops,
+  enrichWithDurations,
   SEARCH_RADIUS_MAX_M,
   SEARCH_RADIUS_MIN_M,
   SEARCH_RATING_MAX,
@@ -204,10 +205,26 @@ function shopDistances(s: CoffeeShop): number[] {
   return out;
 }
 
+function shopDurations(s: CoffeeShop): number[] {
+  const out: number[] = [];
+  if (s.durationFromA != null) out.push(s.durationFromA);
+  if (s.durationFromB != null) out.push(s.durationFromB);
+  if (s.durationFromC != null) out.push(s.durationFromC);
+  return out;
+}
+
+/**
+ * Fairness-mode comparator. Prefers travel-time spread when every party
+ * has a duration (Routes API succeeded for this shop), else falls back
+ * to physical-distance spread. Mixed mode is intentionally avoided —
+ * comparing one shop's "minutes" against another's "kilometres" would
+ * surface spurious orderings when only some shops got Routes data.
+ */
 function sortShops(
   shops: CoffeeShop[],
   starredShopIds: string[],
-  mode: SearchSortMode
+  mode: SearchSortMode,
+  partyCount: number,
 ): CoffeeShop[] {
   return [...shops].sort((a, b) => {
     const aStarred = starredShopIds.includes(a.id);
@@ -215,16 +232,28 @@ function sortShops(
     if (aStarred && !bStarred) return -1;
     if (!aStarred && bStarred) return 1;
     if (mode === 'fairness') {
-      const aDistances = shopDistances(a);
-      const bDistances = shopDistances(b);
-      // Std dev across N parties — generalises the "abs(distA - distB)"
-      // fairness check to 3+ parties without a separate code path.
-      const aSpread = stdDev(aDistances);
-      const bSpread = stdDev(bDistances);
-      if (aSpread !== bSpread) return aSpread - bSpread;
-      const aTotal = aDistances.reduce((s, x) => s + x, 0);
-      const bTotal = bDistances.reduce((s, x) => s + x, 0);
-      if (aTotal !== bTotal) return aTotal - bTotal;
+      const aDur = shopDurations(a);
+      const bDur = shopDurations(b);
+      const aHasFullDur = aDur.length >= partyCount;
+      const bHasFullDur = bDur.length >= partyCount;
+      if (aHasFullDur && bHasFullDur) {
+        const aSpread = stdDev(aDur);
+        const bSpread = stdDev(bDur);
+        if (aSpread !== bSpread) return aSpread - bSpread;
+        const aTotal = aDur.reduce((s, x) => s + x, 0);
+        const bTotal = bDur.reduce((s, x) => s + x, 0);
+        if (aTotal !== bTotal) return aTotal - bTotal;
+      } else {
+        // Distance fallback when one or both shops are missing Routes data.
+        const aDistances = shopDistances(a);
+        const bDistances = shopDistances(b);
+        const aSpread = stdDev(aDistances);
+        const bSpread = stdDev(bDistances);
+        if (aSpread !== bSpread) return aSpread - bSpread;
+        const aTotal = aDistances.reduce((s, x) => s + x, 0);
+        const bTotal = bDistances.reduce((s, x) => s + x, 0);
+        if (aTotal !== bTotal) return aTotal - bTotal;
+      }
     }
     return b.rating - a.rating;
   });
@@ -684,9 +713,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [sessionUserId, pullAndMerge]);
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
+  const partyCount = (locationA ? 1 : 0) + (locationB ? 1 : 0) + (locationC ? 1 : 0);
   const coffeeShops = useMemo(
-    () => sortShops(rawShops, starredShopIds, searchSortMode),
-    [rawShops, starredShopIds, searchSortMode]
+    () => sortShops(rawShops, starredShopIds, searchSortMode, partyCount),
+    [rawShops, starredShopIds, searchSortMode, partyCount]
   );
 
   const setSearchPlaceCategory = useCallback((value: PlaceSearchCategory) => {
@@ -770,7 +800,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
           searchKeyword,
           searchOpenNow
         );
+        // Enrich the top candidates with real transit ETAs from each
+        // party. Mutates `shops` in place; soft-fails on any Routes
+        // error so we always have at least distance-based fairness.
+        // Show the un-enriched list first so the user sees results
+        // fast, then update once durations come in.
         setRawShops(shops);
+        void enrichWithDurations(shops, [coordsA, coordsB, coordsC]).then(() => {
+          // New array reference so React re-renders cards with the
+          // freshly-attached durationFromA/B/C fields and re-sorts if
+          // fairness mode is on.
+          setRawShops([...shops]);
+        });
 
         // Deep-link: if the URL named a specific café (?cafe=<placeId>) and it's
         // in this result set, highlight it. Use the raw state setter so the

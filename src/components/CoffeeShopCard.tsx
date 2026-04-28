@@ -23,6 +23,15 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)}km`;
 }
 
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return '<1 min';
+  const mins = Math.round(seconds / 60);
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const rem = mins % 60;
+  return rem === 0 ? `${hours} hr` : `${hours} hr ${rem} min`;
+}
+
 function renderStars(rating: number): string {
   const fullStars = Math.floor(rating);
   const hasHalf = rating % 1 >= 0.5;
@@ -119,16 +128,40 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
   const count = visitCount(shop.id);
   const last = lastVisit(shop.id);
   const isNearby = searchMode === 'nearby';
-  // Fairness "gap" = max-min across all party distances. For two-party
-  // searches that's identical to abs(A - B); for three-party it captures
-  // how much further the worst-off person walks vs. the closest.
+
+  // Travel-time data when Routes API succeeded. When all parties have
+  // a duration, the card swaps from kilometres to minutes — that's the
+  // real "fairness" the agent is selling, since 1 km direct vs 1 km
+  // with 3 transfers feel completely different in lived minutes.
+  const partyDurations: number[] = [];
+  if (shop.durationFromA != null) partyDurations.push(shop.durationFromA);
+  if (shop.durationFromB != null) partyDurations.push(shop.durationFromB);
+  if (shop.durationFromC != null) partyDurations.push(shop.durationFromC);
   const partyDistances: number[] = [];
   if (shop.distanceFromA != null) partyDistances.push(shop.distanceFromA);
   if (shop.distanceFromB != null) partyDistances.push(shop.distanceFromB);
   if (shop.distanceFromC != null) partyDistances.push(shop.distanceFromC);
+
+  // Show time when every present party has a duration, else fall back
+  // to distances. Mixing "B in km · C in min" would be confusing.
+  const hasFullDurations =
+    partyDurations.length >= 2 && partyDurations.length === partyDistances.length;
+
+  // Fairness "gap" = max-min across whichever metric we're showing.
+  // Captures how much further the worst-off person travels vs. the
+  // closest — the headline metric of the agent's "fair" mode.
+  const fairnessValues = hasFullDurations ? partyDurations : partyDistances;
   const fairnessGap =
-    partyDistances.length >= 2
-      ? Math.max(...partyDistances) - Math.min(...partyDistances)
+    fairnessValues.length >= 2
+      ? Math.max(...fairnessValues) - Math.min(...fairnessValues)
+      : null;
+  // Fairness Score 0–100. Normalised against the largest value so a
+  // small gap on a long trip scores higher than the same gap on a
+  // 5-minute trip (where 2 minutes is most of the trip). Capped at
+  // 100 for clean display.
+  const fairnessScore =
+    fairnessValues.length >= 2
+      ? Math.max(0, Math.round(100 - (fairnessGap! / Math.max(...fairnessValues)) * 100))
       : null;
 
   // Detect "the user just tapped 'I visited' on this card right now" by
@@ -210,6 +243,39 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
                 </span>
                 {shop.distanceFromMidpoint != null ? formatDistance(shop.distanceFromMidpoint) : '—'}
               </span>
+            ) : hasFullDurations ? (
+              <>
+                <span className={styles.distance} title={t('card.distanceA')}>
+                  <span className={styles.distanceMarker} style={{ color: '#4285f4' }}>A</span>
+                  {formatDuration(shop.durationFromA!)}
+                </span>
+                <span className={styles.distanceSep} aria-hidden>·</span>
+                <span className={styles.distance} title={t('card.distanceB')}>
+                  <span className={styles.distanceMarker} style={{ color: '#34a853' }}>B</span>
+                  {formatDuration(shop.durationFromB!)}
+                </span>
+                {shop.durationFromC != null ? (
+                  <>
+                    <span className={styles.distanceSep} aria-hidden>·</span>
+                    <span className={styles.distance} title={t('card.distanceC')}>
+                      <span className={styles.distanceMarker} style={{ color: '#a142f4' }}>C</span>
+                      {formatDuration(shop.durationFromC)}
+                    </span>
+                  </>
+                ) : null}
+                {fairnessScore != null ? (
+                  <>
+                    <span className={styles.distanceSep} aria-hidden>·</span>
+                    <span
+                      className={styles.fairnessBadge}
+                      title={t('card.fairnessTooltip')}
+                      aria-label={t('card.fairnessAria', { score: fairnessScore })}
+                    >
+                      ☕ {fairnessScore}
+                    </span>
+                  </>
+                ) : null}
+              </>
             ) : (
               <>
                 <span
@@ -258,7 +324,11 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
             <p className={styles.distanceHint}>{t('card.distanceHint')}</p>
           ) : null}
           {!isNearby && searchSortMode === 'fairness' && fairnessGap != null ? (
-            <p className={styles.distanceHint}>{t('card.fairnessGap', { gap: formatDistance(fairnessGap) })}</p>
+            <p className={styles.distanceHint}>
+              {t('card.fairnessGap', {
+                gap: hasFullDurations ? formatDuration(fairnessGap) : formatDistance(fairnessGap),
+              })}
+            </p>
           ) : null}
         </div>
 

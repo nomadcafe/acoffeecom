@@ -228,6 +228,99 @@ export async function lookupTimezone(env: AuthEnv, point: LatLng): Promise<strin
   return json.timeZoneId;
 }
 
+export type TravelMode = 'TRANSIT' | 'WALK' | 'DRIVE';
+
+/**
+ * Travel-time matrix via Google Routes API v2 (`computeRouteMatrix`).
+ * Returns durations in seconds, indexed `[originIndex][destinationIndex]`.
+ * Unreachable cells (no transit route, etc.) come back as `null` so
+ * callers can fall back to distance-based fairness for those rows.
+ *
+ * Why this matters: the geographic midpoint can be a 3-line transit
+ * trip for one party and a one-stop direct for the other — which feels
+ * "fair" on a map but isn't fair in lived minutes. Surfacing real ETAs
+ * is what makes the agent product different from a Google Maps filter.
+ *
+ * Cost: ~$5/1000 elements at 2026 pricing. 5 candidates × 3 parties =
+ * 15 elements/search ≈ $0.075. Acceptable at small scale.
+ */
+export async function computeRouteMatrix(
+  env: AuthEnv,
+  origins: LatLng[],
+  destinations: LatLng[],
+  mode: TravelMode = 'TRANSIT',
+): Promise<(number | null)[][]> {
+  const key = requireKey(env);
+  if (origins.length === 0 || destinations.length === 0) return [];
+
+  const body = {
+    origins: origins.map((o) => ({
+      waypoint: { location: { latLng: { latitude: o.lat, longitude: o.lng } } },
+    })),
+    destinations: destinations.map((d) => ({
+      waypoint: { location: { latLng: { latitude: d.lat, longitude: d.lng } } },
+    })),
+    travelMode: mode,
+    // routing_preference is only valid for DRIVE. TRANSIT/WALK reject it.
+    ...(mode === 'DRIVE' ? { routingPreference: 'TRAFFIC_AWARE' } : {}),
+  };
+
+  let res: Response;
+  try {
+    res = await fetch(
+      'https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': key,
+          'X-Goog-FieldMask':
+            'originIndex,destinationIndex,duration,condition,status',
+        },
+        body: JSON.stringify(body),
+      },
+    );
+  } catch (e) {
+    throw new GoogleMapsError(
+      `Routes network error: ${e instanceof Error ? e.message : String(e)}`,
+      502,
+      'network',
+    );
+  }
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new GoogleMapsError(`Routes HTTP ${res.status}: ${txt}`, 502, 'places');
+  }
+  const elements = (await res.json()) as Array<{
+    originIndex?: number;
+    destinationIndex?: number;
+    duration?: string;
+    condition?: 'ROUTE_EXISTS' | 'ROUTE_NOT_FOUND' | string;
+    status?: { code?: number };
+  }>;
+
+  // Initialize matrix with null (= unreachable / unknown). Routes API
+  // returns elements in arbitrary order; index in to populate.
+  const matrix: (number | null)[][] = origins.map(() =>
+    destinations.map(() => null),
+  );
+  for (const el of elements) {
+    if (
+      typeof el.originIndex !== 'number' ||
+      typeof el.destinationIndex !== 'number'
+    )
+      continue;
+    if (el.condition !== 'ROUTE_EXISTS') continue;
+    // duration is ISO-8601 like "1234s" — strip the trailing 's' and parse.
+    const raw = el.duration?.endsWith('s') ? el.duration.slice(0, -1) : el.duration;
+    const seconds = raw ? Number(raw) : NaN;
+    if (Number.isFinite(seconds)) {
+      matrix[el.originIndex][el.destinationIndex] = seconds;
+    }
+  }
+  return matrix;
+}
+
 /** Score = rating × log(userRatingCount + 1) — Wilson-ish. Penalises a 5★
  *  spot with one review against a 4.5★ with 200 reviews. Returns the top
  *  hit; null if the array is empty. */

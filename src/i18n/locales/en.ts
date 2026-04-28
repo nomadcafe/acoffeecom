@@ -95,6 +95,8 @@ export const messages: MessageDict = {
   'card.distanceA': 'Straight-line distance from location A',
   'card.distanceB': 'Straight-line distance from location B',
   'card.distanceC': 'Straight-line distance from location C',
+  'card.fairnessTooltip': 'Fairness Score — how evenly the travel time is split. 100 = exactly equal for everyone.',
+  'card.fairnessAria': 'Fairness Score: {{score}} out of 100',
   'card.distanceM': 'Distance from the meetup midpoint (search radius is measured from here)',
   'card.distanceYou': 'Straight-line distance from you',
   'card.distanceYouShort': 'You',

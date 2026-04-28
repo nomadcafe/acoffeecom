@@ -94,6 +94,8 @@ export const messages: MessageDict = {
   'card.distanceA': '場所Aからの直線距離',
   'card.distanceB': '場所Bからの直線距離',
   'card.distanceC': '場所Cからの直線距離',
+  'card.fairnessTooltip': 'Fairness Score — 移動時間の公平さ。100 = 全員ぴったり同じ。',
+  'card.fairnessAria': '公平度スコア：100 中 {{score}}',
   'card.distanceM': '待ち合わせ中間地点からの距離（検索の基準はここです）',
   'card.distanceYou': '現在地からの直線距離',
   'card.distanceYouShort': '現在地',

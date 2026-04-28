@@ -16,6 +16,12 @@ export interface CoffeeShop {
   distanceFromB?: number;
   /** Optional third party — set when the trip card has 3 addresses. */
   distanceFromC?: number;
+  /** Travel times in seconds, populated when the Routes API succeeded.
+   *  When all parties have a duration the cards switch from "1.2 km"
+   *  to "18 min" and the fairness sort uses minutes instead of km. */
+  durationFromA?: number;
+  durationFromB?: number;
+  durationFromC?: number;
   /** Straight-line distance from the A–B midpoint (same point used as the Places search center). */
   distanceFromMidpoint?: number;
   isOpen?: boolean;
