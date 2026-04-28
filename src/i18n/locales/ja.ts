@@ -19,7 +19,7 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': '待ち合わせの中点で、高評価カフェを。',
+  'app.tagline': 'みんなの真ん中で、高評価カフェを。',
 
   'lang.selectAria': '言語',
   'lang.en': 'English',
@@ -113,7 +113,7 @@ export const messages: MessageDict = {
   'filters.radius': '中間地点からの検索半径',
   'filters.radiusNearby': '検索半径',
   'filters.radiusHelp':
-    'Googleの検索は<strong>AとBの中間地点</strong>を中心とした円の内側です。カード上のA/Bの距離はそれぞれの住所からの距離なので、二人が離れていると半径より大きく見えることがあります。',
+    'Googleの検索は<strong>みんなの住所の中間地点</strong>を中心とした円の内側です。カード上の各人の距離はそれぞれの住所からの実距離なので、メンバーが離れていると半径より大きく見えることがあります。',
   'filters.radiusHelpNearby':
     'Googleの検索は<strong>現在地</strong>を中心とした円の内側です。この半径より外のカフェは結果に含まれません。',
   'filters.placeType': '待ち合わせの種類',

@@ -16,7 +16,7 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': '在中点，为你挑一家好咖啡。',
+  'app.tagline': '在你们中间，挑一家好咖啡。',
 
   'lang.selectAria': '语言',
   'lang.en': 'English',
@@ -109,7 +109,7 @@ export const messages: MessageDict = {
   'filters.radius': '以中点为中心的搜索半径',
   'filters.radiusNearby': '搜索半径',
   'filters.radiusHelp':
-    'Google 会以<strong>A 与 B 的中点</strong>为中心进行圆形搜索，而不是分别以两地为中心。卡片中的 A/B 距离是从各自地址计算，因此两人相距较远时，可能会大于该半径。',
+    'Google 会以<strong>所有地址的中间点</strong>为中心进行圆形搜索，而不是分别以各地为中心。卡片中的人均距离是从各自地址计算的真实距离，因此大家相距较远时，可能会大于该半径。',
   'filters.radiusHelpNearby':
     'Google 会以<strong>当前位置</strong>为中心进行圆形搜索；超出该半径的咖啡店不会出现在结果里。',
   'filters.placeType': '会面地点类型',

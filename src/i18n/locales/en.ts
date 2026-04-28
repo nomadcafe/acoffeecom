@@ -19,7 +19,7 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': 'Top-rated cafés at your meetup midpoint.',
+  'app.tagline': 'Top-rated cafés right between you all.',
 
   'lang.selectAria': 'Language',
   'lang.en': 'English',
@@ -114,7 +114,7 @@ export const messages: MessageDict = {
   'filters.radius': 'Search radius from midpoint',
   'filters.radiusNearby': 'Search radius',
   'filters.radiusHelp':
-    'Google searches in a circle around the <strong>midpoint between A and B</strong>, not around each address. The A and B distances on each card are from each person, so they are often larger than this radius when A and B are far apart.',
+    'Google searches in a circle around <strong>the middle of all your addresses</strong>, not around each one. The per-person distances on each card are measured from each address individually, so they are often larger than this radius when the group is spread out.',
   'filters.radiusHelpNearby':
     'Google searches in a circle around <strong>your current location</strong>. Cafés outside this radius are excluded from the results.',
   'filters.placeType': 'Meetup spot type',
