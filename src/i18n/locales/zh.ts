@@ -1,7 +1,7 @@
 import type { MessageDict } from '../messages';
 
 export const messages: MessageDict = {
-  'meta.title': 'ACoffee',
+  'meta.title': 'ACoffee — 找到最合适的会面咖啡店',
   'seo.description':
     '输入两个地址，在地图上查看中点并找到附近高评分咖啡店，快速决定双方都方便的会面地点。',
   'seo.keywords':
