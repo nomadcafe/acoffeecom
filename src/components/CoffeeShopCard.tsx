@@ -5,6 +5,7 @@ import { StarButton } from './StarButton';
 import { VisitedButton } from './VisitedButton';
 import { VisitNoteInput } from './VisitNoteInput';
 import { ShareButton } from './ShareButton';
+import { ProposeButton } from './ProposeButton';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { formatRelativeTime } from '../utils/relativeTime';
@@ -221,6 +222,7 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
           <VisitedButton shop={shop} />
           <StarButton shop={shop} />
           <ShareButton shop={shop} />
+          {searchMode !== 'nearby' ? <ProposeButton shop={shop} /> : null}
         </div>
       </div>
 

@@ -190,6 +190,54 @@ export const bookings = sqliteTable(
   }),
 );
 
+// Lightweight coffee meetup proposals — `acoffee.com/p/<id>` short links
+// the sender shares so the receiver can OK / pick a later time / cycle to
+// a different cafe with one tap. Distinct from `bookings`: no host
+// account required, no .ics, no email verification — just a stateful URL
+// that lives ~24-72h. Whoever opens the link with the right id can
+// interact (the id IS the secret — UUID v4 = 122 bits of entropy).
+export const proposals = sqliteTable(
+  'proposals',
+  {
+    id: text('id').primaryKey(),
+    /** Optional — when the proposal was created by a logged-in user we
+     *  link it back so they can later see "all proposals I've sent."
+     *  Anonymous proposals just stay null. */
+    senderUserId: text('sender_user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    cafePlaceId: text('cafe_place_id').notNull(),
+    cafeName: text('cafe_name').notNull(),
+    cafeAddress: text('cafe_address').notNull(),
+    cafeLat: real('cafe_lat').notNull(),
+    cafeLng: real('cafe_lng').notNull(),
+    /** ms-since-epoch; receiver can shift it ±30 min via /shift-time. */
+    scheduledAt: integer('scheduled_at', { mode: 'timestamp_ms' }).notNull(),
+    /** JSON array of the addresses that produced this midpoint. Stored
+     *  only for display on the proposal page; not used for re-ranking. */
+    addressesJson: text('addresses_json').notNull().default('[]'),
+    /** Agent mode at creation time — visible on the proposal page so
+     *  the receiver knows "this is the Fair pick" vs "this is the
+     *  Quiet pick" etc. */
+    mode: text('mode').notNull().default('fair'),
+    /** Up to 4 alternative cafes the original search surfaced — the
+     *  "Next cafe" button cycles through them so the receiver never
+     *  hits a hard dead-end. JSON array of {placeId,name,address,lat,lng}. */
+    altCafesJson: text('alt_cafes_json').notNull().default('[]'),
+    /** Current index into [main, ...alts]. Starts at 0 (main); each
+     *  Next-cafe tap advances; wraps. */
+    cafeIndex: integer('cafe_index').notNull().default(0),
+    /** 'pending' | 'accepted' | 'cancelled' — receiver can accept once,
+     *  sender can cancel (future). Past `expires_at` rows GC'd nightly. */
+    status: text('status').notNull().default('pending'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+    expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => ({
+    expiresIdx: index('proposals_expires_idx').on(t.expiresAt),
+  }),
+);
+
 // Starred shops — user's saved favorites. Mirrors StarredShopSnapshot in src/types/index.ts.
 // `note` is freeform user-editable text, optional.
 export const starredShops = sqliteTable(

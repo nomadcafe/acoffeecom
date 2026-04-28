@@ -1,7 +1,7 @@
 import { and, eq, lt } from 'drizzle-orm';
 import type { AuthEnv } from './auth';
 import { getDb } from './db';
-import { bookingAttempts, bookings } from './db/schema';
+import { bookingAttempts, bookings, proposals } from './db/schema';
 
 /**
  * Periodic cleanup. Two tables grow without bound otherwise:
@@ -31,6 +31,7 @@ const ATTEMPT_LOG_TTL_MS = 7 * 24 * 60 * 60_000;
 export async function runBookingGc(env: AuthEnv): Promise<{
   unconfirmedDeleted: number;
   attemptLogDeleted: number;
+  expiredProposalsDeleted: number;
 }> {
   const db = getDb(env);
   const now = Date.now();
@@ -49,8 +50,17 @@ export async function runBookingGc(env: AuthEnv): Promise<{
     .where(lt(bookingAttempts.attemptedAt, attemptsBefore))
     .returning({ id: bookingAttempts.id });
 
+  // Proposals carry their own per-row expires_at (typically 72h post-
+  // creation). Anything past that is dead — sender's link doesn't
+  // resolve to a viewable state anyway.
+  const proposalsRes = await db
+    .delete(proposals)
+    .where(lt(proposals.expiresAt, new Date(now)))
+    .returning({ id: proposals.id });
+
   return {
     unconfirmedDeleted: unconfirmedRes.length,
     attemptLogDeleted: attemptsRes.length,
+    expiredProposalsDeleted: proposalsRes.length,
   };
 }

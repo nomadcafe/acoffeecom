@@ -30,6 +30,7 @@ import {
   isBookingsPath,
   isPassportPath,
   matchProfileUsername,
+  matchProposalId,
 } from './routes';
 import { useTrackPageViews } from './utils/analytics';
 import './App.css';
@@ -81,6 +82,11 @@ const CancelBookingPage = lazy(() =>
 const ConfirmBookingPage = lazy(() =>
   reloadOnChunkError(
     import('./components/ConfirmBookingPage').then((m) => ({ default: m.ConfirmBookingPage })),
+  ),
+);
+const ProposalPage = lazy(() =>
+  reloadOnChunkError(
+    import('./components/ProposalPage').then((m) => ({ default: m.ProposalPage })),
   ),
 );
 const PublicProfilePage = lazy(() =>
@@ -245,6 +251,13 @@ function AppRoute() {
     body = (
       <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
         <ConfirmBookingPage />
+      </Suspense>
+    );
+  } else if (matchProposalId(logicalPath) != null) {
+    const pid = matchProposalId(logicalPath)!;
+    body = (
+      <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+        <ProposalPage id={pid} />
       </Suspense>
     );
   } else if (matchProfileUsername(logicalPath) != null) {

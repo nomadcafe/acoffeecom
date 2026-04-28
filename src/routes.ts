@@ -33,6 +33,15 @@ export function isBookingConfirmPath(logicalPath: string): boolean {
   return logicalPath === BOOKING_CONFIRM_PATH;
 }
 
+/** Lightweight proposal share links live at /p/<id>. Distinct from the
+ *  full booking flow — proposals don't need accounts on either side. */
+const PROPOSAL_PATH_REGEX = /^\/p\/([0-9a-f-]{8,40})$/i;
+
+export function matchProposalId(logicalPath: string): string | null {
+  const m = logicalPath.match(PROPOSAL_PATH_REGEX);
+  return m ? m[1] : null;
+}
+
 /** Same shape the server enforces in functions/_lib/username.ts.
  *  Anything matching this AND not already a known route is a profile slug. */
 const USERNAME_PATH_REGEX = /^\/([a-z][a-z0-9_-]{2,29})$/;
