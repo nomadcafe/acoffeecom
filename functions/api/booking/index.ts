@@ -57,6 +57,10 @@ const InputSchema = z.object({
   visitorAddress: z.string().trim().min(2).max(200),
   scheduledAt: z.number().int().positive(),
   durationMinutes: z.number().int().min(15).max(180).default(60),
+  /** Optional free-text note from the visitor. 500 chars matches the
+   *  visit-note limit elsewhere in the app. Empty string treated as
+   *  "no message" so we don't store dangling whitespace. */
+  message: z.string().trim().max(500).optional(),
 });
 
 const COLLISION_WINDOW_MIN = 60;
@@ -246,6 +250,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     placeLat: cafe.lat,
     placeLng: cafe.lng,
     status: 'unconfirmed',
+    visitorMessage: input.message?.trim() ? input.message.trim() : null,
     createdAt: now,
   });
 
@@ -268,6 +273,10 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: input.visitorEmail,
+        // Reply-To = host even pre-confirmation. If the visitor's
+        // confused about the request ("did I really book this?") they
+        // can ask the host directly instead of getting nothing back.
+        replyTo: organizer.email,
         subject: `Confirm your coffee with ${handle} ☕`,
         html: renderVisitorConfirmRequestHtml({
           hostHandle: handle,

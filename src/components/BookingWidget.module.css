@@ -189,6 +189,33 @@
   box-shadow: 0 0 0 3px rgba(163, 107, 62, 0.15);
 }
 
+.textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--ac-border, #e3d8cb);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: #fff;
+  color: var(--ac-text, #3c2918);
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--ac-accent, #a36b3e);
+  box-shadow: 0 0 0 3px rgba(163, 107, 62, 0.15);
+}
+
+.fieldOptional {
+  font-weight: 400;
+  font-size: 0.7rem;
+  color: var(--ac-text-muted);
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+
 .formChosen {
   font-size: 0.85rem;
   color: var(--ac-text-muted);

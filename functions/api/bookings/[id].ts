@@ -74,6 +74,10 @@ export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env, pa
       resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: row.visitorEmail,
+        // Host cancelled — Reply-To = host so the visitor can ask
+        // "everything ok? want to reschedule?" without bouncing off
+        // a noreply.
+        replyTo: organizer?.email,
         subject,
         html,
       }),

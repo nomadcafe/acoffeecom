@@ -118,9 +118,17 @@ export interface ConfirmationParams {
   hostHomeBase: string;
   /** Visitor-only: link to cancel this booking. */
   cancelUrl?: string;
+  /** Optional message the visitor wrote in the booking form. */
+  visitorMessage?: string | null;
 }
 
 export function renderOrganizerConfirmationHtml(p: ConfirmationParams): string {
+  const messageBlock = p.visitorMessage?.trim()
+    ? `<div style="margin:0 0 18px;padding:14px 16px;background:#fdf8f1;border-left:3px solid #a36b3e;border-radius:6px;">
+        <div style="font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Their note</div>
+        <div style="font-size:14px;color:#2c1810;line-height:1.5;white-space:pre-wrap;">${escape(p.visitorMessage)}</div>
+      </div>`
+    : '';
   return `${SHELL_OPEN}
     <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">${escape(p.visitorName)} booked a coffee with you ☕</h1>
     <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
@@ -131,11 +139,14 @@ export function renderOrganizerConfirmationHtml(p: ConfirmationParams): string {
       <a href="mailto:${escape(p.visitorEmail)}" style="color:#a36b3e;text-decoration:none;">${escape(p.visitorEmail)}</a><br>
       <span style="color:#5c4030;">Coming from ${escape(p.visitorAddress)}</span>
     </div>
+    ${messageBlock}
     <p style="margin:0 0 8px;color:#5c4030;font-size:14px;line-height:1.5;">
       We auto-picked the café halfway between ${escape(p.hostHomeBase)} and ${escape(p.visitorAddress)}.
     </p>
     <p style="margin:0;color:#7a6a60;font-size:13px;">
-      The .ics attachment will add this to your calendar. To cancel, manage your bookings at
+      The .ics attachment will add this to your calendar. Reply-To this email goes
+      directly to ${escape(p.visitorName)} — write back if you need to coordinate.
+      To cancel, manage your bookings at
       <a href="https://acoffee.com/bookings" style="color:#a36b3e;text-decoration:none;">acoffee.com/bookings</a>.
     </p>
 ${SHELL_CLOSE}`;

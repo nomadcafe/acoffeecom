@@ -22,6 +22,7 @@ interface BookingWire {
   placeLat: number;
   placeLng: number;
   status: 'pending' | 'cancelled';
+  visitorMessage: string | null;
   createdAt: number;
 }
 
@@ -708,6 +709,12 @@ function BookingRow({
             )}
             <span style={{ color: '#7a6a60', marginLeft: '0.4em' }}>{row.placeAddress}</span>
           </span>
+          {row.visitorMessage ? (
+            <span className={styles.visitorMessage}>
+              <span className={styles.visitorMessageLabel}>{t('bookings.theirNote')}</span>
+              {row.visitorMessage}
+            </span>
+          ) : null}
         </div>
       </div>
       {cancellable && !isCancelled ? (

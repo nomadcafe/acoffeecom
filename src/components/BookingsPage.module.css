@@ -75,6 +75,29 @@
   text-decoration: underline;
 }
 
+.visitorMessage {
+  margin-top: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  background: #fdf8f1;
+  border-left: 2px solid var(--ac-accent, #a36b3e);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: var(--ac-text, #2c1810);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  display: block;
+}
+
+.visitorMessageLabel {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-text-muted);
+  margin-bottom: 0.2rem;
+}
+
 .statusPill {
   display: inline-block;
   font-size: 0.7rem;

@@ -175,9 +175,14 @@ export const bookings = sqliteTable(
     placeAddress: text('place_address').notNull(),
     placeLat: real('place_lat').notNull(),
     placeLng: real('place_lng').notNull(),
-    /** 'pending' (default) | 'cancelled'. Cancellation flow lands later;
-     *  for now status stays at 'pending' for the lifetime of the booking. */
+    /** 'unconfirmed' (visitor hasn't clicked the email link yet) |
+     *  'pending' (confirmed, on the calendar) | 'cancelled'. */
     status: text('status').notNull().default('pending'),
+    /** Optional free-text message the visitor wrote in the booking form
+     *  (e.g. "I'll bring a laptop, mind if we sit by the window?"). Goes
+     *  to the organizer email and shows up on /bookings rows so the host
+     *  has context before showing up. Capped client + server side. */
+    visitorMessage: text('visitor_message'),
     createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   },
   (t) => ({

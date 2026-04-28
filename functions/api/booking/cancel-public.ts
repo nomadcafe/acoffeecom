@@ -111,6 +111,9 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: organizer.email,
+        // Visitor is the one who cancelled — set Reply-To to them so the
+        // host can write back ("ah no worries, want to reschedule?").
+        replyTo: row.visitorEmail,
         subject: `${row.visitorName} cancelled their coffee`,
         html,
       }),

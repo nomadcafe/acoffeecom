@@ -382,6 +382,9 @@ export const messages: MessageDict = {
   'bookingWidget.fieldEmail': 'メールアドレス',
   'bookingWidget.fieldAddress': '出発地',
   'bookingWidget.addressPlaceholder': '住所またはエリア名',
+  'bookingWidget.fieldMessage': 'メッセージ',
+  'bookingWidget.fieldOptional': '（任意）',
+  'bookingWidget.messagePlaceholder': '例：「ノート PC を持参します」「初対面なのでよろしくお願いします」「交通状況によって 5 分遅れるかもしれません」',
   'bookingWidget.back': '戻る',
   'bookingWidget.submit': '予約する',
   'bookingWidget.submitting': '予約中…',
@@ -486,6 +489,7 @@ export const messages: MessageDict = {
   'bookings.weekNext': '次の週',
   'bookings.weekBlockAria': '{{name}} との {{time}} の予約 — タップでキャンセル',
   'bookings.statusCancelled': 'キャンセル済み',
+  'bookings.theirNote': 'ご本人からのメッセージ',
   'bookings.loadFailed': '予約の読み込みに失敗しました。再読み込みしてください。',
 
   'changelog.metaTitle': '更新ログ · ACoffee',

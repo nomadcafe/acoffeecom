@@ -44,6 +44,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
       placeLat: r.placeLat,
       placeLng: r.placeLng,
       status: r.status as 'pending' | 'cancelled',
+      visitorMessage: r.visitorMessage,
       createdAt:
         r.createdAt instanceof Date ? r.createdAt.getTime() : Number(r.createdAt),
     }))

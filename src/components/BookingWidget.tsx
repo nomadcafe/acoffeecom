@@ -68,6 +68,7 @@ export function BookingWidget({ username, displayName }: Props) {
   const [visitorName, setVisitorName] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
   const [visitorAddress, setVisitorAddress] = useState('');
+  const [visitorMessage, setVisitorMessage] = useState('');
   // Honeypot: hidden input bots fill but humans don't. Tracked in state so
   // we can include it in the payload — server rejects any non-empty value.
   const [website, setWebsite] = useState('');
@@ -167,6 +168,7 @@ export function BookingWidget({ username, displayName }: Props) {
           visitorName: visitorName.trim(),
           visitorEmail: visitorEmail.trim(),
           visitorAddress: visitorAddress.trim(),
+          message: visitorMessage.trim() || undefined,
           scheduledAt: selectedSlotMs,
           durationMinutes: data.durationMinutes,
           website,
@@ -404,6 +406,21 @@ export function BookingWidget({ username, displayName }: Props) {
               onChange={(e) => setVisitorAddress(e.target.value)}
               disabled={submitting}
               autoComplete="street-address"
+            />
+          </label>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>
+              {t('bookingWidget.fieldMessage')}{' '}
+              <span className={styles.fieldOptional}>{t('bookingWidget.fieldOptional')}</span>
+            </span>
+            <textarea
+              className={styles.textarea}
+              maxLength={500}
+              rows={3}
+              placeholder={t('bookingWidget.messagePlaceholder')}
+              value={visitorMessage}
+              onChange={(e) => setVisitorMessage(e.target.value)}
+              disabled={submitting}
             />
           </label>
           <div className={styles.formActions}>

@@ -383,6 +383,9 @@ export const messages: MessageDict = {
   'bookingWidget.fieldEmail': 'Your email',
   'bookingWidget.fieldAddress': 'Where you\'re coming from',
   'bookingWidget.addressPlaceholder': 'Address or neighbourhood',
+  'bookingWidget.fieldMessage': 'Anything to share?',
+  'bookingWidget.fieldOptional': '(optional)',
+  'bookingWidget.messagePlaceholder': 'e.g. "I\'ll bring a laptop", "first time meeting", "running 5 min late if traffic"',
   'bookingWidget.back': 'Back',
   'bookingWidget.submit': 'Book it',
   'bookingWidget.submitting': 'Booking…',
@@ -490,6 +493,7 @@ export const messages: MessageDict = {
   'bookings.weekNext': 'Next week',
   'bookings.weekBlockAria': 'Booking with {{name}} at {{time}} — tap to cancel',
   'bookings.statusCancelled': 'Cancelled',
+  'bookings.theirNote': 'Their note',
   'bookings.loadFailed': "Couldn't load your bookings. Refresh to try again.",
 
   'changelog.metaTitle': 'Update log · ACoffee',

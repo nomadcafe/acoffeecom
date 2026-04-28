@@ -375,6 +375,9 @@ export const messages: MessageDict = {
   'bookingWidget.fieldEmail': '邮箱',
   'bookingWidget.fieldAddress': '出发地',
   'bookingWidget.addressPlaceholder': '地址或大致位置',
+  'bookingWidget.fieldMessage': '想说点什么？',
+  'bookingWidget.fieldOptional': '（可选）',
+  'bookingWidget.messagePlaceholder': '例如："想聊 X 项目"、"第一次见面"、"路上可能晚到 5 分钟"',
   'bookingWidget.back': '上一步',
   'bookingWidget.submit': '提交预约',
   'bookingWidget.submitting': '提交中…',
@@ -480,6 +483,7 @@ export const messages: MessageDict = {
   'bookings.weekNext': '下一周',
   'bookings.weekBlockAria': '与 {{name}} 在 {{time}} 的预约 — 点击取消',
   'bookings.statusCancelled': '已取消',
+  'bookings.theirNote': '对方留言',
   'bookings.loadFailed': '加载预约失败，请刷新重试。',
 
   'changelog.metaTitle': '更新日志 · ACoffee',

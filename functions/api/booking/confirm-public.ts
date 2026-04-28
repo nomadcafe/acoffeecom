@@ -125,6 +125,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       visitorAddress: row.visitorAddress,
       hostHandle: handle,
       hostHomeBase: organizer.homeBaseAddress ?? '',
+      visitorMessage: row.visitorMessage,
     };
 
     const resend = new Resend(env.RESEND_API_KEY);
@@ -132,6 +133,9 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: organizer.email,
+        // Reply-To = visitor so a quick "see you Wed!" reply goes
+        // straight to them, not into a Resend black hole.
+        replyTo: row.visitorEmail,
         subject: `${row.visitorName} booked a coffee with you ☕`,
         html: renderOrganizerConfirmationHtml(sharedConfirm),
         attachments: [{ filename: 'coffee.ics', content: icsB64 }],
@@ -139,6 +143,10 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: row.visitorEmail,
+        // Reply-To = host so the visitor can ask follow-up questions
+        // ("does parking exist?", "running 5 min late") without leaving
+        // their inbox.
+        replyTo: organizer.email,
         subject: `Coffee with ${handle} confirmed ☕`,
         html: renderVisitorConfirmationHtml({ ...sharedConfirm, cancelUrl }),
         attachments: [{ filename: 'coffee.ics', content: icsB64 }],
