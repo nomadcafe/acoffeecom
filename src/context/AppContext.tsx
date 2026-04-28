@@ -14,7 +14,7 @@ import { useI18n } from './I18nContext';
 import { useStarredShops } from '../hooks/useStarredShops';
 import { useVisitedShops } from '../hooks/useVisitedShops';
 import { geocodeAddress } from '../utils/geocoding';
-import { calculateMidpoint } from '../utils/midpoint';
+import { calculateMidpoint, centroid } from '../utils/midpoint';
 import { track } from '../utils/analytics';
 import { useSession } from '../utils/authClient';
 import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
@@ -63,8 +63,11 @@ interface AppContextType extends AppState {
   sdkLoadError: Error | undefined;
   setAddressA: (address: string) => void;
   setAddressB: (address: string) => void;
+  setAddressC: (address: string) => void;
   addressA: string;
   addressB: string;
+  /** Optional 3rd party in the trip card. Empty string when 2-person mode. */
+  addressC: string;
   findMeetupSpot: () => Promise<void>;
   toggleStar: (shop: CoffeeShop) => void;
   isStarred: (shopId: string) => boolean;
@@ -87,7 +90,11 @@ interface AppContextType extends AppState {
   updateStarredNote: (shopId: string, note: string) => void;
   addAddressTemplate: (address: string) => void;
   removeAddressTemplate: (address: string) => void;
-  searchWithAddresses: (nextAddressA: string, nextAddressB: string) => Promise<void>;
+  searchWithAddresses: (
+    nextAddressA: string,
+    nextAddressB: string,
+    nextAddressC?: string,
+  ) => Promise<void>;
   searchAround: (center: { lat: number; lng: number }) => Promise<void>;
   widenSearchParams: () => void;
   widenAndResearch: () => void;
@@ -132,6 +139,7 @@ function loadRecentSearches(): RecentSearchItem[] {
         id: x.id && typeof x.id === 'string' ? x.id : `legacy-${idx}`,
         addressA: x.addressA as string,
         addressB: x.addressB as string,
+        addressC: typeof x.addressC === 'string' && x.addressC ? x.addressC : undefined,
         createdAt: typeof x.createdAt === 'number' ? x.createdAt : Date.now(),
       }))
       .slice(0, 8);
@@ -178,6 +186,24 @@ function initialFilter<T>(
   return parsed === undefined ? fallback : parsed;
 }
 
+/** Standard deviation of an array (population). Used for fairness scoring
+ *  with N parties — lower std dev = more even travel for all sides. */
+function stdDev(xs: number[]): number {
+  if (xs.length === 0) return 0;
+  const mean = xs.reduce((s, x) => s + x, 0) / xs.length;
+  const variance =
+    xs.reduce((s, x) => s + (x - mean) ** 2, 0) / xs.length;
+  return Math.sqrt(variance);
+}
+
+function shopDistances(s: CoffeeShop): number[] {
+  const out: number[] = [];
+  if (s.distanceFromA != null) out.push(s.distanceFromA);
+  if (s.distanceFromB != null) out.push(s.distanceFromB);
+  if (s.distanceFromC != null) out.push(s.distanceFromC);
+  return out;
+}
+
 function sortShops(
   shops: CoffeeShop[],
   starredShopIds: string[],
@@ -189,11 +215,15 @@ function sortShops(
     if (aStarred && !bStarred) return -1;
     if (!aStarred && bStarred) return 1;
     if (mode === 'fairness') {
-      const aDelta = Math.abs((a.distanceFromA ?? 0) - (a.distanceFromB ?? 0));
-      const bDelta = Math.abs((b.distanceFromA ?? 0) - (b.distanceFromB ?? 0));
-      if (aDelta !== bDelta) return aDelta - bDelta;
-      const aTotal = (a.distanceFromA ?? 0) + (a.distanceFromB ?? 0);
-      const bTotal = (b.distanceFromA ?? 0) + (b.distanceFromB ?? 0);
+      const aDistances = shopDistances(a);
+      const bDistances = shopDistances(b);
+      // Std dev across N parties — generalises the "abs(distA - distB)"
+      // fairness check to 3+ parties without a separate code path.
+      const aSpread = stdDev(aDistances);
+      const bSpread = stdDev(bDistances);
+      if (aSpread !== bSpread) return aSpread - bSpread;
+      const aTotal = aDistances.reduce((s, x) => s + x, 0);
+      const bTotal = bDistances.reduce((s, x) => s + x, 0);
       if (aTotal !== bTotal) return aTotal - bTotal;
     }
     return b.rating - a.rating;
@@ -208,8 +238,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [addressB, setAddressB] = useState(() => {
     return new URLSearchParams(window.location.search).get('b') ?? '';
   });
+  const [addressC, setAddressC] = useState(() => {
+    return new URLSearchParams(window.location.search).get('c') ?? '';
+  });
   const [locationA, setLocationA] = useState<Location | null>(null);
   const [locationB, setLocationB] = useState<Location | null>(null);
+  const [locationC, setLocationC] = useState<Location | null>(null);
   const [midpoint, setMidpoint] = useState<{ lat: number; lng: number } | null>(null);
   const [rawShops, setRawShops] = useState<CoffeeShop[]>([]);
   const [selectedCoffeeShopId, setSelectedCoffeeShopIdState] = useState<string | null>(null);
@@ -277,14 +311,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Stores URL-derived search intent so the auto-search fires once after the map loads.
   // a+b → meetup search; near=lat,lng → nearby search.
   const pendingUrlSearch = useRef<
-    | { kind: 'meetup'; a: string; b: string }
+    | { kind: 'meetup'; a: string; b: string; c?: string }
     | { kind: 'nearby'; lat: number; lng: number }
     | null
   >((() => {
     const params = new URLSearchParams(window.location.search);
     const a = params.get('a')?.trim() ?? '';
     const b = params.get('b')?.trim() ?? '';
-    if (a && b) return { kind: 'meetup', a, b };
+    const c = params.get('c')?.trim() ?? '';
+    if (a && b) return { kind: 'meetup', a, b, c: c || undefined };
     const near = params.get('near')?.trim() ?? '';
     if (near) {
       const [latStr, lngStr] = near.split(',');
@@ -673,9 +708,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const searchWithAddresses = useCallback(
-    async (nextAddressA: string, nextAddressB: string) => {
+    async (nextAddressA: string, nextAddressB: string, nextAddressC?: string) => {
       const a = nextAddressA.trim();
       const b = nextAddressB.trim();
+      const c = (nextAddressC ?? '').trim();
       if (!a || !b) {
         setError(t('errors.bothAddresses'));
         return;
@@ -688,34 +724,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       setAddressA(a);
       setAddressB(b);
+      setAddressC(c);
       setSearchMode('meetup');
       setIsLoading(true);
       setError(null);
       setRawShops([]);
       setSelectedCoffeeShopIdState(null);
-      track('search_submitted', { mode: 'meetup' });
+      track('search_submitted', { mode: 'meetup', parties: c ? 3 : 2 });
 
       try {
-        // Geocode both addresses in parallel
-        const [coordsA, coordsB] = await Promise.all([
+        // Geocode 2 or 3 addresses in parallel.
+        const geocodePromises = [
           geocodeAddress(a, geocoderRef.current),
           geocodeAddress(b, geocoderRef.current),
-        ]);
+        ];
+        if (c) geocodePromises.push(geocodeAddress(c, geocoderRef.current));
+        const coords = await Promise.all(geocodePromises);
+        const coordsA = coords[0];
+        const coordsB = coords[1];
+        const coordsC = c ? coords[2] : null;
 
         const locA: Location = { address: a, ...coordsA };
         const locB: Location = { address: b, ...coordsB };
+        const locC: Location | null = coordsC ? { address: c, ...coordsC } : null;
 
         setLocationA(locA);
         setLocationB(locB);
+        setLocationC(locC);
 
-        // Calculate midpoint
-        const mid = calculateMidpoint(coordsA.lat, coordsA.lng, coordsB.lat, coordsB.lng);
+        // Centroid handles 2 or 3 points; for 2 it agrees with the great-circle
+        // midpoint we used before within float precision.
+        const mid = locC
+          ? centroid([coordsA, coordsB, coordsC!])
+          : calculateMidpoint(coordsA.lat, coordsA.lng, coordsB.lat, coordsB.lng);
         setMidpoint(mid);
 
         const { shops } = await searchCoffeeShops(
           mid,
           coordsA,
           coordsB,
+          coordsC,
           searchMinRating,
           searchRadiusMeters,
           searchPlaceCategory,
@@ -724,10 +772,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
         setRawShops(shops);
 
-        // Deep-link: if the URL named a specific café (?c=<placeId>) and it's
+        // Deep-link: if the URL named a specific café (?cafe=<placeId>) and it's
         // in this result set, highlight it. Use the raw state setter so the
         // auto-select doesn't fire cafe_opened (that event is for user clicks).
-        const preselect = new URLSearchParams(window.location.search).get('c');
+        const preselect = new URLSearchParams(window.location.search).get('cafe');
         if (preselect && shops.some((s) => s.id === preselect)) {
           setSelectedCoffeeShopIdState(preselect);
         }
@@ -737,6 +785,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const params = new URLSearchParams(window.location.search);
         params.set('a', a);
         params.set('b', b);
+        if (c) params.set('c', c);
+        else params.delete('c');
         params.delete('near');
         const newQuery = `?${params.toString()}`;
         if (newQuery !== window.location.search) {
@@ -751,10 +801,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           addressA: a,
           addressB: b,
+          addressC: c || undefined,
           createdAt: Date.now(),
         };
         setRecentSearches((prev) => {
-          const next = [recent, ...prev.filter((r) => !(r.addressA === a && r.addressB === b))].slice(0, 8);
+          const next = [
+            recent,
+            ...prev.filter(
+              (r) => !(r.addressA === a && r.addressB === b && (r.addressC ?? '') === c),
+            ),
+          ].slice(0, 8);
           try {
             localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
           } catch {
@@ -784,8 +840,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setError(t('errors.bothAddresses'));
       return;
     }
-    await searchWithAddresses(addressA, addressB);
-  }, [addressA, addressB, searchWithAddresses, t]);
+    await searchWithAddresses(addressA, addressB, addressC);
+  }, [addressA, addressB, addressC, searchWithAddresses, t]);
 
   const searchAround = useCallback(
     async (center: { lat: number; lng: number }) => {
@@ -800,8 +856,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSearchSortMode((s) => (s === 'fairness' ? 'rating' : s));
       setAddressA('');
       setAddressB('');
+      setAddressC('');
       setLocationA(null);
       setLocationB(null);
+      setLocationC(null);
       setMidpoint(center);
       setIsLoading(true);
       setError(null);
@@ -814,6 +872,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           center,
           null,
           null,
+          null,
           searchMinRating,
           searchRadiusMeters,
           searchPlaceCategory,
@@ -822,7 +881,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
         setRawShops(shops);
 
-        const preselect = new URLSearchParams(window.location.search).get('c');
+        const preselect = new URLSearchParams(window.location.search).get('cafe');
         if (preselect && shops.some((s) => s.id === preselect)) {
           setSelectedCoffeeShopIdState(preselect);
         }
@@ -831,6 +890,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         params.set('near', `${center.lat.toFixed(5)},${center.lng.toFixed(5)}`);
         params.delete('a');
         params.delete('b');
+        params.delete('c');
         const newQuery = `?${params.toString()}`;
         if (newQuery !== window.location.search) {
           window.history.replaceState(
@@ -864,7 +924,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const pending = pendingUrlSearch.current;
     pendingUrlSearch.current = null;
     if (pending.kind === 'meetup') {
-      void searchWithAddresses(pending.a, pending.b);
+      void searchWithAddresses(pending.a, pending.b, pending.c);
     } else {
       void searchAround({ lat: pending.lat, lng: pending.lng });
     }
@@ -964,11 +1024,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearSearch = useCallback(() => {
     setLocationA(null);
     setLocationB(null);
+    setLocationC(null);
     setMidpoint(null);
     setRawShops([]);
     setSelectedCoffeeShopIdState(null);
     setAddressA('');
     setAddressB('');
+    setAddressC('');
     setError(null);
     setIsLoading(false);
   }, []);
@@ -977,6 +1039,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       locationA,
       locationB,
+      locationC,
       midpoint,
       coffeeShops,
       selectedCoffeeShopId,
@@ -1000,8 +1063,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addressTemplates,
       addressA,
       addressB,
+      addressC,
       setAddressA,
       setAddressB,
+      setAddressC,
       setSearchMinRating,
       setSearchRadiusMeters,
       setSearchKeyword,
@@ -1034,6 +1099,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [
       locationA,
       locationB,
+      locationC,
       midpoint,
       coffeeShops,
       selectedCoffeeShopId,
@@ -1056,6 +1122,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addressTemplates,
       addressA,
       addressB,
+      addressC,
       setSearchPlaceCategory,
       widenSearchParams,
       widenAndResearch,

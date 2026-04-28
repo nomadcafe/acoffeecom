@@ -14,8 +14,10 @@ export function LocationInput() {
   const {
     addressA,
     addressB,
+    addressC,
     setAddressA,
     setAddressB,
+    setAddressC,
     findMeetupSpot,
     searchWithAddresses,
     recentSearches,
@@ -28,18 +30,39 @@ export function LocationInput() {
   } = useApp();
   const inputARef = useRef<HTMLInputElement | null>(null);
   const inputBRef = useRef<HTMLInputElement | null>(null);
+  const inputCRef = useRef<HTMLInputElement | null>(null);
 
   const acLanguage = locale === 'zh' ? 'zh-CN' : locale;
   const autoA = useAddressAutocomplete(acLanguage);
   const autoB = useAddressAutocomplete(acLanguage);
+  const autoC = useAddressAutocomplete(acLanguage);
+
+  // Three-party mode is opt-in: hidden by default, revealed when the user
+  // taps "+ Add another" or arrives via a URL containing ?c=. Once shown,
+  // it stays — clearing addressC by typing nothing is fine, but the user
+  // can also remove the row entirely with the × button.
+  const [showC, setShowC] = useState(() => addressC.trim().length > 0);
+  // If addressC becomes non-empty externally (URL load, recent search), reveal C.
+  if (addressC.trim().length > 0 && !showC) setShowC(true);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     findMeetupSpot();
   };
 
-  const handleUseRecent = (a: string, b: string) => {
-    void searchWithAddresses(a, b);
+  const handleUseRecent = (a: string, b: string, c?: string) => {
+    void searchWithAddresses(a, b, c);
+  };
+
+  const handleAddThird = () => {
+    setShowC(true);
+    // Focus the input once it renders.
+    requestAnimationFrame(() => inputCRef.current?.focus());
+  };
+
+  const handleRemoveThird = () => {
+    setAddressC('');
+    setShowC(false);
   };
 
   const handleSwap = () => {
@@ -109,7 +132,46 @@ export function LocationInput() {
             autocomplete={autoB}
           />
         </div>
+
+        {showC ? (
+          <div className={styles.tripRow}>
+            <span className={styles.tripMarker} style={{ backgroundColor: '#a142f4' }} aria-hidden>
+              C
+            </span>
+            <AddressField
+              id="locationC"
+              inputRef={inputCRef}
+              label={t('location.thirdLocation')}
+              placeholder={t('location.placeholderC')}
+              value={addressC}
+              onChange={setAddressC}
+              disabled={isLoading}
+              autocomplete={autoC}
+            />
+            <button
+              type="button"
+              className={styles.thirdRemove}
+              onClick={handleRemoveThird}
+              aria-label={t('location.removeThird')}
+              title={t('location.removeThird')}
+              disabled={isLoading}
+            >
+              ×
+            </button>
+          </div>
+        ) : null}
       </div>
+
+      {!showC ? (
+        <button
+          type="button"
+          className={styles.addThirdButton}
+          onClick={handleAddThird}
+          disabled={isLoading}
+        >
+          + {t('location.addThird')}
+        </button>
+      ) : null}
 
       <div className={styles.templateActions}>
         <button
@@ -167,12 +229,15 @@ export function LocationInput() {
                 key={r.id}
                 type="button"
                 className={styles.recentItem}
-                onClick={() => handleUseRecent(r.addressA, r.addressB)}
+                onClick={() => handleUseRecent(r.addressA, r.addressB, r.addressC)}
                 disabled={isLoading}
               >
                 <span className={styles.recentUse}>{t('location.useRecent')}</span>
                 <span className={styles.recentLine}>A: {r.addressA}</span>
                 <span className={styles.recentLine}>B: {r.addressB}</span>
+                {r.addressC ? (
+                  <span className={styles.recentLine}>C: {r.addressC}</span>
+                ) : null}
               </button>
             ))}
           </div>

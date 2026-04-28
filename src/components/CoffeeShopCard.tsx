@@ -119,9 +119,16 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
   const count = visitCount(shop.id);
   const last = lastVisit(shop.id);
   const isNearby = searchMode === 'nearby';
+  // Fairness "gap" = max-min across all party distances. For two-party
+  // searches that's identical to abs(A - B); for three-party it captures
+  // how much further the worst-off person walks vs. the closest.
+  const partyDistances: number[] = [];
+  if (shop.distanceFromA != null) partyDistances.push(shop.distanceFromA);
+  if (shop.distanceFromB != null) partyDistances.push(shop.distanceFromB);
+  if (shop.distanceFromC != null) partyDistances.push(shop.distanceFromC);
   const fairnessGap =
-    shop.distanceFromA != null && shop.distanceFromB != null
-      ? Math.abs(shop.distanceFromA - shop.distanceFromB)
+    partyDistances.length >= 2
+      ? Math.max(...partyDistances) - Math.min(...partyDistances)
       : null;
 
   // Detect "the user just tapped 'I visited' on this card right now" by
@@ -222,6 +229,18 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
                   <span className={styles.distanceMarker} style={{ color: '#34a853' }}>B</span>
                   {shop.distanceFromB != null ? formatDistance(shop.distanceFromB) : '—'}
                 </span>
+                {shop.distanceFromC != null ? (
+                  <>
+                    <span className={styles.distanceSep} aria-hidden>·</span>
+                    <span
+                      className={styles.distance}
+                      title={t('card.distanceC')}
+                    >
+                      <span className={styles.distanceMarker} style={{ color: '#a142f4' }}>C</span>
+                      {formatDistance(shop.distanceFromC)}
+                    </span>
+                  </>
+                ) : null}
                 <span className={styles.distanceSep} aria-hidden>
                   ·
                 </span>

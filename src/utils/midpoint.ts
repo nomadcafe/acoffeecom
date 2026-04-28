@@ -1,3 +1,34 @@
+/**
+ * Geographic centroid of N points (>=1). Averages 3D unit vectors so results
+ * stay sensible across the antimeridian and near the poles, which is more
+ * robust than a flat lat/lng mean — and reduces to the great-circle midpoint
+ * when N=2. Used by the multi-party meetup flow (2–3 people in v1).
+ */
+export function centroid(
+  points: { lat: number; lng: number }[],
+): { lat: number; lng: number } {
+  if (points.length === 0) return { lat: 0, lng: 0 };
+  if (points.length === 1) return { lat: points[0].lat, lng: points[0].lng };
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  for (const p of points) {
+    const latR = toRad(p.lat);
+    const lngR = toRad(p.lng);
+    x += Math.cos(latR) * Math.cos(lngR);
+    y += Math.cos(latR) * Math.sin(lngR);
+    z += Math.sin(latR);
+  }
+  const n = points.length;
+  x /= n;
+  y /= n;
+  z /= n;
+  const lng = Math.atan2(y, x);
+  const hyp = Math.sqrt(x * x + y * y);
+  const lat = Math.atan2(z, hyp);
+  return { lat: toDeg(lat), lng: toDeg(lng) };
+}
+
 export function calculateMidpoint(
   lat1: number,
   lng1: number,

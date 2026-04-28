@@ -14,6 +14,8 @@ export interface CoffeeShop {
   userRatingsTotal: number;
   distanceFromA?: number;
   distanceFromB?: number;
+  /** Optional third party — set when the trip card has 3 addresses. */
+  distanceFromC?: number;
   /** Straight-line distance from the A–B midpoint (same point used as the Places search center). */
   distanceFromMidpoint?: number;
   isOpen?: boolean;
@@ -75,12 +77,17 @@ export interface RecentSearchItem {
   id: string;
   addressA: string;
   addressB: string;
+  /** Optional 3rd address. Older entries (pre-multi-party) omit this — read
+   *  paths must treat missing as "two-person search" for backwards compat. */
+  addressC?: string;
   createdAt: number;
 }
 
 export interface AppState {
   locationA: Location | null;
   locationB: Location | null;
+  /** Optional third party. Null when the trip is a 2-person search. */
+  locationC: Location | null;
   midpoint: { lat: number; lng: number } | null;
   coffeeShops: CoffeeShop[];
   /** Highlights a shop on the map and list; null when nothing is selected. */

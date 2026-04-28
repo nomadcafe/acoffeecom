@@ -1,11 +1,14 @@
 /**
  * Build a shareable URL for the current meetup with a specific café pre-selected.
- * Preserves all existing query params (a/b/near, filters) so the recipient
+ * Preserves all existing query params (a/b/c/near, filters) so the recipient
  * lands on the same search and the same highlighted café.
+ *
+ * Param is `cafe` rather than `c` because `c` is now reserved for the
+ * optional 3rd person's address in multi-party midpoint searches.
  */
 export function buildMeetupShareUrl(placeId: string): string {
   const url = new URL(window.location.href);
-  url.searchParams.set('c', placeId);
+  url.searchParams.set('cafe', placeId);
   return url.toString();
 }
 

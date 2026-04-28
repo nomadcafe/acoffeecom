@@ -78,6 +78,7 @@ function mapPlacesToCoffeeShops(
   places: google.maps.places.Place[],
   locationA: { lat: number; lng: number } | null,
   locationB: { lat: number; lng: number } | null,
+  locationC: { lat: number; lng: number } | null,
   midpoint: { lat: number; lng: number },
   minRating: number,
   searchRadiusMeters: number
@@ -104,6 +105,9 @@ function mapPlacesToCoffeeShops(
           : undefined,
         distanceFromB: locationB
           ? calculateDistance(locationB.lat, locationB.lng, lat, lng)
+          : undefined,
+        distanceFromC: locationC
+          ? calculateDistance(locationC.lat, locationC.lng, lat, lng)
           : undefined,
         distanceFromMidpoint,
         isOpen: computeOpenNow(p),
@@ -134,6 +138,7 @@ export async function searchCoffeeShops(
   midpoint: { lat: number; lng: number },
   locationA: { lat: number; lng: number } | null,
   locationB: { lat: number; lng: number } | null,
+  locationC: { lat: number; lng: number } | null,
   minRating: number = 4.0,
   radiusMeters: number = 1200,
   placeCategory: PlaceSearchCategory = 'cafe',
@@ -166,6 +171,7 @@ export async function searchCoffeeShops(
       places,
       locationA,
       locationB,
+      locationC,
       midpoint,
       ratingFloor,
       radius

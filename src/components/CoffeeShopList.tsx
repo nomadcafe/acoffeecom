@@ -16,6 +16,7 @@ export function CoffeeShopList() {
     setSelectedCoffeeShopId,
     addressA,
     addressB,
+    addressC,
     searchSortMode,
     searchPlaceCategory,
     searchMode,
@@ -127,6 +128,7 @@ export function CoffeeShopList() {
             t('share.title'),
             `${t('share.from')}: ${addressA || '-'}`,
             `${t('share.to')}: ${addressB || '-'}`,
+            ...(addressC ? [`${t('share.third')}: ${addressC}`] : []),
           ];
     return [...header, '', ...lines, '', window.location.href].join('\n');
   };

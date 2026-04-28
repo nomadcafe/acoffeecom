@@ -52,6 +52,7 @@ export function Map() {
     sdkLoadError: loadError,
     locationA,
     locationB,
+    locationC,
     midpoint,
     coffeeShops,
     starredShops,
@@ -91,7 +92,7 @@ export function Map() {
   const [selectedSavedOnlyId, setSelectedSavedOnlyId] = useState<string | null>(null);
   const [selectedVisitedOnlyId, setSelectedVisitedOnlyId] = useState<string | null>(null);
 
-  const hasMeetupContext = !!(midpoint || locationA || locationB);
+  const hasMeetupContext = !!(midpoint || locationA || locationB || locationC);
 
   const coffeeIds = useMemo(() => new Set(coffeeShops.map((s) => s.id)), [coffeeShops]);
 
@@ -241,8 +242,8 @@ export function Map() {
     );
   }
 
-  const center = midpoint || locationA || locationB || browserLocation || defaultCenter;
-  const zoom = midpoint ? 15 : locationA || locationB ? 12 : browserLocation ? 11 : 12;
+  const center = midpoint || locationA || locationB || locationC || browserLocation || defaultCenter;
+  const zoom = midpoint ? 15 : locationA || locationB || locationC ? 12 : browserLocation ? 11 : 12;
 
   const isNearby = searchMode === 'nearby';
   // In nearby mode, the midpoint IS the user's location — render the blue dot there
@@ -276,6 +277,12 @@ export function Map() {
         {locationB && (
           <AdvancedMarker position={{ lat: locationB.lat, lng: locationB.lng }} anchor="center">
             <CircleDot size={28} color="#34a853" label="B" />
+          </AdvancedMarker>
+        )}
+
+        {locationC && (
+          <AdvancedMarker position={{ lat: locationC.lat, lng: locationC.lng }} anchor="center">
+            <CircleDot size={28} color="#a142f4" label="C" />
           </AdvancedMarker>
         )}
 
