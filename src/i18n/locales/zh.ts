@@ -3,16 +3,16 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — 找到最合适的会面咖啡店',
   'seo.description':
-    '输入两个地址，在地图上查看中点并找到附近高评分咖啡店，快速决定双方都方便的会面地点。',
+    '输入二到三个地址，自动在地图上找到中间的高评分咖啡店。分享你的公开主页 acoffee.com/yourname，朋友一键就能约你喝咖啡——咖啡店自动挑在中间。',
   'seo.keywords':
-    '咖啡 见面, 咖啡馆, 咖啡店 推荐, 中间点, 中点 咖啡, 中间位置, 两地之间, 两人中间, 见面地点, 约会地点, 约会 咖啡, 相亲 咖啡, 朋友见面, 商务会面, 会面地点, 高评分 咖啡店, 附近 咖啡店, 地铁站 咖啡, 咖啡馆 地图, 找咖啡, meet in the middle, acoffee',
+    '咖啡 见面, 咖啡馆, 咖啡店 推荐, 中间点, 中点 咖啡, 中间位置, 两地之间, 两人中间, 三人中点, 多人见面, 见面地点, 约会地点, 约会 咖啡, 相亲 咖啡, 朋友见面, 商务会面, 会面地点, 高评分 咖啡店, 附近 咖啡店, 地铁站 咖啡, 咖啡馆 地图, 找咖啡, 咖啡预约, 约咖啡, 预约咖啡, Calendly 咖啡, 咖啡主页, meet in the middle, acoffee',
   'seo.ogTitle': 'ACoffee — 找到最合适的会面咖啡店',
-  'seo.ogDescription': '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+  'seo.ogDescription': '在两到三人之间挑一家高评分咖啡店；还能用 acoffee.com/yourname 让朋友一键约你喝咖啡。',
   'seo.ogLocale': 'zh_CN',
   'seo.twitterTitle': 'ACoffee — 找到最合适的会面咖啡店',
-  'seo.twitterDescription': '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+  'seo.twitterDescription': '在两到三人之间挑一家高评分咖啡店；还能用 acoffee.com/yourname 让朋友一键约你喝咖啡。',
   'seo.schemaName': 'ACoffee',
-  'seo.schemaDescription': '帮助两个人根据中间地点快速找到合适咖啡店的 Web 应用。',
+  'seo.schemaDescription': '帮你在二到三个地址的中间找到高评分咖啡店的 Web 应用。还能拥有 acoffee.com/yourname 的公开主页，朋友一键预约你的咖啡。',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',

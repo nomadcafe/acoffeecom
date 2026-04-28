@@ -56,38 +56,38 @@ const SEO_COPY: Record<Locale, {
   en: {
     title: 'ACoffee — Best Meetup Place Finder',
     description:
-      'Enter two addresses, see the midpoint on a map, and discover highly rated coffee shops nearby. Plan an easy meetup at a café that works for both of you.',
+      'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so anyone can book a coffee with you — café auto-picked at the midpoint.',
     ogTitle: 'ACoffee — Best Meetup Place Finder',
     ogDescription:
-      'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+      'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
     ogLocale: 'en_US',
     twitterTitle: 'ACoffee — Best Meetup Place Finder',
     twitterDescription:
-      'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+      'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
     htmlLang: 'en',
   },
   ja: {
     title: 'ACoffee — 待ち合わせに最適なカフェを探す',
     description:
-      '2つの住所を入力すると中間地点を地図で表示し、その周辺の高評価カフェを見つけられます。待ち合わせ場所を簡単に決められます。',
+      '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、誰でもワンタップでコーヒーの予約ができます。',
     ogTitle: 'ACoffee — 待ち合わせに最適なカフェを探す',
     ogDescription:
-      '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+      '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
     ogLocale: 'ja_JP',
     twitterTitle: 'ACoffee — 待ち合わせに最適なカフェを探す',
     twitterDescription:
-      '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+      '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
     htmlLang: 'ja',
   },
   zh: {
     title: 'ACoffee — 找到最合适的会面咖啡店',
     description:
-      '输入两个地址，在地图上查看中点并找到附近高评分咖啡店，快速决定双方都方便的会面地点。',
+      '输入二到三个地址，自动在地图上找到中间的高评分咖啡店。分享你的公开主页 acoffee.com/yourname，朋友一键就能约你喝咖啡——咖啡店自动挑在中间。',
     ogTitle: 'ACoffee — 找到最合适的会面咖啡店',
-    ogDescription: '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+    ogDescription: '在两到三人之间挑一家高评分咖啡店；还能用 acoffee.com/yourname 让朋友一键约你喝咖啡。',
     ogLocale: 'zh_CN',
     twitterTitle: 'ACoffee — 找到最合适的会面咖啡店',
-    twitterDescription: '输入两地后自动计算中点，并在地图上展示附近高评分咖啡店。',
+    twitterDescription: '在两到三人之间挑一家高评分咖啡店；还能用 acoffee.com/yourname 让朋友一键约你喝咖啡。',
     htmlLang: 'zh-CN',
   },
 };

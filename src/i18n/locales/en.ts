@@ -3,19 +3,19 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — Best Meetup Place Finder',
   'seo.description':
-    'Enter two addresses, see the midpoint on a map, and discover highly rated coffee shops nearby. Plan an easy meetup at a café that works for both of you.',
+    'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so anyone can book a coffee with you — café auto-picked at the midpoint.',
   'seo.keywords':
-    'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, meet halfway, halfway between two addresses, cafe between two locations, equidistant cafe, meeting point finder, coffee date spot, first date cafe, top rated coffee shops, coffee shop near me, specialty coffee, cafe map, meetup planner, friends meetup, business meeting cafe',
+    'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, meet halfway, halfway between two addresses, cafe between two locations, three-person midpoint, group meetup, equidistant cafe, meeting point finder, coffee date spot, first date cafe, top rated coffee shops, coffee shop near me, specialty coffee, cafe map, meetup planner, friends meetup, business meeting cafe, coffee booking, schedule a coffee, calendly for coffee, coffee profile, book a coffee with me',
   'seo.ogTitle': 'ACoffee — Best Meetup Place Finder',
   'seo.ogDescription':
-    'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+    'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
   'seo.ogLocale': 'en_US',
   'seo.twitterTitle': 'ACoffee — Best Meetup Place Finder',
   'seo.twitterDescription':
-    'Geocode two locations, find the midpoint, and browse top-rated coffee shops nearby on an interactive map.',
+    'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
   'seo.schemaName': 'ACoffee',
   'seo.schemaDescription':
-    'Find highly rated coffee shops near the geographic midpoint between two addresses using an interactive map.',
+    'Web app that finds top-rated coffee shops at the midpoint between two or three addresses, plus a public profile at acoffee.com/yourname for one-tap coffee bookings with auto-picked cafés.',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',

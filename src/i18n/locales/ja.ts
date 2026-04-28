@@ -3,19 +3,19 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.description':
-    '2つの住所を入力すると中間地点を地図で表示し、その周辺の高評価カフェを見つけられます。待ち合わせ場所を簡単に決められます。',
+    '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、誰でもワンタップでコーヒーの予約ができます。',
   'seo.keywords':
-    'カフェ 待ち合わせ, 待ち合わせ場所, 中間地点, 中点, 合流場所, 中間 カフェ, 2地点の中間, 2人の中間, デート カフェ, 初デート カフェ, 打ち合わせ カフェ, 商談 カフェ, 駅近 カフェ, 人気カフェ, 高評価 カフェ, おすすめ カフェ, コーヒーショップ 検索, カフェ 地図, カフェ検索, meet in the middle, acoffee',
+    'カフェ 待ち合わせ, 待ち合わせ場所, 中間地点, 中点, 合流場所, 中間 カフェ, 2地点の中間, 2人の中間, 3人の中間, グループ 待ち合わせ, デート カフェ, 初デート カフェ, 打ち合わせ カフェ, 商談 カフェ, 駅近 カフェ, 人気カフェ, 高評価 カフェ, おすすめ カフェ, コーヒーショップ 検索, カフェ 地図, カフェ検索, コーヒー 予約, コーヒー スケジュール, Calendly コーヒー, コーヒー プロフィール, meet in the middle, acoffee',
   'seo.ogTitle': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.ogDescription':
-    '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+    '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
   'seo.ogLocale': 'ja_JP',
   'seo.twitterTitle': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.twitterDescription':
-    '2地点をジオコーディングし、中間地点周辺の高評価カフェを地図で探せます。',
+    '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
   'seo.schemaName': 'ACoffee',
   'seo.schemaDescription':
-    '2つの住所の中間地点近くで、高評価のカフェを地図から探せるWebアプリです。',
+    '2〜3 人の住所の中間地点にある高評価カフェを見つけられる Web アプリ。acoffee.com/yourname の公開プロフィールで、ワンタップのコーヒー予約も受けられます。',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
