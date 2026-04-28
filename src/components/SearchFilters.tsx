@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { RichText } from './RichText';
-import type { PlaceSearchCategory, SearchSortMode } from '../types';
+import type { PlaceSearchCategory } from '../types';
 import { PLACE_SEARCH_CATEGORIES } from '../types';
 import {
   SEARCH_RADIUS_MAX_M,
@@ -42,7 +42,6 @@ export function SearchFilters() {
     searchPlaceCategory,
     setSearchPlaceCategory,
     searchSortMode,
-    setSearchSortMode,
     searchOpenNow,
     setSearchOpenNow,
     widenSearchParams,
@@ -189,26 +188,9 @@ export function SearchFilters() {
           />
         </div>
 
-        <div className={styles.field}>
-          <label htmlFor="searchSortMode" className={styles.keywordLabel}>
-            {t('filters.sortMode')}
-          </label>
-          <select
-            id="searchSortMode"
-            className={styles.keywordInput}
-            value={searchSortMode}
-            onChange={(e) => setSearchSortMode(e.target.value as SearchSortMode)}
-            disabled={isLoading}
-          >
-            <option value="rating">{t('filters.sortRating')}</option>
-            {/* Fairness sort needs an A and a B to balance against; in
-                nearby mode there's a single point so the option is hidden. */}
-            {isMeetupMode ? (
-              <option value="fairness">{t('filters.sortFairness')}</option>
-            ) : null}
-          </select>
-          {isMeetupMode ? <p className={styles.hint}>{t('filters.sortHint')}</p> : null}
-        </div>
+        {/* Sort dropdown removed — the AgentModeChips above the panel
+            covers the same control with a more visual UX (Fair / Fast /
+            Vibe / Quiet / Cheap / Now). */}
 
         <div className={styles.field}>
           <label className={styles.toggleRow}>

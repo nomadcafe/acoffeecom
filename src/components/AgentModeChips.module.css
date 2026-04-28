@@ -1,0 +1,69 @@
+.row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  margin: 0 0 0.85rem;
+  overflow-x: auto;
+  padding: 0.1rem 0.05rem 0.4rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--ac-border, #e3d8cb);
+  background: var(--ac-surface, #fff);
+  color: var(--ac-text, #2c1810);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: var(--ac-radius-pill, 999px);
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: background var(--ac-motion-fast, 120ms),
+    border-color var(--ac-motion-fast, 120ms),
+    color var(--ac-motion-fast, 120ms);
+  line-height: 1;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--ac-text-muted);
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring, 0 0 0 3px rgba(111, 78, 55, 0.18));
+}
+
+.chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.chipSelected {
+  /* Sage = the "this is the live agent decision" colour, same accent
+   * used on submit + Fairness Score badges throughout. */
+  background: var(--ac-accent-2, #5e7a52);
+  border-color: var(--ac-accent-2, #5e7a52);
+  color: #fff;
+}
+
+.chipSelected:hover {
+  background: var(--ac-accent-2-dark, #4c6342);
+  border-color: var(--ac-accent-2-dark, #4c6342);
+  color: #fff;
+}
+
+.chipIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.chipLabel {
+  font-variant-numeric: tabular-nums;
+}

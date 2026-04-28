@@ -6,6 +6,7 @@ import type {
   CoffeeShop,
   AppState,
   SearchMode,
+  AgentMode,
   SearchSortMode,
   RecentSearchItem,
   PlaceSearchCategory,
@@ -87,6 +88,10 @@ interface AppContextType extends AppState {
   setSearchKeyword: (value: string) => void;
   setSearchPlaceCategory: (value: PlaceSearchCategory) => void;
   setSearchSortMode: (value: SearchSortMode) => void;
+  agentMode: AgentMode;
+  /** Tap a chip → applies the mode preset (sort + filters). The user can
+   *  still override individual filters in the advanced panel afterwards. */
+  setAgentMode: (mode: AgentMode) => void;
   setSearchOpenNow: (value: boolean) => void;
   updateStarredNote: (shopId: string, note: string) => void;
   addAddressTemplate: (address: string) => void;
@@ -254,10 +259,58 @@ function sortShops(
         const bTotal = bDistances.reduce((s, x) => s + x, 0);
         if (aTotal !== bTotal) return aTotal - bTotal;
       }
+    } else if (mode === 'fast') {
+      // Total travel time across all parties (lower = faster). Falls
+      // back to total distance when ETAs unavailable so the mode still
+      // reorders something — even if approximated.
+      const aDur = shopDurations(a);
+      const bDur = shopDurations(b);
+      const aHasFullDur = aDur.length >= partyCount;
+      const bHasFullDur = bDur.length >= partyCount;
+      if (aHasFullDur && bHasFullDur) {
+        const aTotal = aDur.reduce((s, x) => s + x, 0);
+        const bTotal = bDur.reduce((s, x) => s + x, 0);
+        if (aTotal !== bTotal) return aTotal - bTotal;
+      } else {
+        const aTotal = shopDistances(a).reduce((s, x) => s + x, 0);
+        const bTotal = shopDistances(b).reduce((s, x) => s + x, 0);
+        if (aTotal !== bTotal) return aTotal - bTotal;
+      }
+    } else if (mode === 'quiet') {
+      // Hidden gem heuristic: high rating, fewer reviews. The penalty
+      // term keeps a 4.6★/30-review spot ahead of a 4.6★/3000-review
+      // tourist trap. Tunable; 0.05 was picked empirically.
+      const aScore = a.rating - 0.05 * Math.log(a.userRatingsTotal + 1);
+      const bScore = b.rating - 0.05 * Math.log(b.userRatingsTotal + 1);
+      if (aScore !== bScore) return bScore - aScore;
+    } else if (mode === 'cheap') {
+      // Filter is applied separately (in coffeeShops memo); here we
+      // just sort within the filtered set by rating quality.
+      const aScore = (a.rating ?? 0) * Math.log(a.userRatingsTotal + 1);
+      const bScore = (b.rating ?? 0) * Math.log(b.userRatingsTotal + 1);
+      if (aScore !== bScore) return bScore - aScore;
     }
     return b.rating - a.rating;
   });
 }
+
+/**
+ * Six-mode preset table. setAgentMode dispatches to these so the user's
+ * one-tap switch updates the underlying sortMode + filter combo.
+ * Keeping presets data-driven (vs procedural) makes them easier to
+ * eyeball and tweak.
+ */
+const AGENT_MODE_PRESETS: Record<
+  AgentMode,
+  { sortMode: SearchSortMode; openNow?: boolean; minRating?: number }
+> = {
+  fair: { sortMode: 'fairness', openNow: false },
+  fast: { sortMode: 'fast', openNow: false },
+  vibe: { sortMode: 'rating', minRating: 4.5, openNow: false },
+  quiet: { sortMode: 'quiet', openNow: false },
+  cheap: { sortMode: 'cheap', openNow: false },
+  now: { sortMode: 'fairness', openNow: true },
+};
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { t } = useI18n();
@@ -308,11 +361,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
   const [searchSortMode, setSearchSortMode] = useState<SearchSortMode>(() => {
     const v = new URLSearchParams(window.location.search).get('sort');
-    return v === 'fairness' || v === 'rating' ? v : DEFAULT_SORT_MODE;
+    return v === 'fairness' ||
+      v === 'rating' ||
+      v === 'fast' ||
+      v === 'quiet' ||
+      v === 'cheap'
+      ? v
+      : DEFAULT_SORT_MODE;
   });
   const [searchOpenNow, setSearchOpenNow] = useState<boolean>(() => {
     return new URLSearchParams(window.location.search).get('open') === '1';
   });
+  const [agentMode, setAgentModeState] = useState<AgentMode>(() => {
+    const v = new URLSearchParams(window.location.search).get('m');
+    return v === 'fair' ||
+      v === 'fast' ||
+      v === 'vibe' ||
+      v === 'quiet' ||
+      v === 'cheap' ||
+      v === 'now'
+      ? v
+      : 'fair';
+  });
+  /** Apply a six-mode preset: switches sort + a couple of filters. */
+  const setAgentMode = useCallback((mode: AgentMode) => {
+    const preset = AGENT_MODE_PRESETS[mode];
+    setAgentModeState(mode);
+    setSearchSortMode(preset.sortMode);
+    if (preset.openNow !== undefined) setSearchOpenNow(preset.openNow);
+    if (preset.minRating !== undefined) setSearchMinRating(preset.minRating);
+  }, []);
   const [searchMode, setSearchMode] = useState<SearchMode>('meetup');
   const [recentSearches, setRecentSearches] = useState<RecentSearchItem[]>(loadRecentSearches);
   const [addressTemplates, setAddressTemplates] = useState<string[]>(loadAddressTemplates);
@@ -714,10 +792,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const partyCount = (locationA ? 1 : 0) + (locationB ? 1 : 0) + (locationC ? 1 : 0);
-  const coffeeShops = useMemo(
-    () => sortShops(rawShops, starredShopIds, searchSortMode, partyCount),
-    [rawShops, starredShopIds, searchSortMode, partyCount]
-  );
+  const coffeeShops = useMemo(() => {
+    // "Cheap" mode applies a priceLevel filter on top of the sort. We
+    // keep places with no priceLevel data too (very common — Places
+    // doesn't reliably populate it for cafés), since the alternative is
+    // an empty list when the API stays quiet on the field.
+    let working = rawShops;
+    if (searchSortMode === 'cheap') {
+      working = rawShops.filter(
+        (s) => s.priceLevel === undefined || s.priceLevel <= 2,
+      );
+    }
+    return sortShops(working, starredShopIds, searchSortMode, partyCount);
+  }, [rawShops, starredShopIds, searchSortMode, partyCount]);
 
   const setSearchPlaceCategory = useCallback((value: PlaceSearchCategory) => {
     setSearchPlaceCategoryState(value);
@@ -990,12 +1077,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setOrDelete('cat', searchPlaceCategory, searchPlaceCategory === 'cafe');
     setOrDelete('sort', searchSortMode, searchSortMode === DEFAULT_SORT_MODE);
     setOrDelete('open', '1', !searchOpenNow);
+    setOrDelete('m', agentMode, agentMode === 'fair');
     const query = params.toString();
     const target = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
     if (target !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.replaceState({}, '', target);
     }
-  }, [searchRadiusMeters, searchMinRating, searchKeyword, searchPlaceCategory, searchSortMode, searchOpenNow]);
+  }, [searchRadiusMeters, searchMinRating, searchKeyword, searchPlaceCategory, searchSortMode, searchOpenNow, agentMode]);
 
   const addAddressTemplate = useCallback((address: string) => {
     const clean = address.trim();
@@ -1101,6 +1189,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchKeyword,
       searchPlaceCategory,
       searchSortMode,
+      agentMode,
+      setAgentMode,
       searchMode,
       searchOpenNow,
       setSearchOpenNow,
@@ -1161,6 +1251,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchKeyword,
       searchPlaceCategory,
       searchSortMode,
+      agentMode,
+      setAgentMode,
       searchMode,
       searchOpenNow,
       recentSearches,

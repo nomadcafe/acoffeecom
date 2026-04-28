@@ -4,6 +4,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { LOCATION_SYNC_EVENT } from './i18n/locationSync';
 import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
+import { AgentModeChips } from './components/AgentModeChips';
 import { SearchFilters } from './components/SearchFilters';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
@@ -164,6 +165,7 @@ function AppShell() {
         {useInlinePreSearch ? (
           <aside className="sidebar sidebarInline">
             <LocationInput />
+            <AgentModeChips />
             <SearchFilters />
             <CoffeeShopList />
           </aside>

@@ -27,6 +27,10 @@ export interface CoffeeShop {
   isOpen?: boolean;
   /** From Places (New) `googleMapsURI` when requested; preferred for “open in Maps”. */
   googleMapsUri?: string;
+  /** 0 = free, 1 = inexpensive, 2 = moderate, 3 = expensive, 4 = very expensive.
+   *  Undefined when Places didn't surface a level for this venue. Used by the
+   *  "Cheap" agent mode to filter out higher-tier spots. */
+  priceLevel?: number;
 }
 
 /** Persisted when user stars a shop so the sidebar can list favorites without a new search. */
@@ -64,7 +68,15 @@ export interface VisitedShopSnapshot {
   updatedAt: number;
 }
 
-export type SearchSortMode = 'rating' | 'fairness';
+export type SearchSortMode = 'rating' | 'fairness' | 'fast' | 'quiet' | 'cheap';
+
+/**
+ * "Agent mode" — six presets the user picks instead of fiddling with
+ * sort/filter knobs. Each preset bundles a sort mode and a couple of
+ * filter tweaks; the user can still override anything in the
+ * advanced filter panel afterwards.
+ */
+export type AgentMode = 'fair' | 'fast' | 'vibe' | 'quiet' | 'cheap' | 'now';
 
 /** 'meetup' = A+B midpoint search; 'nearby' = single-point search around the user. */
 export type SearchMode = 'meetup' | 'nearby';

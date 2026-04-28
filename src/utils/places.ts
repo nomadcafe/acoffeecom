@@ -1,4 +1,4 @@
-import type { CoffeeShop, PlaceSearchCategory } from '../types';
+import type { CoffeeShop, PlaceSearchCategory, SearchSortMode } from '../types';
 import { calculateDistance } from './midpoint';
 import {
   isLikelyNetworkError,
@@ -92,6 +92,13 @@ function mapPlacesToCoffeeShops(
       const lng = p.location?.lng() ?? 0;
       const distanceFromMidpoint = calculateDistance(midpoint.lat, midpoint.lng, lat, lng);
       const gUri = p.googleMapsURI?.trim();
+      // Places (New) returns priceLevel as the enum string
+      // PRICE_LEVEL_FREE / INEXPENSIVE / MODERATE / EXPENSIVE / VERY_EXPENSIVE,
+      // unset when unknown. Map to numeric 0–4 (0 = free) so the cheap mode
+      // can do `<= 2` cleanly. Untracked → undefined (not 0).
+      const priceLevel = priceLevelToNumber(
+        p.priceLevel as unknown as string | undefined,
+      );
       return {
         id: p.id,
         name: p.displayName ?? 'Unknown',
@@ -112,10 +119,28 @@ function mapPlacesToCoffeeShops(
         distanceFromMidpoint,
         isOpen: computeOpenNow(p),
         googleMapsUri: gUri ? gUri : undefined,
+        priceLevel,
       };
     })
     .filter((shop) => (shop.distanceFromMidpoint ?? 0) <= maxFromMidpoint)
     .sort((a, b) => b.rating - a.rating);
+}
+
+function priceLevelToNumber(raw: string | undefined): number | undefined {
+  switch (raw) {
+    case 'PRICE_LEVEL_FREE':
+      return 0;
+    case 'PRICE_LEVEL_INEXPENSIVE':
+      return 1;
+    case 'PRICE_LEVEL_MODERATE':
+      return 2;
+    case 'PRICE_LEVEL_EXPENSIVE':
+      return 3;
+    case 'PRICE_LEVEL_VERY_EXPENSIVE':
+      return 4;
+    default:
+      return undefined;
+  }
 }
 
 const NEARBY_FIELDS: string[] = [
@@ -124,6 +149,7 @@ const NEARBY_FIELDS: string[] = [
   'location',
   'formattedAddress',
   'rating',
+  'priceLevel',
   'userRatingCount',
   'googleMapsURI',
   'regularOpeningHours',
@@ -224,7 +250,12 @@ export async function searchCoffeeShops(
 export async function enrichWithDurations(
   shops: CoffeeShop[],
   parties: Array<{ lat: number; lng: number } | null>,
-  options: { sortMode?: 'rating' | 'fairness'; topN?: number } = {},
+  options: {
+    /** Only 'fairness' / 'fast' / 'now' care about duration data. Other
+     *  sort modes don't render minutes prominently, so we skip the call. */
+    sortMode?: SearchSortMode;
+    topN?: number;
+  } = {},
 ): Promise<void> {
   const origins = parties.filter((p): p is { lat: number; lng: number } => p != null);
   if (origins.length < 2) return;
@@ -233,9 +264,11 @@ export async function enrichWithDurations(
   // Conditional: only call Routes when the time data demonstrably
   // changes the user's decision. 3-party midpoint always benefits
   // (geographic centroid is often unfair). 2-party only benefits when
-  // the user explicitly opted into fairness — rating-sort users see
-  // distances and care less about minute-level precision.
-  if (origins.length < 3 && options.sortMode !== 'fairness') return;
+  // the user explicitly opted into a time-aware sort — rating /
+  // quiet / cheap users see distances and care less about minutes.
+  const wantsTime =
+    options.sortMode === 'fairness' || options.sortMode === 'fast';
+  if (origins.length < 3 && !wantsTime) return;
 
   const candidates = shops.slice(0, topN);
   if (candidates.length === 0) return;
