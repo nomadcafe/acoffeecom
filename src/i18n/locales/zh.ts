@@ -387,6 +387,8 @@ export const messages: MessageDict = {
   'account.calendarUrlPlaceholder': 'https://calendar.google.com/calendar/ical/.../basic.ics',
   'account.calendarUrlHelp': '在 Google 日历设置中找"iCal 格式的私密地址"，或在 Apple 日历 / Outlook 的共享菜单里。只读取时间段，不会看到会议标题或参会人。',
   'account.calendarLastSync': '上次同步：{{date}}',
+  'account.calendarBrokenTitle': '无法读取你的日历。',
+  'account.calendarBrokenBody': '{{when}} 尝试时返回："{{error}}"。访客现在能看到你所有的可约时段 — 请重新粘贴一个有效的 iCal URL，让真实会议重新被屏蔽。',
   'account.calendarSave': '保存日历',
   'account.calendarDisconnect': '解除连接',
   'account.calendarSaved': '已保存。',

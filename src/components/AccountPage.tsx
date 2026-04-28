@@ -191,6 +191,8 @@ interface SignedInProps {
     availabilitySlots?: string;
     busyCalendarIcsUrl?: string | null;
     busyCalendarSyncedAt?: string | Date | number | null;
+    busyCalendarLastError?: string | null;
+    busyCalendarLastErrorAt?: string | Date | number | null;
   };
   initialUsername: string;
   stats: ReturnType<typeof usePassportStats>;
@@ -557,14 +559,9 @@ function SignedInAccountPage({
 
         <CalendarSyncCard
           initialUrl={sessionUser.busyCalendarIcsUrl ?? ''}
-          initialSyncedAt={(() => {
-            const v = sessionUser.busyCalendarSyncedAt;
-            if (!v) return null;
-            if (v instanceof Date) return v.getTime();
-            if (typeof v === 'number') return v;
-            const n = Date.parse(v);
-            return Number.isFinite(n) ? n : null;
-          })()}
+          initialSyncedAt={msFromMaybe(sessionUser.busyCalendarSyncedAt)}
+          initialLastError={sessionUser.busyCalendarLastError ?? null}
+          initialLastErrorAt={msFromMaybe(sessionUser.busyCalendarLastErrorAt)}
         />
 
         <MonthlyRecapCard
@@ -1464,9 +1461,21 @@ function BookingSetupCard({
   );
 }
 
+/** Better Auth additionalFields can come back as Date | number | string
+ *  (ISO) | null depending on JSON serialisation path. Normalise to ms. */
+function msFromMaybe(v: string | Date | number | null | undefined): number | null {
+  if (v == null) return null;
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === 'number') return v;
+  const n = Date.parse(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 interface CalendarSyncProps {
   initialUrl: string;
   initialSyncedAt: number | null;
+  initialLastError: string | null;
+  initialLastErrorAt: number | null;
 }
 
 /**
@@ -1480,10 +1489,21 @@ interface CalendarSyncProps {
  * feed is unreachable / not iCalendar — surfacing the parser error
  * directly so the user knows whether they pasted the wrong URL.
  */
-function CalendarSyncCard({ initialUrl, initialSyncedAt }: CalendarSyncProps) {
+function CalendarSyncCard({
+  initialUrl,
+  initialSyncedAt,
+  initialLastError,
+  initialLastErrorAt,
+}: CalendarSyncProps) {
   const { t, locale } = useI18n();
   const [url, setUrl] = useState(initialUrl);
   const [syncedAt, setSyncedAt] = useState<number | null>(initialSyncedAt);
+  // Last-error state mirrors what's on the user row. Cleared in the UI
+  // immediately on save attempt so an old error doesn't linger after
+  // the user fixes the URL — server will re-record on the next failed
+  // visitor view if the new URL is also broken.
+  const [lastError, setLastError] = useState<string | null>(initialLastError);
+  const [lastErrorAt, setLastErrorAt] = useState<number | null>(initialLastErrorAt);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<
     { kind: 'ok' | 'err'; message: string } | null
@@ -1512,6 +1532,11 @@ function CalendarSyncCard({ initialUrl, initialSyncedAt }: CalendarSyncProps) {
       } else {
         setSyncedAt(Date.now());
       }
+      // PATCH /api/account already probe-fetches the URL; reaching here
+      // means it parsed OK at save time. Clear any stale error so the
+      // UI doesn't keep nagging until the next visitor view.
+      setLastError(null);
+      setLastErrorAt(null);
       setStatus({ kind: 'ok', message: t('account.calendarSaved') });
     } catch {
       setStatus({ kind: 'err', message: t('account.calendarSaveFailed') });
@@ -1544,7 +1569,21 @@ function CalendarSyncCard({ initialUrl, initialSyncedAt }: CalendarSyncProps) {
         <span className={styles.usernameHint}>{t('account.calendarUrlHelp')}</span>
       </label>
 
-      {syncedAt ? (
+      {lastError ? (
+        <p className={styles.calendarErrorBanner} role="alert">
+          <strong>{t('account.calendarBrokenTitle')}</strong>
+          <br />
+          {t('account.calendarBrokenBody', {
+            when: lastErrorAt
+              ? new Intl.DateTimeFormat(locale, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(new Date(lastErrorAt))
+              : '',
+            error: lastError,
+          })}
+        </p>
+      ) : syncedAt ? (
         <p className={styles.usernameHint} style={{ marginTop: 0 }}>
           {t('account.calendarLastSync', {
             date: new Intl.DateTimeFormat(locale, {

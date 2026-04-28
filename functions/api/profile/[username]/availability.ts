@@ -34,6 +34,8 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
       availabilitySlots: user.availabilitySlots,
       timezone: user.timezone,
       busyCalendarIcsUrl: user.busyCalendarIcsUrl,
+      busyCalendarLastError: user.busyCalendarLastError,
+      busyCalendarSyncedAt: user.busyCalendarSyncedAt,
     })
     .from(user)
     .where(and(eq(user.username, username), eq(user.profilePublic, true)));
@@ -78,14 +80,24 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
 
   // Calendar sync: if the organizer subscribed an iCal URL, fetch + parse
   // any busy events in the same window and treat them as ad-hoc bookings
-  // so enumerateOpenSlots' overlap check excludes them. Failure is
-  // soft — better to show possibly-conflicting slots than to block the
-  // entire profile because Google had a hiccup. (We log so the
-  // organizer can debug from CF dashboard if their calendar feed is
-  // chronically broken.)
+  // so enumerateOpenSlots' overlap check excludes them.
+  //
+  // Failure is soft — we still return slots — but we record the error
+  // state on the user row so AccountPage can surface "we couldn't read
+  // your calendar Y minutes ago" instead of letting the host think
+  // their calendar is still being respected. State writes are
+  // idempotent: only update DB when transitioning between
+  // success/failure or the error message changes, so popular profiles
+  // don't get hammered on every visitor view.
   if (organizer.busyCalendarIcsUrl) {
     const windowStartMs = now.getTime();
     const windowEndMs = windowStartMs + DAYS_AHEAD * 86_400_000;
+    const previousError = organizer.busyCalendarLastError;
+    const previousSyncedMs = organizer.busyCalendarSyncedAt
+      ? organizer.busyCalendarSyncedAt instanceof Date
+        ? organizer.busyCalendarSyncedAt.getTime()
+        : Number(organizer.busyCalendarSyncedAt)
+      : 0;
     try {
       const busy = await fetchBusyWindows(
         organizer.busyCalendarIcsUrl,
@@ -98,8 +110,37 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
           durationMinutes: Math.max(1, Math.round((w.endMs - w.startMs) / 60_000)),
         });
       }
+      // Clear the error on first success after a failure; refresh the
+      // syncedAt timestamp at most once per hour so we don't write to
+      // D1 on every visitor view of a popular profile.
+      const oneHourAgo = Date.now() - 60 * 60_000;
+      const needsClearError = previousError != null;
+      const needsSyncedRefresh = previousSyncedMs < oneHourAgo;
+      if (needsClearError || needsSyncedRefresh) {
+        await db
+          .update(user)
+          .set({
+            busyCalendarLastError: null,
+            busyCalendarLastErrorAt: null,
+            busyCalendarSyncedAt: now,
+          })
+          .where(eq(user.id, organizer.id));
+      }
     } catch (e) {
-      console.warn('[availability] iCal fetch failed', organizer.id, e);
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn('[availability] iCal fetch failed', organizer.id, message);
+      // Only write if the error message changed, to avoid hammering
+      // D1 when a feed has been broken for hours and getting hit by
+      // every visitor.
+      if (previousError !== message) {
+        await db
+          .update(user)
+          .set({
+            busyCalendarLastError: message.slice(0, 500),
+            busyCalendarLastErrorAt: now,
+          })
+          .where(eq(user.id, organizer.id));
+      }
     }
   }
 

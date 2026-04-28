@@ -79,6 +79,8 @@ export function createAuth(env: AuthEnv) {
         timezone: { type: 'string', required: false, defaultValue: 'UTC' },
         busyCalendarIcsUrl: { type: 'string', required: false },
         busyCalendarSyncedAt: { type: 'date', required: false },
+        busyCalendarLastError: { type: 'string', required: false },
+        busyCalendarLastErrorAt: { type: 'date', required: false },
       },
     },
     session: {

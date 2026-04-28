@@ -398,6 +398,8 @@ export const messages: MessageDict = {
   'account.calendarUrlPlaceholder': 'https://calendar.google.com/calendar/ical/.../basic.ics',
   'account.calendarUrlHelp': 'Find this in Google Calendar settings → "Secret address in iCal format", or in Apple Calendar / Outlook share menus. Read-only — we never see event titles or attendees, only times.',
   'account.calendarLastSync': 'Last synced {{date}}',
+  'account.calendarBrokenTitle': 'We couldn\'t read your calendar.',
+  'account.calendarBrokenBody': 'Tried at {{when}} and got: {{error}}. Visitors are seeing your full availability — please re-paste a working iCal URL so real meetings get blocked again.',
   'account.calendarSave': 'Save calendar',
   'account.calendarDisconnect': 'Disconnect',
   'account.calendarSaved': 'Saved.',

@@ -394,6 +394,8 @@ export const messages: MessageDict = {
   'account.calendarUrlPlaceholder': 'https://calendar.google.com/calendar/ical/.../basic.ics',
   'account.calendarUrlHelp': 'Google カレンダー設定の「iCal 形式の非公開 URL」、または Apple カレンダー / Outlook の共有メニューから取得できます。読み取り専用で、予定タイトルや参加者は一切見ません。時間帯のみ。',
   'account.calendarLastSync': '最終同期: {{date}}',
+  'account.calendarBrokenTitle': 'カレンダーを読み込めませんでした。',
+  'account.calendarBrokenBody': '{{when}} に試みましたが「{{error}}」が返ってきました。今、訪問者にはあなたの全空き時間が表示されています — 実際の予定がブロックされるよう、有効な iCal URL を再貼り付けしてください。',
   'account.calendarSave': 'カレンダーを保存',
   'account.calendarDisconnect': '解除',
   'account.calendarSaved': '保存しました。',

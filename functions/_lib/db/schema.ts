@@ -51,6 +51,14 @@ export const user = sqliteTable('user', {
   /** ms-since-epoch of the last successful fetch+parse — diagnostics so the
    *  AccountPage card can show "last synced X ago" or surface a stale feed. */
   busyCalendarSyncedAt: integer('busy_calendar_synced_at', { mode: 'timestamp_ms' }),
+  /** Last error message from the per-availability iCal fetch. Set when
+   *  the URL stops resolving / parsing; cleared when a fetch succeeds.
+   *  Surfaced on AccountPage so the user can re-paste the URL before
+   *  their actual calendar conflicts go unnoticed. */
+  busyCalendarLastError: text('busy_calendar_last_error'),
+  /** ms-since-epoch when busyCalendarLastError was recorded. Used to
+   *  display "couldn't read your calendar X ago" relatively. */
+  busyCalendarLastErrorAt: integer('busy_calendar_last_error_at', { mode: 'timestamp_ms' }),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });
