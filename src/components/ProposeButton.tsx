@@ -15,6 +15,30 @@ const DEFAULT_LEAD_MINUTES = 90;
 const ALT_COUNT = 4;
 
 /**
+ * Pick a sensible default time for the proposal: lead-minutes from now,
+ * but clamped into a reasonable coffee window (08:00 – 22:00 local). If
+ * the lead lands at 1 AM or 6 AM we silently roll forward to the next
+ * day at 10 AM — most "send a coffee proposal" intents are about
+ * normal-people-awake hours, not literal "+90 min from this exact
+ * keystroke regardless of the wall clock."
+ */
+function defaultScheduledAt(): number {
+  const target = new Date(Date.now() + DEFAULT_LEAD_MINUTES * 60_000);
+  const hour = target.getHours();
+  if (hour >= 22) {
+    // Late evening → tomorrow morning at 10am.
+    target.setDate(target.getDate() + 1);
+    target.setHours(10, 0, 0, 0);
+  } else if (hour < 8) {
+    // Already past midnight (target rolled over because it's late
+    // already) or extremely early → today / next-day at 10am, in the
+    // local date the target currently points at.
+    target.setHours(10, 0, 0, 0);
+  }
+  return target.getTime();
+}
+
+/**
  * Casual sibling of ShareButton: spins up a `/p/<id>` proposal and
  * copies the link to the clipboard. Default time is "in 90 minutes" —
  * the receiver can shift ±30 min on the proposal page if that doesn't
@@ -55,7 +79,7 @@ export function ProposeButton({ shop }: Props) {
       }));
 
     const addresses = [addressA, addressB, addressC].filter((a) => a.trim().length > 0);
-    const scheduledAt = Date.now() + DEFAULT_LEAD_MINUTES * 60_000;
+    const scheduledAt = defaultScheduledAt();
 
     try {
       const res = await fetch('/api/proposals', {
