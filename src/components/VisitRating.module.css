@@ -1,0 +1,32 @@
+.row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.05rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.star {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0.1rem 0.15rem;
+  font-family: inherit;
+  font-size: 1.05rem;
+  color: var(--ac-border-strong, #d6c7bb);
+  cursor: pointer;
+  line-height: 1;
+  transition: color var(--ac-motion-fast, 120ms);
+}
+
+.star:hover:not(:disabled) {
+  color: #c89048;
+}
+
+.starFilled {
+  color: #c89048;
+}
+
+.row[role='img'] .star {
+  cursor: default;
+}

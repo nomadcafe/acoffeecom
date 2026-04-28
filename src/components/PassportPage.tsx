@@ -19,11 +19,12 @@ import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { TrajectoryMap } from './TrajectoryMap';
 import { VisitNoteInput } from './VisitNoteInput';
+import { VisitRating } from './VisitRating';
 import styles from './PassportPage.module.css';
 
 export function PassportPage() {
   const { t, locale } = useI18n();
-  const { visitedShops, starredShops, removeVisited, removeVisitAt, setVisitNote } = useApp();
+  const { visitedShops, starredShops, removeVisited, removeVisitAt, setVisitNote, setVisitRating } = useApp();
   const homeHref = buildLocalizedPathname('/', locale);
 
   const [sharing, setSharing] = useState(false);
@@ -478,6 +479,11 @@ export function PassportPage() {
                             shops keep the expander pattern (one note per visit). */}
                         {vc === 1 && snap.visits[0] != null ? (
                           <div className={styles.inlineNoteWrap}>
+                            <VisitRating
+                              value={snap.visitRatings?.[String(snap.visits[0])] ?? 0}
+                              onChange={(next) => setVisitRating(snap.id, snap.visits[0]!, next)}
+                              ariaLabel={t('passport.visitRatingAria', { name: snap.name })}
+                            />
                             <VisitNoteInput
                               initial={snap.visitNotes?.[String(snap.visits[0])] ?? ''}
                               placeholder={t('passport.visitNotePlaceholder')}
@@ -521,6 +527,13 @@ export function PassportPage() {
                                       ×
                                     </button>
                                   </div>
+                                  <VisitRating
+                                    value={snap.visitRatings?.[noteKey] ?? 0}
+                                    onChange={(next) => setVisitRating(snap.id, ts, next)}
+                                    ariaLabel={t('passport.visitRatingDateAria', {
+                                      date: formatAbsoluteDate(ts, locale),
+                                    })}
+                                  />
                                   <VisitNoteInput
                                     initial={existing}
                                     placeholder={t('passport.visitNotePlaceholder')}

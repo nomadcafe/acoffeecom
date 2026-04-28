@@ -18,6 +18,8 @@ export const VisitedShopWireSchema = z.object({
   /* Map of `{ visitTs: noteText }` — only for visits that have a note. Each
    * note capped to 500 chars; the whole map at 200 keys to bound payload. */
   visitNotes: z.record(z.string(), z.string().max(500)).optional(),
+  /* Per-visit star rating, 1–5. Same sparse keying as visitNotes. */
+  visitRatings: z.record(z.string(), z.number().int().min(1).max(5)).optional(),
   updatedAt: z.number().int().nonnegative(),
   deleted: z.boolean().optional(),
 });
@@ -27,6 +29,7 @@ export type VisitedShopRow = typeof visitedShops.$inferSelect;
 
 export function rowToWire(row: VisitedShopRow): VisitedShopWire {
   const notes = parseNotes(row.visitNotes);
+  const ratings = parseRatings(row.visitRatings);
   return {
     id: row.placeId,
     name: row.name,
@@ -37,6 +40,7 @@ export function rowToWire(row: VisitedShopRow): VisitedShopWire {
     city: row.city ?? undefined,
     visits: parseVisits(row.visits),
     visitNotes: Object.keys(notes).length > 0 ? notes : undefined,
+    visitRatings: Object.keys(ratings).length > 0 ? ratings : undefined,
     updatedAt: row.updatedAt instanceof Date ? row.updatedAt.getTime() : (row.updatedAt as unknown as number),
     deleted: row.deleted || undefined,
   };
@@ -59,6 +63,21 @@ function parseNotes(raw: string): Record<string, string> {
     const out: Record<string, string> = {};
     for (const [k, v] of Object.entries(parsed)) {
       if (typeof v === 'string' && v.length > 0) out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function parseRatings(raw: string): Record<string, number> {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const out: Record<string, number> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 1 && n <= 5) out[k] = Math.round(n);
     }
     return out;
   } catch {
@@ -97,6 +116,7 @@ function asMs(v: unknown): number {
 export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: VisitedShopWire) {
   const incomingDeleted = incoming.deleted ?? false;
   const incomingNotes = incoming.visitNotes ?? {};
+  const incomingRatings = incoming.visitRatings ?? {};
   if (!prev) {
     return {
       name: incoming.name,
@@ -107,6 +127,7 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
       city: incoming.city ?? null,
       visits: incoming.visits,
       visitNotes: incomingNotes,
+      visitRatings: incomingRatings,
       updatedAt: new Date(incoming.updatedAt),
       deleted: incomingDeleted,
     };
@@ -115,6 +136,7 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
   const prevVisits = parseVisits(prev.visits);
   const visits = mergeVisits(incoming.visits, prevVisits);
   const visitNotes = mergeNotes(parseNotes(prev.visitNotes), incomingNotes);
+  const visitRatings = mergeRatings(parseRatings(prev.visitRatings), incomingRatings);
   if (incoming.updatedAt > prevTs) {
     return {
       name: incoming.name || prev.name,
@@ -125,6 +147,7 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
       city: incoming.city ?? prev.city,
       visits,
       visitNotes,
+      visitRatings,
       updatedAt: new Date(incoming.updatedAt),
       deleted: incomingDeleted,
     };
@@ -138,6 +161,7 @@ export function mergeVisitedRow(prev: VisitedShopRow | undefined, incoming: Visi
     city: prev.city,
     visits,
     visitNotes,
+    visitRatings,
     updatedAt: new Date(prevTs),
     deleted: prev.deleted,
   };
@@ -158,6 +182,25 @@ function mergeNotes(
     if (!note) continue;
     const cur = out[ts];
     if (!cur || note.length > cur.length) out[ts] = note;
+  }
+  return out;
+}
+
+/**
+ * Per-ts rating merge mirroring the client. Higher rating wins on conflict —
+ * "I rated this 4 stars" is a more committed action than "I changed my mind
+ * down to 3", so on a desync we lean toward the more enthusiastic record.
+ */
+function mergeRatings(
+  a: Record<string, number>,
+  b: Record<string, number>,
+): Record<string, number> {
+  const out: Record<string, number> = { ...a };
+  for (const [ts, r] of Object.entries(b)) {
+    const v = Number(r);
+    if (!Number.isFinite(v) || v < 1 || v > 5) continue;
+    const cur = out[ts];
+    if (cur === undefined || v > cur) out[ts] = Math.round(v);
   }
   return out;
 }

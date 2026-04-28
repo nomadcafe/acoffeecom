@@ -221,6 +221,8 @@ export const messages: MessageDict = {
   'passport.visitRemove': 'Remove this visit',
   'passport.visitRemoveAria': 'Remove visit on {{date}} at {{name}}',
   'passport.visitNotePlaceholder': 'Add a note — what did you order, who were you with…',
+  'passport.visitRatingAria': 'Rate your visit to {{name}}',
+  'passport.visitRatingDateAria': 'Rate your visit on {{date}}',
   'passport.export': 'Export',
   'passport.listTitle': 'Visited cafés ({{count}})',
   'passport.listFilteredEmpty': 'No cafés match this filter.',

@@ -11,12 +11,14 @@ export interface VisitedShopWire {
   city?: string;
   visits: number[];
   visitNotes?: Record<string, string>;
+  visitRatings?: Record<string, number>;
   updatedAt: number;
   deleted?: boolean;
 }
 
 export function toWire(s: VisitedShopSnapshot): VisitedShopWire {
   const notes = s.visitNotes;
+  const ratings = s.visitRatings;
   return {
     id: s.id,
     name: s.name,
@@ -27,6 +29,7 @@ export function toWire(s: VisitedShopSnapshot): VisitedShopWire {
     city: s.city,
     visits: s.visits,
     visitNotes: notes && Object.keys(notes).length > 0 ? notes : undefined,
+    visitRatings: ratings && Object.keys(ratings).length > 0 ? ratings : undefined,
     updatedAt: s.updatedAt,
   };
 }
@@ -42,6 +45,7 @@ export function fromWire(w: VisitedShopWire): VisitedShopSnapshot {
     city: w.city,
     visits: w.visits,
     visitNotes: w.visitNotes,
+    visitRatings: w.visitRatings,
     updatedAt: w.updatedAt,
   };
 }

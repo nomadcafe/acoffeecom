@@ -215,6 +215,8 @@ export const messages: MessageDict = {
   'passport.visitRemove': '删除这次记录',
   'passport.visitRemoveAria': '删除 {{name}} 在 {{date}} 的记录',
   'passport.visitNotePlaceholder': '加点笔记 — 喝了什么、和谁、什么心情…',
+  'passport.visitRatingAria': '给{{name}}的这次到访打分',
+  'passport.visitRatingDateAria': '给 {{date}} 的到访打分',
   'passport.export': '导出',
   'passport.listTitle': '已到访咖啡店（{{count}}）',
   'passport.listFilteredEmpty': '没有符合条件的咖啡店。',

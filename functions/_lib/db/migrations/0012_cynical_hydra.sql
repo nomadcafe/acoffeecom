@@ -1,0 +1,1 @@
+ALTER TABLE `visited_shops` ADD `visit_ratings` text DEFAULT '{}' NOT NULL;

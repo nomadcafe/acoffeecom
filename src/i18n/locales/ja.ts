@@ -220,6 +220,8 @@ export const messages: MessageDict = {
   'passport.visitRemove': 'この来店記録を削除',
   'passport.visitRemoveAria': '{{date}} の {{name}} の来店記録を削除',
   'passport.visitNotePlaceholder': 'メモを追加 — 何を注文した？誰と？気分は？',
+  'passport.visitRatingAria': '{{name}} の訪問を評価',
+  'passport.visitRatingDateAria': '{{date}} の訪問を評価',
   'passport.export': 'エクスポート',
   'passport.listTitle': '来店したカフェ（{{count}}）',
   'passport.listFilteredEmpty': '条件に合うカフェがありません。',

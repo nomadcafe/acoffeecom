@@ -56,6 +56,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
           city: merged.city,
           visits: JSON.stringify(merged.visits),
           visitNotes: JSON.stringify(merged.visitNotes),
+          visitRatings: JSON.stringify(merged.visitRatings ?? {}),
           updatedAt: merged.updatedAt,
           deleted: merged.deleted,
         })
@@ -74,6 +75,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
         city: merged.city,
         visits: JSON.stringify(merged.visits),
         visitNotes: JSON.stringify(merged.visitNotes),
+        visitRatings: JSON.stringify(merged.visitRatings ?? {}),
         updatedAt: merged.updatedAt,
         deleted: merged.deleted,
       });

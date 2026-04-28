@@ -33,6 +33,15 @@ function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
         }
         if (Object.keys(cleaned).length > 0) visitNotes = cleaned;
       }
+      let visitRatings: Record<string, number> | undefined;
+      if (s.visitRatings && typeof s.visitRatings === 'object' && !Array.isArray(s.visitRatings)) {
+        const cleaned: Record<string, number> = {};
+        for (const [k, v] of Object.entries(s.visitRatings as Record<string, unknown>)) {
+          const n = Number(v);
+          if (Number.isFinite(n) && n >= 1 && n <= 5) cleaned[k] = Math.round(n);
+        }
+        if (Object.keys(cleaned).length > 0) visitRatings = cleaned;
+      }
       return {
         id: s.id,
         name: s.name || 'Visited café',
@@ -42,6 +51,7 @@ function normalizeStored(raw: unknown): VisitedShopSnapshot[] {
         googleMapsUri: typeof s.googleMapsUri === 'string' ? s.googleMapsUri : undefined,
         visits: [...visits].sort((a, b) => b - a),
         visitNotes,
+        visitRatings,
         city: storedCity ?? extractCity(address) ?? undefined,
         // Pre-sync schema had no updatedAt; backfill once on read so LWW has a key.
         updatedAt: typeof s.updatedAt === 'number' ? s.updatedAt : legacyTs,
@@ -82,6 +92,8 @@ export function useVisitedShops(): {
   removeVisitAt: (shopId: string, ts: number) => void;
   /** Add / edit / clear a per-visit note. Empty string clears. */
   setVisitNote: (shopId: string, ts: number, note: string) => void;
+  /** Add / edit / clear a per-visit 1–5 star rating. 0 clears. */
+  setVisitRating: (shopId: string, ts: number, rating: number) => void;
   /** Replace the entire visited list (used by cloud sync to reconcile with server). */
   replaceVisited: (next: VisitedShopSnapshot[]) => void;
   isVisited: (shopId: string) => boolean;
@@ -180,6 +192,33 @@ export function useVisitedShops(): {
    * string deletes the entry from the map; trimmed values persist. Bumps
    * updatedAt so cloud sync ships the change.
    */
+  /**
+   * Set or clear the rating for a single visit timestamp on a shop. Pass 0
+   * (or anything outside 1..5) to clear. Bumps updatedAt so cloud sync
+   * picks up the change.
+   */
+  const setVisitRating = useCallback((shopId: string, ts: number, rating: number) => {
+    setVisitedShops((prev) =>
+      prev.map((s) => {
+        if (s.id !== shopId) return s;
+        const key = String(ts);
+        const cur = s.visitRatings ?? {};
+        let nextRatings: Record<string, number> | undefined;
+        const valid = Number.isFinite(rating) && rating >= 1 && rating <= 5;
+        if (valid) {
+          nextRatings = { ...cur, [key]: Math.round(rating) };
+        } else if (cur[key] !== undefined) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [key]: _dropped, ...rest } = cur;
+          nextRatings = Object.keys(rest).length > 0 ? rest : undefined;
+        } else {
+          nextRatings = s.visitRatings;
+        }
+        return { ...s, visitRatings: nextRatings, updatedAt: Date.now() };
+      }),
+    );
+  }, []);
+
   const setVisitNote = useCallback((shopId: string, ts: number, note: string) => {
     const trimmed = note.trim();
     setVisitedShops((prev) =>
@@ -228,6 +267,7 @@ export function useVisitedShops(): {
     removeVisited,
     removeVisitAt,
     setVisitNote,
+    setVisitRating,
     replaceVisited,
     isVisited,
     visitCount,

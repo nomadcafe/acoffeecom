@@ -49,6 +49,40 @@ function mergeVisitNotes(
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
+/** Per-ts rating merge: any remote rating fills a missing local one; if both
+ *  exist, prefer the higher value (rating-up wins, since "loved this" is a
+ *  more committed action than "tapped a star and changed my mind"). */
+function mergeVisitRatings(
+  a: Record<string, number> | undefined,
+  b: Record<string, number> | undefined,
+): Record<string, number> | undefined {
+  if (!a && !b) return undefined;
+  const out: Record<string, number> = { ...(a ?? {}) };
+  for (const [ts, r] of Object.entries(b ?? {})) {
+    const v = Number(r);
+    if (!Number.isFinite(v) || v <= 0) continue;
+    const cur = out[ts];
+    if (cur === undefined || v > cur) out[ts] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function shallowEqualRatings(
+  a: Record<string, number> | undefined,
+  b: Record<string, number> | undefined,
+): boolean {
+  if (a === b) return true;
+  const aKeys = a ? Object.keys(a) : [];
+  const bKeys = b ? Object.keys(b) : [];
+  if (aKeys.length !== bKeys.length) return false;
+  for (const k of aKeys) {
+    if ((a as Record<string, number>)[k] !== (b as Record<string, number> | undefined)?.[k]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Merge a delta of remote visited rows into the local list. LWW per-row by
  * `updatedAt`; tombstones (deleted=true) on the winning side remove the row;
@@ -73,6 +107,7 @@ export function mergeRemoteVisited(
         googleMapsUri: r.googleMapsUri,
         visits: r.visits,
         visitNotes: r.visitNotes,
+        visitRatings: r.visitRatings,
         city: undefined,
         updatedAt: r.updatedAt,
       });
@@ -80,6 +115,7 @@ export function mergeRemoteVisited(
     }
     const visits = mergeVisits(cur.visits, r.visits);
     const visitNotes = mergeVisitNotes(cur.visitNotes, r.visitNotes);
+    const visitRatings = mergeVisitRatings(cur.visitRatings, r.visitRatings);
     if (r.updatedAt > cur.updatedAt) {
       if (r.deleted) {
         byId.delete(r.id);
@@ -94,15 +130,17 @@ export function mergeRemoteVisited(
         googleMapsUri: r.googleMapsUri,
         visits,
         visitNotes,
+        visitRatings,
         city: cur.city,
         updatedAt: r.updatedAt,
       });
     } else {
-      // Local is newer (or tied) — keep local fields, but adopt any unioned visits / notes.
+      // Local is newer (or tied) — keep local fields, but adopt any unioned visits / notes / ratings.
       const visitsChanged = visits.length !== cur.visits.length;
       const notesChanged = !shallowEqualNotes(cur.visitNotes, visitNotes);
-      if (visitsChanged || notesChanged) {
-        byId.set(r.id, { ...cur, visits, visitNotes });
+      const ratingsChanged = !shallowEqualRatings(cur.visitRatings, visitRatings);
+      if (visitsChanged || notesChanged || ratingsChanged) {
+        byId.set(r.id, { ...cur, visits, visitNotes, visitRatings });
       }
     }
   }

@@ -46,6 +46,10 @@ export interface VisitedShopSnapshot {
   visits: number[];
   /** Per-visit short notes keyed by ts. Sparse — only visits that have a note appear. */
   visitNotes?: Record<string, string>;
+  /** Per-visit 1–5 star ratings keyed by ts. Sparse — unrated visits are absent.
+   *  Stored separately from notes so a visit can have a rating without a note
+   *  (and a tagless rating doesn't force the note column to grow). */
+  visitRatings?: Record<string, number>;
   /** Derived from `address` via extractCity(); lazily backfilled on load for older records. */
   city?: string;
   /** ms — last local mutation. LWW key for cloud sync. Filled on read for legacy records. */

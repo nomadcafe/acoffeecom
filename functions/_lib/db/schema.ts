@@ -117,6 +117,11 @@ export const visitedShops = sqliteTable(
        every visit needs one. Stored separately from the visits[] array so a
        legacy reader without the column still gets a usable timestamp list. */
     visitNotes: text('visit_notes').notNull().default('{}'),
+    /* JSON map of `{ [visitTs]: 1..5 }`. Per-visit star rating. Same sparse
+       shape as visit_notes — not every visit has a rating, and a rating
+       can exist without a note. Kept in its own column so legacy readers
+       and old client builds keep working without surprises. */
+    visitRatings: text('visit_ratings').notNull().default('{}'),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
     /* Tombstone for offline delete. We keep the row so a stale upsert from
        another device with an older updatedAt loses LWW and doesn't resurrect. */
