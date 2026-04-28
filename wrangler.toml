@@ -17,6 +17,13 @@ database_name = "acoffee-dev"
 database_id = "237b2a39-340b-4d34-a9b6-947358a17ef9"
 migrations_dir = "functions/_lib/db/migrations"
 
+# KV cache for Google Routes API responses. Per-pair (origin, destination, mode)
+# caching with a 1h TTL — cuts repeat-search cost to zero. Cheap (~free at our
+# scale) and Workers KV reads are sub-ms, so the wrap is essentially free.
+[[kv_namespaces]]
+binding = "ROUTES_CACHE"
+id = "11461dbc572d492a9f101e65b19f32f1"
+
 # Production D1 — separate database, same binding name. Set via
 # `wrangler d1 create acoffee-prod` and paste the id below.
 [env.production]
@@ -25,3 +32,7 @@ binding = "DB"
 database_name = "acoffee-prod"
 database_id = "7f9083bb-6e58-44dd-a360-4879e0509f0e"
 migrations_dir = "functions/_lib/db/migrations"
+
+[[env.production.kv_namespaces]]
+binding = "ROUTES_CACHE"
+id = "1ddd7e859cab4dcebebd0eb40704a53e"

@@ -806,10 +806,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Show the un-enriched list first so the user sees results
         // fast, then update once durations come in.
         setRawShops(shops);
-        void enrichWithDurations(shops, [coordsA, coordsB, coordsC]).then(() => {
+        void enrichWithDurations(shops, [coordsA, coordsB, coordsC], {
+          sortMode: searchSortMode,
+        }).then(() => {
           // New array reference so React re-renders cards with the
           // freshly-attached durationFromA/B/C fields and re-sorts if
-          // fairness mode is on.
+          // fairness mode is on. enrichWithDurations may have skipped
+          // the network call entirely (cost guard) — the .then still
+          // fires, just with no-op shops.
           setRawShops([...shops]);
         });
 
@@ -873,7 +877,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, searchOpenNow, t]
+    [searchMinRating, searchRadiusMeters, searchPlaceCategory, searchKeyword, searchOpenNow, searchSortMode, t]
   );
 
   const findMeetupSpot = useCallback(async () => {

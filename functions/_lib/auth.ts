@@ -26,6 +26,12 @@ export interface AuthEnv extends DbEnv {
    *  Better Auth callback path: <AUTH_BASE_URL>/api/auth/callback/google. */
   GOOGLE_OAUTH_CLIENT_ID?: string;
   GOOGLE_OAUTH_CLIENT_SECRET?: string;
+  /** KV cache for Google Routes API matrix calls. Per-pair caching keeps
+   *  the cost of repeat searches at zero (KV reads are essentially free
+   *  vs ~JPY 1.6/element from Routes). Optional binding so a fresh local
+   *  dev session without the namespace doesn't crash the server — the
+   *  computeRouteMatrix path detects undefined and skips caching. */
+  ROUTES_CACHE?: KVNamespace;
 }
 
 export function createAuth(env: AuthEnv) {

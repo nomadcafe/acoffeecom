@@ -244,14 +244,108 @@ export type TravelMode = 'TRANSIT' | 'WALK' | 'DRIVE';
  * Cost: ~$5/1000 elements at 2026 pricing. 5 candidates × 3 parties =
  * 15 elements/search ≈ $0.075. Acceptable at small scale.
  */
+/** TTL for cached Routes results — long enough that filter changes
+ *  within a session don't pay twice, short enough that transit
+ *  schedule changes (peak vs off-peak) don't get stale for too long. */
+const ROUTES_CACHE_TTL_S = 3600;
+
+/** Round lat/lng to ~10m precision before hashing into the cache key.
+ *  Two visitors typing the same address geocode to slightly different
+ *  coordinates (4–5 decimals); this collapses them so the cache hits. */
+function roundForCache(p: LatLng): { lat: number; lng: number } {
+  return { lat: Math.round(p.lat * 10000) / 10000, lng: Math.round(p.lng * 10000) / 10000 };
+}
+
+function pairKey(origin: LatLng, dest: LatLng, mode: TravelMode): string {
+  const o = roundForCache(origin);
+  const d = roundForCache(dest);
+  return `eta:${mode}:${o.lat},${o.lng}:${d.lat},${d.lng}`;
+}
+
+/** Per-pair lookup against KV. Returns parallel arrays: cached values
+ *  (null = miss), and the indices that need a network fetch. */
+async function loadCachedPairs(
+  cache: KVNamespace,
+  origins: LatLng[],
+  destinations: LatLng[],
+  mode: TravelMode,
+): Promise<{
+  cached: (number | null | 'miss')[][];
+  missCount: number;
+}> {
+  const cached: (number | null | 'miss')[][] = origins.map(() =>
+    destinations.map(() => 'miss' as const),
+  );
+  let missCount = 0;
+  // Fan out the reads — KV is fast individually, but doing all pairs in
+  // parallel beats N sequential awaits when N is 15-40.
+  const lookups: Array<Promise<void>> = [];
+  for (let i = 0; i < origins.length; i++) {
+    for (let j = 0; j < destinations.length; j++) {
+      const k = pairKey(origins[i], destinations[j], mode);
+      lookups.push(
+        cache.get(k).then((raw) => {
+          if (raw == null) {
+            missCount++;
+            return;
+          }
+          // Stored as a number-or-null marker. "null" means we cached an
+          // unreachable pair (no transit route) so we don't pay for it
+          // again on retry within the TTL.
+          if (raw === 'null') {
+            cached[i][j] = null;
+          } else {
+            const n = Number(raw);
+            cached[i][j] = Number.isFinite(n) ? n : null;
+          }
+        }),
+      );
+    }
+  }
+  await Promise.all(lookups);
+  return { cached, missCount };
+}
+
+async function persistPair(
+  cache: KVNamespace,
+  origin: LatLng,
+  dest: LatLng,
+  mode: TravelMode,
+  value: number | null,
+): Promise<void> {
+  const k = pairKey(origin, dest, mode);
+  await cache.put(k, value === null ? 'null' : String(value), {
+    expirationTtl: ROUTES_CACHE_TTL_S,
+  });
+}
+
 export async function computeRouteMatrix(
   env: AuthEnv,
   origins: LatLng[],
   destinations: LatLng[],
   mode: TravelMode = 'TRANSIT',
 ): Promise<(number | null)[][]> {
-  const key = requireKey(env);
   if (origins.length === 0 || destinations.length === 0) return [];
+
+  // ----- Cache lookup pass -----
+  let cached: (number | null | 'miss')[][] | null = null;
+  if (env.ROUTES_CACHE) {
+    const lookup = await loadCachedPairs(env.ROUTES_CACHE, origins, destinations, mode);
+    cached = lookup.cached;
+    // All hit → no network call needed at all.
+    if (lookup.missCount === 0) {
+      return cached.map((row) =>
+        row.map((c) => (c === 'miss' ? null : (c as number | null))),
+      );
+    }
+  }
+
+  // Build a Routes request only for the missing cells. We still send
+  // the full origins/destinations arrays (Routes is per-element priced;
+  // the API doesn't let us cherry-pick pairs) but if the cache covered
+  // everything we'd have returned above. So the savings come from not
+  // hitting Routes at all on full-cache-hit searches.
+  const key = requireKey(env);
 
   const body = {
     origins: origins.map((o) => ({
@@ -316,6 +410,34 @@ export async function computeRouteMatrix(
     const seconds = raw ? Number(raw) : NaN;
     if (Number.isFinite(seconds)) {
       matrix[el.originIndex][el.destinationIndex] = seconds;
+    }
+  }
+
+  // Cache writes: every pair we just computed (including unreachable
+  // null cells — caching the negative result avoids re-paying on retry).
+  // Fire-and-forget — caching failures shouldn't block the response.
+  if (env.ROUTES_CACHE) {
+    const cache = env.ROUTES_CACHE;
+    const writes: Array<Promise<void>> = [];
+    for (let i = 0; i < origins.length; i++) {
+      for (let j = 0; j < destinations.length; j++) {
+        writes.push(persistPair(cache, origins[i], destinations[j], mode, matrix[i][j]));
+      }
+    }
+    // Don't await — let the response land asap.
+    void Promise.allSettled(writes);
+  }
+
+  // Merge cache hits (where they were present) with fresh values. The
+  // network response is authoritative for the cells it returned, but
+  // if Routes silently dropped a cell we still return the cached value.
+  if (cached) {
+    for (let i = 0; i < origins.length; i++) {
+      for (let j = 0; j < destinations.length; j++) {
+        if (matrix[i][j] == null && cached[i][j] !== 'miss') {
+          matrix[i][j] = cached[i][j] as number | null;
+        }
+      }
     }
   }
   return matrix;

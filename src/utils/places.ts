@@ -213,19 +213,32 @@ export async function searchCoffeeShops(
  * Routes outage doesn't block the search. Caller can detect
  * "no durations populated" and fall back to distance-based fairness.
  *
- * Single-party / nearby-mode searches skip the call entirely (no
- * fairness to compute when there's only one origin).
+ * Cost guards (default ON):
+ *   - top 5 candidates only (was 8) → 38% fewer elements per call
+ *   - skip entirely for 2-party rating-sort searches; only enrich when
+ *     fairness sort is selected OR there are 3 parties (the cases where
+ *     time-fair data demonstrably helps the decision)
+ *   - server-side KV cache de-duplicates per (origin, dest, mode) pair
+ *     for an hour, so repeat searches and shared links pay nothing
  */
 export async function enrichWithDurations(
   shops: CoffeeShop[],
   parties: Array<{ lat: number; lng: number } | null>,
-  topN: number = 8,
+  options: { sortMode?: 'rating' | 'fairness'; topN?: number } = {},
 ): Promise<void> {
   const origins = parties.filter((p): p is { lat: number; lng: number } => p != null);
   if (origins.length < 2) return;
   if (shops.length === 0) return;
+  const topN = options.topN ?? 5;
+  // Conditional: only call Routes when the time data demonstrably
+  // changes the user's decision. 3-party midpoint always benefits
+  // (geographic centroid is often unfair). 2-party only benefits when
+  // the user explicitly opted into fairness — rating-sort users see
+  // distances and care less about minute-level precision.
+  if (origins.length < 3 && options.sortMode !== 'fairness') return;
 
   const candidates = shops.slice(0, topN);
+  if (candidates.length === 0) return;
   try {
     const r = await fetch('/api/places/eta', {
       method: 'POST',
