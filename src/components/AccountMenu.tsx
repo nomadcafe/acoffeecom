@@ -72,7 +72,16 @@ export function AccountMenu() {
 
   async function handleSignOut() {
     setDropdownOpen(false);
-    await authClient.signOut();
+    // Hard reload after signOut so every cached session reference (the
+    // useSession atom, any in-memory state from logged-in-only pages) is
+    // wiped — and on error the reload also bumps the user off whatever
+    // protected route they might be on, instead of silently failing.
+    try {
+      await authClient.signOut();
+    } catch {
+      /* ignore — reload anyway */
+    }
+    window.location.reload();
   }
 
   return (

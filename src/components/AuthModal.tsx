@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useI18n } from '../context/I18nContext';
 import { authClient } from '../utils/authClient';
 import styles from './AuthModal.module.css';
@@ -141,7 +142,15 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
     setPhase('idle');
   }
 
-  return (
+  // Render via portal to document.body. The modal is invoked from buttons
+  // deep inside the cafe card, which lives inside the BottomSheet — and
+  // BottomSheet animates `transform`. A `transform`'d ancestor breaks
+  // `position: fixed`, anchoring the backdrop to the BottomSheet's box
+  // instead of the viewport. Visually this looks like a duplicate /
+  // mis-positioned modal that flickers as the transform updates. Portal
+  // pulls the modal out of that subtree so the backdrop is always
+  // viewport-anchored.
+  return createPortal(
     <div
       className={styles.backdrop}
       onClick={(e) => {
@@ -230,6 +239,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

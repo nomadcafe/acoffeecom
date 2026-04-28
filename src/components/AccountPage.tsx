@@ -310,7 +310,15 @@ function SignedInAccountPage({
   }
 
   async function handleSignOut() {
-    await authClient.signOut();
+    // Always navigate home, even if signOut throws — keeps the user from
+    // being stranded on a logged-in-only page when a network blip causes
+    // the request to fail. Server cookie may persist a bit longer; the
+    // home page's session check will clean that up on next interaction.
+    try {
+      await authClient.signOut();
+    } catch {
+      /* ignore — navigate anyway */
+    }
     window.location.href = homeHref;
   }
 
