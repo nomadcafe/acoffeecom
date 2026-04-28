@@ -38,6 +38,29 @@ function GoogleGlyph() {
 
 type Phase = 'idle' | 'sending' | 'sent' | 'error';
 
+/**
+ * Build a Better-Auth-safe relative callbackURL from the current page.
+ *
+ * Better Auth's relative-path validation regex
+ * (`^\/(?!...)[\w\-.\+/@]*(?:\?[\w\-.\+/=&%@]*)?$`) rejects commas and
+ * non-ASCII characters — addresses like "Funabashi, Chiba" or
+ * "〒150-6145 Tokyo" trigger INVALID_CALLBACK_URL. Worse, the magic-link
+ * verify route runs `decodeURIComponent` on top of the HTTP layer's
+ * already-decoded query value, so the string is *double-decoded* before
+ * the regex check. We compensate by encoding the query portion an extra
+ * time: after Better Auth's double-decode the resulting URL still has
+ * `%2C` / `%E3%80%92` etc. literal, which the regex tolerates.
+ *
+ * The path itself is left untouched so the regex still recognises this
+ * as a relative path (it requires a leading `/`, not `%2F`).
+ */
+function buildCallbackURL(): string {
+  const path = window.location.pathname;
+  const search = window.location.search;
+  if (!search || search === '?') return path;
+  return path + '?' + encodeURIComponent(search.slice(1));
+}
+
 export function AuthModal({ open, onClose }: AuthModalProps) {
   const { t } = useI18n();
   const [email, setEmail] = useState('');
@@ -107,7 +130,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
     try {
       const { error } = await authClient.signIn.magicLink({
         email: email.trim(),
-        callbackURL: window.location.pathname + window.location.search,
+        callbackURL: buildCallbackURL(),
       });
       if (error) {
         setPhase('error');
@@ -130,7 +153,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       // sends the visitor to callbackURL.
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: window.location.pathname + window.location.search,
+        callbackURL: buildCallbackURL(),
       });
     } catch (err) {
       setPhase('error');
