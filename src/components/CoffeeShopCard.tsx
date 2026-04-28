@@ -221,8 +221,17 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
         <div className={styles.actions}>
           <VisitedButton shop={shop} />
           <StarButton shop={shop} />
-          <ShareButton shop={shop} />
-          {searchMode !== 'nearby' ? <ProposeButton shop={shop} /> : null}
+          {/* Share vs Propose: one or the other based on mode, never
+              both. In meetup mode (≥2 parties) the user almost always
+              wants to send a concrete "let's go here at this time"
+              proposal — the search-link Share is redundant. In nearby
+              (single-party) mode proposals make no sense, so a
+              search-link Share is what's useful. */}
+          {searchMode === 'nearby' ? (
+            <ShareButton shop={shop} />
+          ) : (
+            <ProposeButton shop={shop} />
+          )}
         </div>
       </div>
 

@@ -26,13 +26,16 @@ const ICONS: Record<AgentMode, string> = {
  */
 export function AgentModeChips() {
   const { t } = useI18n();
-  const { agentMode, setAgentMode, isLoading, searchMode } = useApp();
+  const { agentMode, setAgentMode, isLoading, searchMode, midpoint } = useApp();
   // Hide in nearby (single-party) mode — Fair / Fast / Now have no
-  // meaning when there's only one origin to balance against. Vibe /
-  // Quiet / Cheap kinda still apply but the row would be confusingly
-  // half-relevant; better to hide entirely until the user enters two
-  // addresses.
+  // meaning when there's only one origin to balance against.
   if (searchMode === 'nearby') return null;
+  // Hide pre-search too. Showing six "decision" chips before the user
+  // has entered any addresses is confusing — there's nothing yet for
+  // the agent to decide between. Once a midpoint exists (search ran),
+  // the chips reveal so the user can re-pick a mode and re-rank
+  // results in place.
+  if (!midpoint && !isLoading) return null;
   return (
     <div className={styles.row} role="radiogroup" aria-label={t('agentMode.aria')}>
       {MODES.map((mode) => {
