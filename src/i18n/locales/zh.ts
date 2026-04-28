@@ -3,20 +3,20 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — 找到最合适的会面咖啡店',
   'seo.description':
-    '输入二到三个地址，自动在地图上找到中间的高评分咖啡店。分享你的公开主页 acoffee.com/yourname，朋友或客户都能一键约你喝咖啡——咖啡店自动挑在中间。',
+    'AI 在两到三个地址之间挑最公平的咖啡店——按实际公共交通时间算，不是只看地理中点。分享 acoffee.com/yourname，朋友或客户都能一键约你喝咖啡。',
   'seo.keywords':
-    '咖啡 见面, 咖啡馆, 咖啡店 推荐, 中间点, 中点 咖啡, 中间位置, 两地之间, 两人中间, 三人中点, 多人见面, 见面地点, 约会地点, 约会 咖啡, 相亲 咖啡, 朋友见面, 商务会面, 会面地点, 高评分 咖啡店, 附近 咖啡店, 地铁站 咖啡, 咖啡馆 地图, 找咖啡, 咖啡预约, 约咖啡, 预约咖啡, 客户约见, 商务咖啡, 个人预约页, Calendly 咖啡, 咖啡主页, meet in the middle, acoffee',
+    '咖啡 见面, 咖啡馆, 咖啡店 推荐, 中间点, 中点 咖啡, 中间位置, 两地之间, 两人中间, 三人中点, 多人见面, 见面地点, 约会地点, 约会 咖啡, 相亲 咖啡, 朋友见面, 商务会面, 会面地点, 高评分 咖啡店, 附近 咖啡店, 地铁站 咖啡, 咖啡馆 地图, 找咖啡, 咖啡预约, 约咖啡, 预约咖啡, 客户约见, 商务咖啡, 个人预约页, Calendly 咖啡, 咖啡主页, AI 咖啡 见面, AI 中间点, 公平度评分, AI 找咖啡店, AI 决定咖啡, 该去哪家咖啡, meet in the middle, acoffee',
   'seo.ogTitle': 'ACoffee — 找到最合适的会面咖啡店',
-  'seo.ogDescription': '在两到三人之间挑一家高评分咖啡店；用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
+  'seo.ogDescription': '不用再纠结"去哪见面" — AI 按实际通勤时间为大家挑最公平的咖啡店。还能用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
   'seo.ogLocale': 'zh_CN',
   'seo.twitterTitle': 'ACoffee — 找到最合适的会面咖啡店',
-  'seo.twitterDescription': '在两到三人之间挑一家高评分咖啡店；用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
+  'seo.twitterDescription': '不用再纠结"去哪见面" — AI 按实际通勤时间为大家挑最公平的咖啡店。还能用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
   'seo.schemaName': 'ACoffee',
-  'seo.schemaDescription': '帮你在二到三个地址的中间找到高评分咖啡店的 Web 应用。还能拥有 acoffee.com/yourname 的公开主页，让朋友或客户一键预约你的咖啡。',
+  'seo.schemaDescription': '帮二到三个人约咖啡的 AI agent — 按每个人的实际公共交通时间挑最公平的咖啡店，不是单看地理中点。还有 acoffee.com/yourname 公开主页支持朋友或客户一键预约。',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': '在你们中间，挑一家好咖啡。',
+  'app.tagline': 'AI 帮你们找最公平的咖啡店。',
 
   'lang.selectAria': '语言',
   'lang.en': 'English',
@@ -71,7 +71,8 @@ export const messages: MessageDict = {
   'list.foundManyMeetup': '找到 {{count}} 个地点',
   'list.resultNoteCoffee': 'ACoffee 每次搜索最多展示 20 个咖啡相关地点。',
   'list.resultNoteMeetup': 'ACoffee 每次搜索最多展示 20 个会面候选地点。',
-  'list.fairnessExplain': '公平模式会优先展示 A 与 B 距离差更小的店。',
+  'list.fairnessExplain': '按"每个人通勤时间尽量相等"排序。能拿到实际公共交通时间就用，没有就退回直线距离。',
+  'list.fastExplain': '按"所有人通勤时间总和最短"排序——让大家最快聚到一起。',
 
   'card.favorite': '已收藏！',
   'card.visitedOnce': '{{last}}来过',

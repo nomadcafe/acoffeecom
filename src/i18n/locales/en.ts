@@ -3,23 +3,23 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — Best Meetup Place Finder',
   'seo.description':
-    'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so friends or clients can book a coffee with you — café auto-picked at the midpoint.',
+    'AI finds the fairest coffee shop between two or three addresses — using real transit time, not just the geographic midpoint. Share acoffee.com/yourname so friends or clients can book a coffee with you in one tap.',
   'seo.keywords':
-    'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, meet halfway, halfway between two addresses, cafe between two locations, three-person midpoint, group meetup, equidistant cafe, meeting point finder, coffee date spot, first date cafe, top rated coffee shops, coffee shop near me, specialty coffee, cafe map, meetup planner, friends meetup, business meeting cafe, coffee booking, schedule a coffee, calendly for coffee, coffee profile, book a coffee with me',
+    'acoffee, acoffee.com, coffee meetup, cafe finder, halfway point, midpoint map, meet in the middle, meet halfway, halfway between two addresses, cafe between two locations, three-person midpoint, group meetup, equidistant cafe, meeting point finder, coffee date spot, first date cafe, top rated coffee shops, coffee shop near me, specialty coffee, cafe map, meetup planner, friends meetup, business meeting cafe, coffee booking, schedule a coffee, calendly for coffee, coffee profile, book a coffee with me, coffee meetup ai, where to meet ai, fairness score, fair meeting point, ai chooses cafe, agent finds coffee, where should we meet',
   'seo.ogTitle': 'ACoffee — Best Meetup Place Finder',
   'seo.ogDescription':
-    'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
+    "No more 'where should we meet?' — AI picks the fairest café for everyone, using real transit time. Plus acoffee.com/yourname for one-tap coffee bookings.",
   'seo.ogLocale': 'en_US',
   'seo.twitterTitle': 'ACoffee — Best Meetup Place Finder',
   'seo.twitterDescription':
-    'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
+    "No more 'where should we meet?' — AI picks the fairest café for everyone, using real transit time. Plus acoffee.com/yourname for one-tap coffee bookings.",
   'seo.schemaName': 'ACoffee',
   'seo.schemaDescription':
-    'Web app that finds top-rated coffee shops at the midpoint between two or three addresses, plus a public profile at acoffee.com/yourname for one-tap coffee bookings with auto-picked cafés.',
+    'AI agent that picks the fairest coffee shop for two or three people meeting up — using real transit time across each party, not just a geographic midpoint. Includes a public profile surface at acoffee.com/yourname for one-tap coffee bookings.',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': 'Top-rated cafés right between you all.',
+  'app.tagline': 'AI picks the fairest coffee spot for everyone.',
 
   'lang.selectAria': 'Language',
   'lang.en': 'English',
@@ -75,7 +75,9 @@ export const messages: MessageDict = {
   'list.resultNoteCoffee': 'ACoffee returns up to 20 coffee spots per search.',
   'list.resultNoteMeetup': 'ACoffee returns up to 20 places per search for your meetup.',
   'list.fairnessExplain':
-    'Fairness mode prioritizes places where A and B travel distances are closer to each other.',
+    "Sorted so everyone's travel time is as equal as possible. Real transit minutes when available, falling back to straight-line distance.",
+  'list.fastExplain':
+    'Sorted by shortest total travel time — gets everyone there as quickly as possible.',
 
   'card.favorite': 'Your Favorite!',
   'card.visitedOnce': 'Visited {{last}}',

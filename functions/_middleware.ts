@@ -56,38 +56,38 @@ const SEO_COPY: Record<Locale, {
   en: {
     title: 'ACoffee — Best Meetup Place Finder',
     description:
-      'Find a great coffee shop right between two or three addresses on a map. Share acoffee.com/yourname so friends or clients can book a coffee with you — café auto-picked at the midpoint.',
+      'AI finds the fairest coffee shop between two or three addresses — using real transit time, not just the geographic midpoint. Share acoffee.com/yourname so friends or clients can book a coffee with you in one tap.',
     ogTitle: 'ACoffee — Best Meetup Place Finder',
     ogDescription:
-      'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
+      "No more 'where should we meet?' — AI picks the fairest café for everyone, using real transit time. Plus acoffee.com/yourname for one-tap coffee bookings.",
     ogLocale: 'en_US',
     twitterTitle: 'ACoffee — Best Meetup Place Finder',
     twitterDescription:
-      'Top-rated cafés at the midpoint between two or three of you — plus acoffee.com/yourname for one-tap coffee bookings.',
+      "No more 'where should we meet?' — AI picks the fairest café for everyone, using real transit time. Plus acoffee.com/yourname for one-tap coffee bookings.",
     htmlLang: 'en',
   },
   ja: {
     title: 'ACoffee — 待ち合わせに最適なカフェを探す',
     description:
-      '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、友人も顧客もワンタップでコーヒーの予約ができます。',
+      '2〜3 人の住所から AI が一番公平なカフェを選びます — 実際の交通時間ベースで、単なる地理的中点ではありません。acoffee.com/yourname で、友人も顧客もワンタップでコーヒーの予約ができます。',
     ogTitle: 'ACoffee — 待ち合わせに最適なカフェを探す',
     ogDescription:
-      '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
+      '「どこで会う？」とはもう聞かない — AI が全員にいちばん公平なカフェを実際の交通時間で選びます。acoffee.com/yourname のワンタップ予約も。',
     ogLocale: 'ja_JP',
     twitterTitle: 'ACoffee — 待ち合わせに最適なカフェを探す',
     twitterDescription:
-      '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
+      '「どこで会う？」とはもう聞かない — AI が全員にいちばん公平なカフェを実際の交通時間で選びます。acoffee.com/yourname のワンタップ予約も。',
     htmlLang: 'ja',
   },
   zh: {
     title: 'ACoffee — 找到最合适的会面咖啡店',
     description:
-      '输入二到三个地址，自动在地图上找到中间的高评分咖啡店。分享你的公开主页 acoffee.com/yourname，朋友或客户都能一键约你喝咖啡——咖啡店自动挑在中间。',
+      'AI 在两到三个地址之间挑最公平的咖啡店——按实际公共交通时间算，不是只看地理中点。分享 acoffee.com/yourname，朋友或客户都能一键约你喝咖啡。',
     ogTitle: 'ACoffee — 找到最合适的会面咖啡店',
-    ogDescription: '在两到三人之间挑一家高评分咖啡店；用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
+    ogDescription: '不用再纠结"去哪见面" — AI 按实际通勤时间为大家挑最公平的咖啡店。还能用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
     ogLocale: 'zh_CN',
     twitterTitle: 'ACoffee — 找到最合适的会面咖啡店',
-    twitterDescription: '在两到三人之间挑一家高评分咖啡店；用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
+    twitterDescription: '不用再纠结"去哪见面" — AI 按实际通勤时间为大家挑最公平的咖啡店。还能用 acoffee.com/yourname 让朋友或客户一键约你喝咖啡。',
     htmlLang: 'zh-CN',
   },
 };

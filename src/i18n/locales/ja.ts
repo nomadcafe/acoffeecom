@@ -3,23 +3,23 @@ import type { MessageDict } from '../messages';
 export const messages: MessageDict = {
   'meta.title': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.description':
-    '2〜3 人の住所から中間にある高評価カフェを地図で表示。acoffee.com/yourname を共有すれば、友人も顧客もワンタップでコーヒーの予約ができます。',
+    '2〜3 人の住所から AI が一番公平なカフェを選びます — 実際の交通時間ベースで、単なる地理的中点ではありません。acoffee.com/yourname で、友人も顧客もワンタップでコーヒーの予約ができます。',
   'seo.keywords':
-    'カフェ 待ち合わせ, 待ち合わせ場所, 中間地点, 中点, 合流場所, 中間 カフェ, 2地点の中間, 2人の中間, 3人の中間, グループ 待ち合わせ, デート カフェ, 初デート カフェ, 打ち合わせ カフェ, 商談 カフェ, 駅近 カフェ, 人気カフェ, 高評価 カフェ, おすすめ カフェ, コーヒーショップ 検索, カフェ 地図, カフェ検索, コーヒー 予約, コーヒー スケジュール, Calendly コーヒー, コーヒー プロフィール, meet in the middle, acoffee',
+    'カフェ 待ち合わせ, 待ち合わせ場所, 中間地点, 中点, 合流場所, 中間 カフェ, 2地点の中間, 2人の中間, 3人の中間, グループ 待ち合わせ, デート カフェ, 初デート カフェ, 打ち合わせ カフェ, 商談 カフェ, 駅近 カフェ, 人気カフェ, 高評価 カフェ, おすすめ カフェ, コーヒーショップ 検索, カフェ 地図, カフェ検索, コーヒー 予約, コーヒー スケジュール, Calendly コーヒー, コーヒー プロフィール, AI カフェ 待ち合わせ, AI 中間地点, 公平度 スコア, AI 待ち合わせ 場所, AI が決める カフェ, meet in the middle, acoffee',
   'seo.ogTitle': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.ogDescription':
-    '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
+    '「どこで会う？」とはもう聞かない — AI が全員にいちばん公平なカフェを実際の交通時間で選びます。acoffee.com/yourname のワンタップ予約も。',
   'seo.ogLocale': 'ja_JP',
   'seo.twitterTitle': 'ACoffee — 待ち合わせに最適なカフェを探す',
   'seo.twitterDescription':
-    '2〜3 人の中間地点にある高評価カフェ、それと acoffee.com/yourname のワンタップ予約。',
+    '「どこで会う？」とはもう聞かない — AI が全員にいちばん公平なカフェを実際の交通時間で選びます。acoffee.com/yourname のワンタップ予約も。',
   'seo.schemaName': 'ACoffee',
   'seo.schemaDescription':
-    '2〜3 人の住所の中間地点にある高評価カフェを見つけられる Web アプリ。acoffee.com/yourname の公開プロフィールで、ワンタップのコーヒー予約も受けられます。',
+    '2〜3 人で待ち合わせる際、各人の実際の交通時間に基づいていちばん公平なカフェを選ぶ AI エージェント。acoffee.com/yourname の公開プロフィールでワンタップのコーヒー予約も受けられます。',
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': 'みんなの真ん中で、高評価カフェを。',
+  'app.tagline': 'AI が全員にいちばん公平なカフェを選びます。',
 
   'lang.selectAria': '言語',
   'lang.en': 'English',
@@ -74,7 +74,8 @@ export const messages: MessageDict = {
   'list.foundManyMeetup': '{{count}}件の場所が見つかりました',
   'list.resultNoteCoffee': 'ACoffee は1回の検索で最大20件のカフェを表示します。',
   'list.resultNoteMeetup': 'ACoffee は1回の検索で最大20件の場所を表示します（待ち合わせ用）。',
-  'list.fairnessExplain': '公平モードは、A と B の移動距離差が小さい店を優先します。',
+  'list.fairnessExplain': '全員の移動時間がなるべく等しくなる順に並べています。可能なら実際の交通機関時間、なければ直線距離で。',
+  'list.fastExplain': '全員の移動時間の合計が最短になる順。みんなを最速で集める並び方です。',
 
   'card.favorite': 'お気に入り！',
   'card.visitedOnce': '{{last}}に来店',

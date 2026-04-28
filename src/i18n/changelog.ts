@@ -18,6 +18,16 @@ export type ChangelogEntry = {
 export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   en: [
     {
+      isoDate: '2026-04-29',
+      title: 'No more "where should we meet?"',
+      bullets: [
+        'New 6-mode chip row — Fair / Fast / Vibe / Quiet / Cheap / Now. One tap and the agent re-picks the right café.',
+        'Fair mode now uses real transit time across all parties (Google Routes), not just kilometres on a map. Each card shows minutes per person and a Fairness Score 0–100.',
+        'Three-person meetups: support added end-to-end — the trip card lets you tap "+ Add another person" up to 3 addresses, and fairness math generalises so the worst-off traveller still gets a balanced pick.',
+        'Sign in with Google for a one-click magic-link alternative.',
+      ],
+    },
+    {
       isoDate: '2026-04-28',
       title: 'Bookings shipped end-to-end',
       bullets: [
@@ -124,6 +134,16 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   ],
   ja: [
     {
+      isoDate: '2026-04-29',
+      title: '「どこで会う？」とはもう聞かない',
+      bullets: [
+        '6 つのモードチップを追加 — 公平 / 速い / 雰囲気 / 静か / 安い / 今すぐ。タップひとつでエージェントがカフェを選び直します。',
+        '「公平」モードは Google Routes API で実際の交通時間を使うように — 直線距離だけでなく分単位で公平に計算。各カードに各人の所要時間と 0〜100 の Fairness Score を表示。',
+        '3 人での待ち合わせに対応 — 入力カードに「+ もう一人追加」を追加（最大 3 人）。最も移動が大変な人もバランスよく考慮されます。',
+        'Google でサインイン — マジックリンクの代わりにワンクリック。',
+      ],
+    },
+    {
       isoDate: '2026-04-28',
       title: '予約機能が一通り揃いました',
       bullets: [
@@ -229,6 +249,16 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
     },
   ],
   zh: [
+    {
+      isoDate: '2026-04-29',
+      title: '不用再纠结"去哪见面"',
+      bullets: [
+        '主页新增 6 个模式 chip — 公平 / 最快 / 氛围 / 安静 / 便宜 / 即时。点一下，agent 立刻重新挑咖啡店。',
+        '"公平"模式接上了 Google Routes API，按真实公共交通时间算各方差异，不再只是地图上的直线公里数。卡片显示每人通勤分钟数 + 0–100 的公平度评分。',
+        '三人见面端到端支持 — 输入卡支持"+ 加一个人"最多 3 人，公平算法泛化，最累的那个人也不会被忽略。',
+        '新增 Google 登录入口，邮件 magic link 之外多一个选择。',
+      ],
+    },
     {
       isoDate: '2026-04-28',
       title: '预约功能完整上线',

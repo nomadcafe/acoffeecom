@@ -164,6 +164,8 @@ export function CoffeeShopList() {
       </div>
       {searchSortMode === 'fairness' ? (
         <p className={styles.sortExplain}>{t('list.fairnessExplain')}</p>
+      ) : searchSortMode === 'fast' ? (
+        <p className={styles.sortExplain}>{t('list.fastExplain')}</p>
       ) : null}
       <div className={styles.list}>
         {coffeeShops.map((shop) => (
