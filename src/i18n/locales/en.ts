@@ -259,6 +259,8 @@ export const messages: MessageDict = {
   'auth.modalSubtitle':
     "Sign in with email — we'll send you a magic link. No password needed.",
   'auth.emailLabel': 'Email',
+  'auth.continueWithGoogle': 'Continue with Google',
+  'auth.orEmail': 'or with email',
   'auth.emailPlaceholder': 'you@example.com',
   'auth.sendButton': 'Send magic link',
   'auth.sending': 'Sending…',

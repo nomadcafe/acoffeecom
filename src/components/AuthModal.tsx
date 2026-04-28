@@ -8,6 +8,33 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
+// Google's official "G" mark — required for "Continue with Google"
+// buttons under their branding guidelines. SVG inline so we don't pull
+// in another asset. Module-scope so the component identity stays stable
+// across renders.
+function GoogleGlyph() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 18 18" aria-hidden focusable="false">
+      <path
+        fill="#4285F4"
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"
+      />
+      <path
+        fill="#34A853"
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+      />
+      <path
+        fill="#EA4335"
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+      />
+    </svg>
+  );
+}
+
 type Phase = 'idle' | 'sending' | 'sent' | 'error';
 
 export function AuthModal({ open, onClose }: AuthModalProps) {
@@ -17,11 +44,22 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Reset phase/error/email when the modal transitions from closed → open.
+  // Using a render-time comparison instead of a setState-inside-useEffect
+  // avoids the cascading-renders lint and is the React-recommended pattern
+  // for derived state from a prop transition.
+  const [openSeen, setOpenSeen] = useState(open);
+  if (openSeen !== open) {
+    setOpenSeen(open);
+    if (open) {
+      setPhase('idle');
+      setErrorMsg(null);
+      setEmail('');
+    }
+  }
+
   useEffect(() => {
     if (!open) return;
-    setPhase('idle');
-    setErrorMsg(null);
-    setEmail('');
     queueMicrotask(() => inputRef.current?.focus());
   }, [open]);
 
@@ -52,6 +90,23 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
         return;
       }
       setPhase('sent');
+    } catch (err) {
+      setPhase('error');
+      setErrorMsg(err instanceof Error ? err.message : t('auth.error'));
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setPhase('sending');
+    setErrorMsg(null);
+    try {
+      // Better Auth handles the OAuth dance — redirects to Google, comes
+      // back to /api/auth/callback/google, which sets the cookie and
+      // sends the visitor to callbackURL.
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: window.location.pathname + window.location.search,
+      });
     } catch (err) {
       setPhase('error');
       setErrorMsg(err instanceof Error ? err.message : t('auth.error'));
@@ -99,6 +154,20 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
               {t('auth.modalTitle')}
             </h2>
             <p className={styles.subtitle}>{t('auth.modalSubtitle')}</p>
+
+            <button
+              type="button"
+              className={styles.googleButton}
+              onClick={() => void handleGoogleSignIn()}
+              disabled={phase === 'sending'}
+            >
+              <GoogleGlyph />
+              <span>{t('auth.continueWithGoogle')}</span>
+            </button>
+
+            <div className={styles.divider} role="separator" aria-orientation="horizontal">
+              <span className={styles.dividerLabel}>{t('auth.orEmail')}</span>
+            </div>
 
             <form className={styles.form} onSubmit={handleSubmit}>
               <label className={styles.label} htmlFor="auth-email">

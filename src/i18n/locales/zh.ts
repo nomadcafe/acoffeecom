@@ -252,6 +252,8 @@ export const messages: MessageDict = {
   'auth.modalTitle': '保存你的咖啡护照',
   'auth.modalSubtitle': '用邮箱登录——我们会发一条免密登录链接给你，不用记密码。',
   'auth.emailLabel': '邮箱',
+  'auth.continueWithGoogle': '使用 Google 继续',
+  'auth.orEmail': '或使用邮箱',
   'auth.emailPlaceholder': 'you@example.com',
   'auth.sendButton': '发送登录链接',
   'auth.sending': '发送中…',

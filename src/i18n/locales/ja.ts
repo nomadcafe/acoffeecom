@@ -258,6 +258,8 @@ export const messages: MessageDict = {
   'auth.modalSubtitle':
     'メールアドレスでサインイン — 専用リンクをお送りします。パスワードは不要です。',
   'auth.emailLabel': 'メールアドレス',
+  'auth.continueWithGoogle': 'Google で続行',
+  'auth.orEmail': 'またはメールで',
   'auth.emailPlaceholder': 'you@example.com',
   'auth.sendButton': 'リンクを送信',
   'auth.sending': '送信中…',
