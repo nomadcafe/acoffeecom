@@ -466,6 +466,12 @@ export const messages: MessageDict = {
   'bookings.tzShowing': '显示时区：',
   'bookings.tzHome': '常驻地 ({{zone}})',
   'bookings.tzLocal': '当前位置 ({{zone}})',
+  'bookings.viewShowing': '视图：',
+  'bookings.viewList': '列表',
+  'bookings.viewWeek': '周',
+  'bookings.weekPrev': '上一周',
+  'bookings.weekNext': '下一周',
+  'bookings.weekBlockAria': '与 {{name}} 在 {{time}} 的预约 — 点击取消',
   'bookings.statusCancelled': '已取消',
   'bookings.loadFailed': '加载预约失败，请刷新重试。',
 

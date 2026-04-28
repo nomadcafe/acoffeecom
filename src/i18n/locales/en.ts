@@ -476,6 +476,12 @@ export const messages: MessageDict = {
   'bookings.tzShowing': 'Showing in:',
   'bookings.tzHome': 'Home ({{zone}})',
   'bookings.tzLocal': 'Current ({{zone}})',
+  'bookings.viewShowing': 'View:',
+  'bookings.viewList': 'List',
+  'bookings.viewWeek': 'Week',
+  'bookings.weekPrev': 'Previous week',
+  'bookings.weekNext': 'Next week',
+  'bookings.weekBlockAria': 'Booking with {{name}} at {{time}} — tap to cancel',
   'bookings.statusCancelled': 'Cancelled',
   'bookings.loadFailed': "Couldn't load your bookings. Refresh to try again.",
 

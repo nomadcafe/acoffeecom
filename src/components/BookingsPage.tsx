@@ -67,6 +67,10 @@ export function BookingsPage() {
   const [cancelTarget, setCancelTarget] = useState<BookingWire | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  // List = the original chronological row layout. Week = a 7-column grid
+  // of the currently-anchored week. Default list to keep prior behavior.
+  const [viewMode, setViewMode] = useState<'list' | 'week'>('list');
+  const [weekAnchorMs, setWeekAnchorMs] = useState<number>(() => Date.now());
 
   const refresh = useCallback(async () => {
     setState({ kind: 'loading' });
@@ -151,6 +155,28 @@ export function BookingsPage() {
           <p className={accountStyles.lead}>{t('bookings.lead')}</p>
         </div>
 
+        <div className={styles.viewBar}>
+          <span className={styles.tzLabel}>{t('bookings.viewShowing')}</span>
+          <span className={styles.tzGroup} role="group" aria-label={t('bookings.viewShowing')}>
+            <button
+              type="button"
+              className={`${styles.tzOption} ${viewMode === 'list' ? styles.tzOptionSelected : ''}`}
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+            >
+              {t('bookings.viewList')}
+            </button>
+            <button
+              type="button"
+              className={`${styles.tzOption} ${viewMode === 'week' ? styles.tzOptionSelected : ''}`}
+              onClick={() => setViewMode('week')}
+              aria-pressed={viewMode === 'week'}
+            >
+              {t('bookings.viewWeek')}
+            </button>
+          </span>
+        </div>
+
         {!tzMatches ? (
           <p className={styles.tzBar}>
             <span className={styles.tzLabel}>{t('bookings.tzShowing')}</span>
@@ -184,6 +210,16 @@ export function BookingsPage() {
           <section className={accountStyles.card}>
             <p className={styles.empty}>{t('bookings.loadFailed')}</p>
           </section>
+        ) : viewMode === 'week' ? (
+          <WeekGridView
+            rows={state.bookings}
+            anchorMs={weekAnchorMs}
+            onAnchorChange={setWeekAnchorMs}
+            onCancelClick={setCancelTarget}
+            locale={locale}
+            timezone={effectiveTz}
+            t={t}
+          />
         ) : (
           <BookingsList
             rows={state.bookings}
@@ -317,6 +353,185 @@ function PageHeader({ homeHref }: { homeHref: string }) {
         </div>
       </div>
     </header>
+  );
+}
+
+interface WeekGridProps {
+  rows: BookingWire[];
+  anchorMs: number;
+  onAnchorChange: (next: number) => void;
+  onCancelClick: (row: BookingWire) => void;
+  locale: string;
+  timezone: string;
+  t: ReturnType<typeof useI18n>['t'];
+}
+
+const MS_DAY = 86_400_000;
+
+/**
+ * Week grid: 7 columns Mon→Sun anchored on `anchorMs`. Each booking on a
+ * day shows up as a tappable colored block (sage for active, dimmed for
+ * cancelled). Hours aren't laid out explicitly — just stack the day's
+ * bookings vertically with a time prefix. Keeps the v1 simple while still
+ * giving the host a "what's my coffee week look like" mental model.
+ *
+ * Day grouping uses the configured `timezone`, so flipping the TZ toggle
+ * in the parent re-buckets bookings into the right local day.
+ */
+function WeekGridView({
+  rows,
+  anchorMs,
+  onAnchorChange,
+  onCancelClick,
+  locale,
+  timezone,
+  t,
+}: WeekGridProps) {
+  // Compute the Monday at 00:00 in `timezone` for the week containing
+  // `anchorMs`. We project both the anchor and its weekday into the
+  // configured zone via Intl, then subtract back to get an aligned start.
+  const tzWeekStart = (() => {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      weekday: 'short',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = fmt.formatToParts(new Date(anchorMs));
+    const get = (type: string) =>
+      parts.find((p) => p.type === type)?.value ?? '';
+    const wd = get('weekday'); // Mon, Tue, …
+    const map: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+    const offsetDays = map[wd] ?? 0;
+    // Floor to the local-day midnight by reformatting at midnight UTC of
+    // that local date and walking back. We only need stable day buckets,
+    // not exact wall-clock — so use the local date string at 12:00 UTC
+    // of `anchorMs - (offsetDays * day)` as a floor.
+    return anchorMs - offsetDays * MS_DAY;
+  })();
+
+  const days = Array.from({ length: 7 }, (_, i) => tzWeekStart + i * MS_DAY);
+
+  const dayKey = (ms: number) => {
+    const d = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date(ms));
+    return d; // "YYYY-MM-DD"
+  };
+
+  // Bucket bookings by viewer-of-record (organizer) timezone day.
+  const byDay = new Map<string, BookingWire[]>();
+  for (const r of rows) {
+    const k = dayKey(r.scheduledAt);
+    const list = byDay.get(k) ?? [];
+    list.push(r);
+    byDay.set(k, list);
+  }
+  for (const list of byDay.values()) {
+    list.sort((a, b) => a.scheduledAt - b.scheduledAt);
+  }
+
+  // eslint-disable-next-line react-hooks/purity
+  const todayKey = dayKey(Date.now());
+  // eslint-disable-next-line react-hooks/purity
+  const nowMs = Date.now();
+
+  const weekTitleFmt = new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: timezone,
+  });
+  const start = new Date(days[0]);
+  const end = new Date(days[6]);
+  const weekTitle = `${weekTitleFmt.format(start)} – ${weekTitleFmt.format(end)}`;
+
+  return (
+    <section className={accountStyles.card}>
+      <div className={styles.weekHeader}>
+        <button
+          type="button"
+          className={styles.weekNav}
+          onClick={() => onAnchorChange(anchorMs - 7 * MS_DAY)}
+          aria-label={t('bookings.weekPrev')}
+        >
+          ←
+        </button>
+        <h2 className={styles.weekTitle}>{weekTitle}</h2>
+        <button
+          type="button"
+          className={styles.weekNav}
+          onClick={() => onAnchorChange(anchorMs + 7 * MS_DAY)}
+          aria-label={t('bookings.weekNext')}
+        >
+          →
+        </button>
+      </div>
+      <div className={styles.weekGrid}>
+        {days.map((dayMs) => {
+          const k = dayKey(dayMs);
+          const list = byDay.get(k) ?? [];
+          const isToday = k === todayKey;
+          const isPast = dayMs < nowMs - MS_DAY;
+          const cls = [
+            styles.dayCol,
+            isToday && styles.dayColToday,
+            !isToday && isPast && styles.dayColPast,
+          ]
+            .filter(Boolean)
+            .join(' ');
+          return (
+            <div key={k} className={cls}>
+              <div className={styles.dayLabel}>
+                {new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: timezone }).format(
+                  new Date(dayMs),
+                )}
+              </div>
+              <div className={styles.dayDate}>
+                {new Intl.DateTimeFormat(locale, { day: 'numeric', timeZone: timezone }).format(
+                  new Date(dayMs),
+                )}
+              </div>
+              {list.map((row) => {
+                const isCancelled = row.status === 'cancelled';
+                const blockCls = `${styles.dayBlock} ${isCancelled ? styles.dayBlockCancelled : ''}`;
+                const time = new Intl.DateTimeFormat(locale, {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  timeZone: timezone,
+                }).format(new Date(row.scheduledAt));
+                if (isCancelled) {
+                  return (
+                    <span key={row.id} className={blockCls} aria-disabled>
+                      <span className={styles.dayBlockTime}>{time}</span>
+                      <span className={styles.dayBlockName}>{row.visitorName}</span>
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={blockCls}
+                    onClick={() => onCancelClick(row)}
+                    aria-label={t('bookings.weekBlockAria', {
+                      name: row.visitorName,
+                      time,
+                    })}
+                  >
+                    <span className={styles.dayBlockTime}>{time}</span>
+                    <span className={styles.dayBlockName}>{row.visitorName}</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

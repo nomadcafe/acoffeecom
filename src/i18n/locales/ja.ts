@@ -472,6 +472,12 @@ export const messages: MessageDict = {
   'bookings.tzShowing': '表示タイムゾーン:',
   'bookings.tzHome': '常駐地 ({{zone}})',
   'bookings.tzLocal': '現在地 ({{zone}})',
+  'bookings.viewShowing': '表示:',
+  'bookings.viewList': 'リスト',
+  'bookings.viewWeek': '週',
+  'bookings.weekPrev': '前の週',
+  'bookings.weekNext': '次の週',
+  'bookings.weekBlockAria': '{{name}} との {{time}} の予約 — タップでキャンセル',
   'bookings.statusCancelled': 'キャンセル済み',
   'bookings.loadFailed': '予約の読み込みに失敗しました。再読み込みしてください。',
 
