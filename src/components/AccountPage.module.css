@@ -141,12 +141,17 @@
   align-items: center;
 }
 
+/* Mobile inputs default to 16px (1rem) so iOS Safari doesn't auto-zoom
+ * when the field gains focus. Tablet+ shrinks back to 0.95rem because
+ * iPhone is the only platform that does the zoom-on-focus thing. The
+ * media-query override at the bottom of this file applies to all
+ * input-style classes that previously sat at 0.95rem. */
 .usernameInput {
   flex: 1;
   border: 0;
   outline: none;
   padding: 0.55rem 0.65rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-family: inherit;
   background: transparent;
   color: var(--ac-text);
@@ -494,7 +499,7 @@
   padding: 0.4rem 0.5rem;
   background: #fff;
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--ac-text);
   outline: none;
   /* Date/time inputs render too narrow without an explicit width — Safari
@@ -825,7 +830,7 @@
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--ac-border-strong, #c9bdb1);
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   background: #fff;
   color: var(--ac-text);
@@ -868,4 +873,14 @@
 .modalConfirmDanger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Tablet+ shrinks inputs back to the visually tighter 0.95rem.
+ * Mobile keeps 1rem (16px) so iOS Safari doesn't auto-zoom on focus. */
+@media (min-width: 768px) {
+  .usernameInput,
+  .timeInput,
+  .modalInput {
+    font-size: 0.95rem;
+  }
 }
