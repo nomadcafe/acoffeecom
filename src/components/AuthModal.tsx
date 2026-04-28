@@ -72,6 +72,30 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  // BFCache restoration after canceling Google OAuth would leave the
+  // modal stuck in 'sending' (button disabled, no path forward) because
+  // signIn.social() does a synchronous window.location.href without a
+  // chance to revert. Reset to idle when the page is restored from
+  // history, and also when it becomes visible again — so the back-button
+  // path always lands on a usable modal.
+  useEffect(() => {
+    if (!open) return;
+    function onPageShow(e: PageTransitionEvent) {
+      if (e.persisted) setPhase('idle');
+    }
+    function onVisible() {
+      if (document.visibilityState === 'visible') {
+        setPhase((p) => (p === 'sending' ? 'idle' : p));
+      }
+    }
+    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [open]);
+
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
