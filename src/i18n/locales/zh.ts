@@ -73,6 +73,8 @@ export const messages: MessageDict = {
   'list.resultNoteMeetup': 'ACoffee 每次搜索最多展示 20 个会面候选地点。',
   'list.fairnessExplain': '按"每个人通勤时间尽量相等"排序。能拿到实际公共交通时间就用，没有就退回直线距离。',
   'list.fastExplain': '按"所有人通勤时间总和最短"排序——让大家最快聚到一起。',
+  'list.quietExplain': '小众好店优先——高评分但评论较少的店浮在前面，避开人多的网红打卡处。',
+  'list.cheapExplain': '价格亲民的店优先；Google 没标价格的店按评分排进列表，不会被一刀切。',
 
   'card.favorite': '已收藏！',
   'card.visitedOnce': '{{last}}来过',

@@ -166,6 +166,10 @@ export function CoffeeShopList() {
         <p className={styles.sortExplain}>{t('list.fairnessExplain')}</p>
       ) : searchSortMode === 'fast' ? (
         <p className={styles.sortExplain}>{t('list.fastExplain')}</p>
+      ) : searchSortMode === 'quiet' ? (
+        <p className={styles.sortExplain}>{t('list.quietExplain')}</p>
+      ) : searchSortMode === 'cheap' ? (
+        <p className={styles.sortExplain}>{t('list.cheapExplain')}</p>
       ) : null}
       <div className={styles.list}>
         {coffeeShops.map((shop) => (

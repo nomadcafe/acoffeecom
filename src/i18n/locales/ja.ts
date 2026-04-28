@@ -76,6 +76,8 @@ export const messages: MessageDict = {
   'list.resultNoteMeetup': 'ACoffee は1回の検索で最大20件の場所を表示します（待ち合わせ用）。',
   'list.fairnessExplain': '全員の移動時間がなるべく等しくなる順に並べています。可能なら実際の交通機関時間、なければ直線距離で。',
   'list.fastExplain': '全員の移動時間の合計が最短になる順。みんなを最速で集める並び方です。',
+  'list.quietExplain': '隠れた名店を上位に — 評価は高いがレビュー数が少ない、観光客で混まないお店を優先します。',
+  'list.cheapExplain': 'リーズナブルなお店を上位に。Google が価格情報を載せていないお店は、評価で並びに混ぜます。',
 
   'card.favorite': 'お気に入り！',
   'card.visitedOnce': '{{last}}に来店',

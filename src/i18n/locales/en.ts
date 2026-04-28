@@ -78,6 +78,10 @@ export const messages: MessageDict = {
     "Sorted so everyone's travel time is as equal as possible. Real transit minutes when available, falling back to straight-line distance.",
   'list.fastExplain':
     'Sorted by shortest total travel time — gets everyone there as quickly as possible.',
+  'list.quietExplain':
+    'Hidden gems first — high ratings with fewer reviews bubble up over the well-trodden tourist spots.',
+  'list.cheapExplain':
+    'Inexpensive cafés first; falls back to top-rated when Google doesn\'t list a price for the venue.',
 
   'card.favorite': 'Your Favorite!',
   'card.visitedOnce': 'Visited {{last}}',
