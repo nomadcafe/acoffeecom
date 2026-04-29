@@ -16,11 +16,20 @@ interface SocialLink {
   url: string;
 }
 
+interface OwnerCafe {
+  placeId: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
+
 export interface PublicProfile {
   username: string;
   displayName: string | null;
   bio: string | null;
   socialLinks: SocialLink[];
+  ownerCafe: OwnerCafe | null;
   memberSince: number;
   cups: number;
   shops: number;
@@ -125,11 +134,33 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
   const memberSince =
     owner.createdAt instanceof Date ? owner.createdAt.getTime() : Number(owner.createdAt);
 
+  /* Featured cafe — only render if all five fields are present. The
+   * schema allows the four display columns to be NULL independently, so
+   * the server-side guard avoids leaking a half-populated card. */
+  const ownerCafe: OwnerCafe | null =
+    owner.ownerCafePlaceId &&
+    owner.ownerCafeName &&
+    owner.ownerCafeAddress &&
+    typeof owner.ownerCafeLat === 'number' &&
+    typeof owner.ownerCafeLng === 'number'
+      ? {
+          placeId: owner.ownerCafePlaceId,
+          name: owner.ownerCafeName,
+          address: owner.ownerCafeAddress,
+          lat: owner.ownerCafeLat,
+          lng: owner.ownerCafeLng,
+        }
+      : null;
+
   const payload: PublicProfile = {
     username,
     displayName: owner.displayName ?? null,
     bio: owner.bio ?? null,
-    socialLinks: parseSocialLinks(owner.socialLinks),
+    /* Privacy toggle: when the owner has hidden their social links, the
+     * public response simply ships an empty array — same shape, no
+     * special-casing needed in the renderer. */
+    socialLinks: owner.showSocialLinks === false ? [] : parseSocialLinks(owner.socialLinks),
+    ownerCafe,
     memberSince,
     cups: allTimestamps.length,
     shops: shopsAgg.length,

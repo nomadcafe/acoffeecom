@@ -1,7 +1,7 @@
 .container {
   background: var(--ac-surface);
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: var(--ac-radius-lg);
   box-shadow: var(--ac-shadow-card);
   border: 1px solid var(--ac-border);
 }
@@ -23,7 +23,7 @@
 .tripCard {
   position: relative;
   border: 1px solid var(--ac-border-strong);
-  border-radius: 12px;
+  border-radius: var(--ac-radius-md);
   background: var(--ac-surface);
   margin-bottom: 1rem;
 }
@@ -217,18 +217,22 @@
 
 .button {
   width: 100%;
-  padding: 0.95rem 1rem;
+  padding: 1rem 1.1rem;
   /* Sage accent — search submit is the primary "create result" moment in
      the app. Brown is reserved for navigation / secondary surfaces. */
   background: var(--ac-accent-2);
   color: white;
   border: none;
-  border-radius: var(--ac-radius-sm);
+  border-radius: var(--ac-radius-md);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background var(--ac-motion-base), transform var(--ac-motion-fast);
+  /* Confident shadow signals "this is THE primary action." Brown
+   * project shadow + sage button colour = "go forward / create." */
+  box-shadow: var(--ac-shadow-cta);
+  transition: background var(--ac-motion-base), transform var(--ac-motion-fast),
+    box-shadow var(--ac-motion-fast);
   margin-top: 0.5rem;
 }
 
@@ -241,15 +245,18 @@
   .button:hover:not(:disabled) {
     background: var(--ac-accent-2-dark);
     transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(94, 122, 82, 0.4);
   }
 }
 
 .button:active:not(:disabled) {
   transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(94, 122, 82, 0.32);
 }
 
 .button:disabled {
   background: #ccc;
+  box-shadow: none;
   cursor: not-allowed;
 }
 

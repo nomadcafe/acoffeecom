@@ -13,26 +13,34 @@
   appearance: none;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   flex-shrink: 0;
-  padding: 0.4rem 0.75rem;
+  padding: 0.5rem 0.85rem;
   border: 1px solid var(--ac-border, #e3d8cb);
   background: var(--ac-surface, #fff);
   color: var(--ac-text, #2c1810);
   font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.88rem;
+  font-weight: 600;
   border-radius: var(--ac-radius-pill, 999px);
   cursor: pointer;
   scroll-snap-align: start;
+  /* Soft shadow gives the row a "designed pill bar" feel rather than
+   * a flat outlined button strip — matches the modeChip styling in
+   * the hero showcase. */
+  box-shadow: 0 1px 3px rgba(111, 78, 55, 0.06);
   transition: background var(--ac-motion-fast, 120ms),
     border-color var(--ac-motion-fast, 120ms),
-    color var(--ac-motion-fast, 120ms);
+    color var(--ac-motion-fast, 120ms),
+    box-shadow var(--ac-motion-fast, 120ms),
+    transform var(--ac-motion-fast, 120ms);
   line-height: 1;
 }
 
 .chip:hover:not(:disabled) {
-  border-color: var(--ac-text-muted);
+  border-color: var(--ac-border-strong);
+  box-shadow: 0 4px 12px rgba(111, 78, 55, 0.12);
+  transform: translateY(-1px);
 }
 
 .chip:focus-visible {
@@ -47,16 +55,19 @@
 
 .chipSelected {
   /* Sage = the "this is the live agent decision" colour, same accent
-   * used on submit + Fairness Score badges throughout. */
+   * used on submit + Fairness Score badges throughout. Confident
+   * sage shadow signals "this is the live mode." */
   background: var(--ac-accent-2, #5e7a52);
   border-color: var(--ac-accent-2, #5e7a52);
   color: #fff;
+  box-shadow: 0 4px 12px rgba(94, 122, 82, 0.28);
 }
 
 .chipSelected:hover {
   background: var(--ac-accent-2-dark, #4c6342);
   border-color: var(--ac-accent-2-dark, #4c6342);
   color: #fff;
+  box-shadow: 0 6px 16px rgba(94, 122, 82, 0.34);
 }
 
 .chipIcon {

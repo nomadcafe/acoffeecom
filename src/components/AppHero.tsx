@@ -2,6 +2,7 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { examplePairsByLocale } from '../i18n/examples';
 import { AppHeroNearMe } from './AppHeroNearMe';
+import { HomeFeatureShowcase } from './HomeFeatureShowcase';
 import styles from './AppHero.module.css';
 
 /**
@@ -24,39 +25,20 @@ export function AppHero() {
   const samples = showSamples ? examplePairsByLocale[locale] : [];
 
   return (
-    <section className={styles.hero} aria-labelledby="appHeroTitle">
+    <section className={styles.hero}>
       <div className={styles.inner}>
-        <h1 id="appHeroTitle" className={styles.title}>
-          {t('app.title')}
-        </h1>
-        <p className={styles.tagline}>{t('app.tagline')}</p>
+        {/* Anonymous-only feature breadth. Self-hides for signed-in users.
+            Owns the page's H1 ("ACoffee 是什么") for visitors and
+            crawlers — the brand wordmark in the header is the same
+            "ACoffee" string, so we don't need to repeat it as an extra
+            heading here. */}
+        <HomeFeatureShowcase />
 
-        <ol className={styles.steps} aria-label={t('hero.stepsLabel')}>
-          <li className={styles.step}>
-            <span className={styles.stepNum} aria-hidden>
-              1
-            </span>
-            <span className={styles.stepLabel}>{t('hero.step1')}</span>
-          </li>
-          <li className={styles.stepArrow} aria-hidden>
-            →
-          </li>
-          <li className={styles.step}>
-            <span className={styles.stepNum} aria-hidden>
-              2
-            </span>
-            <span className={styles.stepLabel}>{t('hero.step2')}</span>
-          </li>
-          <li className={styles.stepArrow} aria-hidden>
-            →
-          </li>
-          <li className={styles.step}>
-            <span className={styles.stepNum} aria-hidden>
-              3
-            </span>
-            <span className={styles.stepLabel}>{t('hero.step3')}</span>
-          </li>
-        </ol>
+        {/* Tagline as the intro to the action zone — "AI 帮你们找最
+            公平的咖啡店" then "or just show me cafés nearby." Reads
+            naturally as the verb-y answer to the showcase's product
+            description above. */}
+        <p className={styles.tagline}>{t('app.tagline')}</p>
 
         {samples.length > 0 ? (
           <div className={styles.samples} aria-label={t('hero.samplesLabel')}>

@@ -69,12 +69,32 @@ const AvailabilitySchema = z
   })
   .strict();
 
+/* Featured-cafe payload from the AccountPage picker. The client picks via
+ * Places autocomplete and sends the resolved Place ID + display fields in
+ * one body — saves a server-side Places API hit on every save and keeps the
+ * canonical name/address aligned with what the user actually picked. We
+ * still bound each field to defend against odd payloads. */
+const OwnerCafeSchema = z
+  .object({
+    placeId: z.string().trim().min(1).max(200),
+    name: z.string().trim().min(1).max(120),
+    address: z.string().trim().min(1).max(300),
+    lat: z.number().finite().min(-90).max(90),
+    lng: z.number().finite().min(-180).max(180),
+  })
+  .strict();
+
 const PatchSchema = z.object({
   profilePublic: z.boolean().optional(),
   monthlyRecapEmail: z.boolean().optional(),
   displayName: z.string().trim().max(50).nullable().optional(),
   bio: z.string().trim().max(160).nullable().optional(),
   socialLinks: z.array(SocialLinkSchema).max(5).optional(),
+  showSocialLinks: z.boolean().optional(),
+  /* null clears the featured cafe; otherwise full object replaces it.
+   * No partial updates — we always have all five fields together when the
+   * user picks something, so an object-or-null shape stays simple. */
+  ownerCafe: OwnerCafeSchema.nullable().optional(),
   homeBaseAddress: z.string().trim().max(200).nullable().optional(),
   availabilitySlots: AvailabilitySchema.optional(),
   /* IANA tz captured from the organizer's browser when they save
@@ -132,6 +152,22 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
   }
   if (input.socialLinks !== undefined) {
     patch.socialLinks = JSON.stringify(input.socialLinks);
+  }
+  if (input.showSocialLinks !== undefined) patch.showSocialLinks = input.showSocialLinks;
+  if (input.ownerCafe !== undefined) {
+    if (input.ownerCafe === null) {
+      patch.ownerCafePlaceId = null;
+      patch.ownerCafeName = null;
+      patch.ownerCafeAddress = null;
+      patch.ownerCafeLat = null;
+      patch.ownerCafeLng = null;
+    } else {
+      patch.ownerCafePlaceId = input.ownerCafe.placeId;
+      patch.ownerCafeName = input.ownerCafe.name;
+      patch.ownerCafeAddress = input.ownerCafe.address;
+      patch.ownerCafeLat = input.ownerCafe.lat;
+      patch.ownerCafeLng = input.ownerCafe.lng;
+    }
   }
   if (input.homeBaseAddress !== undefined) {
     const next = input.homeBaseAddress ? input.homeBaseAddress : null;

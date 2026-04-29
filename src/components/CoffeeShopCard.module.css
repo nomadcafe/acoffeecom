@@ -1,6 +1,6 @@
 .card {
   background: var(--ac-surface);
-  border-radius: 12px;
+  border-radius: var(--ac-radius-lg);
   padding: 1rem;
   box-shadow: var(--ac-shadow-card);
   transition: box-shadow 0.2s, transform 0.15s ease;
@@ -107,6 +107,26 @@
 
 .mapsLink:hover {
   text-decoration: underline;
+}
+
+/* Owner-attribution chip — small, low-contrast, sits beside the Google
+ * Maps link. Distinguishable from `.mapsLink` by colour (the cafe-brown
+ * accent) so the user can tell at a glance it's "an ACoffee user" not
+ * "an external map link." */
+.ownerChip {
+  display: inline-block;
+  margin-top: 0.35rem;
+  margin-left: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ac-accent);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+  padding-bottom: 1px;
+}
+
+.ownerChip:hover {
+  border-bottom-style: solid;
 }
 
 .details {

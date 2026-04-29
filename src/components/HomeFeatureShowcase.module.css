@@ -1,0 +1,408 @@
+/* ──────────────────────────────────────────────────────────────────
+ * Hero feature showcase — horizontal carousel.
+ * Single-pane height (~500-600px total) instead of 6 stacked rows.
+ * Native scroll-snap on the track + JS auto-advance with pause on
+ * hover/focus. Layered radial mesh background for premium feel.
+ * ──────────────────────────────────────────────────────────────── */
+
+.wrap {
+  position: relative;
+  margin: 0 auto;
+  max-width: 1280px;
+  padding: 1rem 0 2rem;
+  isolation: isolate;
+}
+
+.wrap::before {
+  content: '';
+  position: absolute;
+  inset: -40px -10vw 0;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(111, 78, 55, 0.16), transparent 55%),
+    radial-gradient(circle at 82% 28%, rgba(94, 122, 82, 0.13), transparent 60%),
+    radial-gradient(circle at 50% 88%, rgba(244, 166, 35, 0.1), transparent 55%);
+  filter: blur(20px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ────── Header ────── */
+
+.eyebrow {
+  display: block;
+  margin: 0 0 0.85rem;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ac-accent);
+}
+
+.title {
+  margin: 0 0 0.85rem;
+  font-family: var(--ac-font-display);
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-align: center;
+  line-height: 0.95;
+  font-variation-settings: 'opsz' 60;
+  background: linear-gradient(135deg, #2c1810 0%, #6f4e37 55%, #a36b3e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lead {
+  margin: 0 auto 2rem;
+  max-width: 580px;
+  font-size: 1rem;
+  color: var(--ac-text-muted);
+  text-align: center;
+  line-height: 1.55;
+}
+
+@media (min-width: 768px) {
+  .wrap { padding: 2rem 0 3rem; }
+  .eyebrow { font-size: 0.78rem; margin-bottom: 1.1rem; }
+  .title { font-size: 4rem; margin-bottom: 1.2rem; }
+  .lead { font-size: 1.15rem; margin-bottom: 2.6rem; }
+}
+
+@media (min-width: 1024px) {
+  .title { font-size: 4.75rem; }
+}
+
+/* ────── Carousel container ────── */
+
+.carousel {
+  /* Soft horizontal slab — wide, rounded, low. Big border-radius
+   * (40px desktop) reads as "modern pill-ish" rather than "boxy
+   * card". Soft inset highlight on top + hairline border + diffuse
+   * shadow give depth without the carousel screaming "BOX". */
+  position: relative;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(111, 78, 55, 0.07), rgba(94, 122, 82, 0.04)),
+    var(--ac-surface);
+  border: 1px solid rgba(111, 78, 55, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 18px 50px rgba(111, 78, 55, 0.09);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .carousel {
+    border-radius: 36px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel {
+    border-radius: 44px;
+  }
+}
+
+/* Scrollable track. scroll-snap gives native swipe. Hide the scrollbar
+ * since the dots below already indicate position. */
+.track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.4rem;
+  padding: 1.6rem 1.3rem 1.8rem;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+/* Tablet: side-by-side, slight asymmetry — visual gets a bit more
+ * room since the mocks are visually denser than the text. */
+@media (min-width: 768px) {
+  .slide {
+    grid-template-columns: 5fr 6fr;
+    gap: 2.5rem;
+    padding: 2rem 2.5rem;
+    min-height: 300px;
+  }
+}
+
+/* Desktop: even wider asymmetry, looser padding, longer aspect ratio
+ * so the carousel reads as a "horizontal slab" rather than a square
+ * card. */
+@media (min-width: 1024px) {
+  .slide {
+    grid-template-columns: 1fr 1.2fr;
+    gap: 3rem;
+    padding: 2.5rem 3.5rem;
+    min-height: 340px;
+  }
+}
+
+.slideText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: left;
+}
+
+.slideEyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ac-accent);
+}
+
+.slideTitle {
+  margin: 0;
+  font-family: var(--ac-font-display);
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--ac-text);
+  line-height: 1.1;
+}
+
+.slideBody {
+  margin: 0;
+  font-size: 0.96rem;
+  color: var(--ac-text-muted);
+  line-height: 1.6;
+  max-width: 460px;
+}
+
+@media (min-width: 768px) {
+  .slideTitle { font-size: 1.85rem; }
+  .slideBody { font-size: 1rem; }
+}
+
+@media (min-width: 1024px) {
+  .slideTitle { font-size: 2.15rem; }
+  .slideBody { font-size: 1.05rem; }
+}
+
+.slideVisual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ────── Dot indicators ────── */
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--ac-border-strong);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.25s ease, width 0.25s ease, transform 0.25s ease;
+}
+
+.dot:hover {
+  background: var(--ac-accent);
+}
+
+.dotActive {
+  background: var(--ac-accent);
+  width: 1.4rem;
+  border-radius: 4px;
+}
+
+@media (min-width: 768px) {
+  .dots { margin-top: 2rem; gap: 0.55rem; }
+  .dot { width: 0.65rem; height: 0.65rem; }
+  .dotActive { width: 1.7rem; }
+}
+
+/* ────── Mode chips strip ────── */
+
+.modeStrip {
+  margin: 2.2rem auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  max-width: 760px;
+}
+
+.modeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ac-text);
+  box-shadow: 0 1px 3px rgba(111, 78, 55, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modeChip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(111, 78, 55, 0.12);
+}
+
+@media (min-width: 768px) {
+  .modeStrip { margin-top: 3rem; gap: 0.65rem; }
+  .modeChip { font-size: 0.95rem; padding: 0.6rem 1.15rem; }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ * Mock visuals (carry over from row-layout version, sized for the
+ * carousel slide).
+ * ──────────────────────────────────────────────────────────────── */
+
+.mockAgent,
+.mockPassport,
+.mockProfile,
+.mockBooking,
+.mockProposal,
+.mockOwnerCafe {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 18px;
+}
+
+@media (min-width: 768px) {
+  .mockAgent { max-width: 440px; }
+  .mockPassport,
+  .mockProfile,
+  .mockBooking,
+  .mockProposal,
+  .mockOwnerCafe { max-width: 400px; }
+}
+
+@media (min-width: 1024px) {
+  .mockAgent { max-width: 480px; }
+  .mockPassport,
+  .mockProfile,
+  .mockBooking,
+  .mockProposal,
+  .mockOwnerCafe { max-width: 440px; }
+}
+
+@keyframes cafeGlow {
+  0%, 100% { transform: scale(1); opacity: 0.92; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+.mockAgent circle[fill='url(#ac-cafe-glow)'] {
+  transform-origin: 240px 150px;
+  animation: cafeGlow 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mockAgent circle[fill='url(#ac-cafe-glow)'] { animation: none; }
+}
+
+/* Passport */
+.mockPassport {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  padding: 1rem 1.1rem 1.1rem;
+  box-shadow: 0 12px 40px rgba(111, 78, 55, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.passportHeader { display: flex; justify-content: space-between; align-items: baseline; }
+.passportTitle { font-family: var(--ac-font-display); font-size: 1.15rem; font-weight: 700; color: var(--ac-text); }
+.passportStreak { font-size: 0.8rem; font-weight: 700; color: var(--ac-accent); background: rgba(111, 78, 55, 0.1); padding: 0.3rem 0.7rem; border-radius: 999px; }
+.passportGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.passportStamp { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.65rem; background: var(--ac-surface-tinted); border-radius: 10px; }
+.passportStampIcon { display: inline-flex; align-items: center; justify-content: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--ac-surface); font-size: 0.95rem; box-shadow: 0 1px 3px rgba(111, 78, 55, 0.08); }
+.passportStampMeta { display: flex; flex-direction: column; min-width: 0; }
+.passportStampMeta strong { font-size: 0.85rem; font-weight: 700; color: var(--ac-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.passportStampMeta span { font-size: 0.72rem; color: var(--ac-text-muted); }
+
+/* Profile */
+.mockProfile {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  padding: 1.2rem 1.2rem 1.3rem;
+  box-shadow: 0 12px 40px rgba(111, 78, 55, 0.1);
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+}
+.profileAvatar { width: 3rem; height: 3rem; border-radius: 50%; background: linear-gradient(135deg, #6f4e37, #a36b3e); color: #fff; font-family: var(--ac-font-display); font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 0.15rem; box-shadow: 0 6px 16px rgba(111, 78, 55, 0.25); }
+.profileName { font-family: var(--ac-font-display); font-size: 1.2rem; font-weight: 800; color: var(--ac-text); letter-spacing: -0.015em; }
+.profileHandle { font-size: 0.78rem; color: var(--ac-text-muted); font-variant-numeric: tabular-nums; }
+/* Bio dropped from the mock — it pushed the slide too tall for the
+ * elongated slab. The featured + links rows convey the profile
+ * affordance well enough on their own. */
+.profileBio { display: none; }
+.profileFeatured { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.8rem; background: var(--ac-surface-tinted); border-radius: 999px; font-size: 0.78rem; color: var(--ac-text); margin-top: 0.2rem; }
+.profileFeatured strong { font-weight: 700; }
+.profileLinks { margin-top: 0.3rem; display: flex; gap: 0.7rem; font-size: 0.75rem; color: var(--ac-text-muted); }
+
+/* Booking */
+.mockBooking {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  padding: 1rem 1.15rem 1.1rem;
+  box-shadow: 0 12px 40px rgba(111, 78, 55, 0.1);
+  display: flex; flex-direction: column; gap: 0.55rem;
+}
+.bookingHeader, .bookingRow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem; }
+.bookingHeader { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; color: var(--ac-text-muted); text-align: center; text-transform: uppercase; }
+.bookingGrid { display: flex; flex-direction: column; gap: 0.35rem; }
+.bookingCell { height: 1.5rem; border-radius: 6px; background: var(--ac-page-bg); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; color: transparent; }
+.bookingCellOpen { background: rgba(94, 122, 82, 0.2); color: var(--ac-accent-2-dark); }
+.bookingPills { margin-top: 0.2rem; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.bookingPills span { padding: 0.3rem 0.7rem; border-radius: 999px; background: var(--ac-accent); color: #fff; font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 2px 6px rgba(111, 78, 55, 0.18); }
+
+/* Proposal */
+.mockProposal {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  padding: 1.3rem 1.4rem;
+  box-shadow: 0 12px 40px rgba(111, 78, 55, 0.1);
+  display: flex; flex-direction: column; gap: 0.55rem;
+}
+.proposalEyebrow { font-size: 0.78rem; font-weight: 700; color: var(--ac-accent); }
+.proposalHeadline { font-family: var(--ac-font-display); font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em; color: var(--ac-text); line-height: 1.25; }
+.proposalMeta { font-size: 0.9rem; color: var(--ac-text-muted); }
+.proposalActions { margin-top: 0.6rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.proposalBtn { padding: 0.5rem 0.9rem; border: 1px solid var(--ac-border); background: var(--ac-surface); color: var(--ac-text); font-size: 0.83rem; font-weight: 600; border-radius: 9px; font-family: inherit; cursor: default; }
+.proposalBtnPrimary { background: var(--ac-accent); color: #fff; border-color: var(--ac-accent); box-shadow: 0 2px 6px rgba(111, 78, 55, 0.2); }
+
+/* Owner cafe */
+.mockOwnerCafe {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  padding: 1.2rem 1.3rem 1.3rem;
+  box-shadow: 0 12px 40px rgba(111, 78, 55, 0.1);
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+.ownerCafeHeader { display: flex; justify-content: space-between; align-items: baseline; }
+.ownerCafeHeader strong { font-family: var(--ac-font-display); font-size: 1.2rem; font-weight: 800; color: var(--ac-text); letter-spacing: -0.01em; }
+.ownerCafeRating { font-size: 0.85rem; font-weight: 700; color: #f4a623; }
+.ownerCafeAddr { font-size: 0.85rem; color: var(--ac-text-muted); }
+.ownerCafeChip { margin-top: 0.4rem; align-self: flex-start; font-size: 0.82rem; font-weight: 600; color: var(--ac-accent); border-bottom: 1px dashed currentColor; padding-bottom: 1px; }

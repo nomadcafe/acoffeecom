@@ -26,6 +26,20 @@ export const user = sqliteTable('user', {
   displayName: text('display_name'),
   bio: text('bio'),
   socialLinks: text('social_links').notNull().default('[]'),
+  /* Privacy toggle for the social_links row on the public profile. Default
+   * true so existing users who already filled the field keep them visible
+   * after the migration — opt-in privacy would silently hide their links. */
+  showSocialLinks: integer('show_social_links', { mode: 'boolean' }).notNull().default(true),
+  /* Owner / featured cafe — a Google Place the user wants to attach to
+   * their public profile (e.g. "the cafe I run" or "my favourite spot").
+   * Display fields are cached client-pick output (name/address/lat/lng);
+   * we don't re-fetch from Places at render time. All nullable: a profile
+   * without a featured cafe just doesn't render the card. */
+  ownerCafePlaceId: text('owner_cafe_place_id'),
+  ownerCafeName: text('owner_cafe_name'),
+  ownerCafeAddress: text('owner_cafe_address'),
+  ownerCafeLat: real('owner_cafe_lat'),
+  ownerCafeLng: real('owner_cafe_lng'),
   /* Booking config — anchor address used as one endpoint of the midpoint
    * search when a visitor books a coffee, plus a JSON map of weekday →
    * { enabled, start, end } describing weekly recurring availability.

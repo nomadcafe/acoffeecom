@@ -46,10 +46,12 @@ import type { StarredShopSnapshot, VisitedShopSnapshot } from '../types';
 import {
   searchCoffeeShops,
   enrichWithDurations,
+  fetchOwnerAttributions,
   SEARCH_RADIUS_MAX_M,
   SEARCH_RADIUS_MIN_M,
   SEARCH_RATING_MAX,
   SEARCH_RATING_MIN,
+  type OwnerAttribution,
 } from '../utils/places';
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
@@ -109,6 +111,9 @@ interface AppContextType extends AppState {
   /** Reset locations / midpoint / results / address inputs back to a fresh
    *  home state. Saved and visited shops and search settings are preserved. */
   clearSearch: () => void;
+  /** Reverse-link map: placeId → public profile owner. Populated after
+   *  each search. Empty when there's no match (most common case). */
+  ownerAttributions: Record<string, OwnerAttribution>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -344,6 +349,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [locationC, setLocationC] = useState<Location | null>(null);
   const [midpoint, setMidpoint] = useState<{ lat: number; lng: number } | null>(null);
   const [rawShops, setRawShops] = useState<CoffeeShop[]>([]);
+  const [ownerAttributions, setOwnerAttributions] = useState<Record<string, OwnerAttribution>>({});
   const [selectedCoffeeShopId, setSelectedCoffeeShopIdState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -858,6 +864,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       setRawShops([]);
+      setOwnerAttributions({});
       setSelectedCoffeeShopIdState(null);
       track('search_submitted', { mode: 'meetup', parties: c ? 3 : 2 });
 
@@ -905,6 +912,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Show the un-enriched list first so the user sees results
         // fast, then update once durations come in.
         setRawShops(shops);
+        // Reverse-link to owner profiles. Top 20 cap matches server-side
+        // limit; chips on results below the fold rarely matter and we'd
+        // rather pay zero KV reads than five for hidden cards.
+        void fetchOwnerAttributions(shops.slice(0, 20).map((s) => s.id)).then(
+          setOwnerAttributions,
+        );
         void enrichWithDurations(shops, [coordsA, coordsB, coordsC], {
           sortMode: searchSortMode,
         }).then(() => {
@@ -1008,6 +1021,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       setRawShops([]);
+      setOwnerAttributions({});
       setSelectedCoffeeShopIdState(null);
       track('search_submitted', { mode: 'nearby' });
 
@@ -1024,6 +1038,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           searchOpenNow
         );
         setRawShops(shops);
+        void fetchOwnerAttributions(shops.slice(0, 20).map((s) => s.id)).then(
+          setOwnerAttributions,
+        );
 
         const preselect = new URLSearchParams(window.location.search).get('cafe');
         if (preselect && shops.some((s) => s.id === preselect)) {
@@ -1167,6 +1184,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * into a visible change.
    */
   const clearSearch = useCallback(() => {
+    setOwnerAttributions({});
     setLocationA(null);
     setLocationB(null);
     setLocationC(null);
@@ -1242,6 +1260,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       lastVisit,
       setMapRef,
       setSelectedCoffeeShopId,
+      ownerAttributions,
     }),
     [
       locationA,
@@ -1296,6 +1315,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       lastVisit,
       setMapRef,
       setSelectedCoffeeShopId,
+      ownerAttributions,
     ],
   );
 

@@ -60,7 +60,9 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
     setVisitNote,
     searchSortMode,
     searchMode,
+    ownerAttributions,
   } = useApp();
+  const ownerAttribution = ownerAttributions[shop.id];
   const [summary, setSummary] = useState<SummaryState>(() => {
     const cached = getCachedSummary(shop.id, locale);
     return cached ? { kind: 'ok', text: cached } : { kind: 'idle' };
@@ -217,6 +219,18 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
           >
             {t('card.openMaps')}
           </a>
+          {ownerAttribution ? (
+            <a
+              className={styles.ownerChip}
+              href={`/${ownerAttribution.username}`}
+              onClick={(e) => e.stopPropagation()}
+              title={t('card.ownerChipTitle', {
+                handle: ownerAttribution.displayName ?? `@${ownerAttribution.username}`,
+              })}
+            >
+              ↗ {t('card.ownerChip', { handle: `@${ownerAttribution.username}` })}
+            </a>
+          ) : null}
         </div>
         <div className={styles.actions}>
           <VisitedButton shop={shop} />

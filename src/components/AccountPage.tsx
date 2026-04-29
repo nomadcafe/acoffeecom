@@ -11,16 +11,18 @@ import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SyncIndicator } from './SyncIndicator';
+import { useCafeAutocomplete } from '../hooks/useCafeAutocomplete';
 import styles from './AccountPage.module.css';
 
 const USERNAME_REGEX = /^[a-z][a-z0-9_-]{3,29}$/;
 const CHECK_DEBOUNCE_MS = 350;
 const DELETE_CONFIRM_PHRASE = 'DELETE';
 
-/* Username picker is gated until Pro launches — keep good names reserved.
- * The form is intact; flipping this back to true re-enables it everywhere
- * without touching server endpoints (which also gate on their own copy). */
-const USERNAMES_PUBLIC = false;
+/* Username picker is now open to everyone — Sprint E shipped public
+ * cafe-owner profiles (acoffee.com/<slug>) and gating the slug picker
+ * keeps the most-motivated users out. "Reserve good names for Pro" can
+ * be revisited later via a small block-list rather than a feature flag. */
+const USERNAMES_PUBLIC = true;
 
 type SaveState =
   | { kind: 'idle' }
@@ -284,15 +286,21 @@ function SignedInAccountPage({
       });
       if (!res.ok) {
         let message = t('account.usernameSaveFailed');
+        let body: { error?: string; reason?: string } = {};
+        try {
+          body = (await res.json()) as { error?: string; reason?: string };
+        } catch {
+          /* ignore */
+        }
         if (res.status === 409) message = t('account.usernameTaken');
-        else if (res.status === 400) message = t('account.usernameInvalid');
-        else {
-          try {
-            const j = (await res.json()) as { error?: string };
-            if (j.error) message = j.error;
-          } catch {
-            /* ignore */
-          }
+        else if (res.status === 400) {
+          // Reserved names get a softer "contact us" message; anything
+          // else 400 is a format/validation problem.
+          message = body.reason === 'reserved'
+            ? t('account.usernameReserved')
+            : t('account.usernameInvalid');
+        } else if (body.error) {
+          message = body.error;
         }
         setSave({ kind: 'error', message });
         return;
@@ -551,6 +559,12 @@ function SignedInAccountPage({
           initialBio={(sessionUser as { bio?: string | null }).bio ?? ''}
           initialSocialLinks={parseInitialSocialLinks(
             (sessionUser as { socialLinks?: string }).socialLinks,
+          )}
+          initialShowSocialLinks={
+            (sessionUser as { showSocialLinks?: boolean }).showSocialLinks !== false
+          }
+          initialOwnerCafe={parseInitialOwnerCafe(
+            sessionUser as Parameters<typeof parseInitialOwnerCafe>[0],
           )}
         />
 
@@ -1029,10 +1043,45 @@ function parseInitialSocialLinks(raw: string | undefined): SocialLinkDraft[] {
   }
 }
 
+interface InitialOwnerCafe {
+  placeId: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
+
+function parseInitialOwnerCafe(sessionUser: {
+  ownerCafePlaceId?: string | null;
+  ownerCafeName?: string | null;
+  ownerCafeAddress?: string | null;
+  ownerCafeLat?: number | null;
+  ownerCafeLng?: number | null;
+}): InitialOwnerCafe | null {
+  if (
+    !sessionUser.ownerCafePlaceId ||
+    !sessionUser.ownerCafeName ||
+    !sessionUser.ownerCafeAddress ||
+    typeof sessionUser.ownerCafeLat !== 'number' ||
+    typeof sessionUser.ownerCafeLng !== 'number'
+  ) {
+    return null;
+  }
+  return {
+    placeId: sessionUser.ownerCafePlaceId,
+    name: sessionUser.ownerCafeName,
+    address: sessionUser.ownerCafeAddress,
+    lat: sessionUser.ownerCafeLat,
+    lng: sessionUser.ownerCafeLng,
+  };
+}
+
 interface ProfileContentProps {
   initialDisplayName: string;
   initialBio: string;
   initialSocialLinks: SocialLinkDraft[];
+  initialShowSocialLinks: boolean;
+  initialOwnerCafe: InitialOwnerCafe | null;
 }
 
 const DISPLAY_NAME_MAX = 50;
@@ -1051,13 +1100,20 @@ function ProfileContentCard({
   initialDisplayName,
   initialBio,
   initialSocialLinks,
+  initialShowSocialLinks,
+  initialOwnerCafe,
 }: ProfileContentProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [bio, setBio] = useState(initialBio);
   const [links, setLinks] = useState<SocialLinkDraft[]>(initialSocialLinks);
+  const [showLinks, setShowLinks] = useState(initialShowSocialLinks);
+  const [ownerCafe, setOwnerCafe] = useState<InitialOwnerCafe | null>(initialOwnerCafe);
+  const [cafeQuery, setCafeQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  // zh-CN is what Google's autocomplete expects; our locale code is `zh`.
+  const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
 
   function setLinkField(idx: number, field: 'label' | 'url', value: string) {
     setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
@@ -1097,6 +1153,8 @@ function ProfileContentCard({
           displayName: displayName.trim() ? displayName.trim() : null,
           bio: bio.trim() ? bio.trim() : null,
           socialLinks: cleanLinks,
+          showSocialLinks: showLinks,
+          ownerCafe: ownerCafe,
         }),
       });
       if (!res.ok) {
@@ -1109,6 +1167,8 @@ function ProfileContentCard({
         hasName: !!displayName.trim(),
         hasBio: !!bio.trim(),
         linkCount: cleanLinks.length,
+        hasOwnerCafe: !!ownerCafe,
+        showLinks,
       });
     } catch {
       setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
@@ -1195,6 +1255,96 @@ function ProfileContentCard({
             + {t('account.linkAdd')}
           </button>
         ) : null}
+      </div>
+
+      {/* Show-links privacy toggle. Default on, so existing users with
+          links don't silently disappear from their profile. */}
+      <div className={styles.toggleRow}>
+        <label className={styles.toggleLabel} htmlFor="show-social-links-toggle">
+          {t('account.showSocialLinksLabel')}
+          <span className={styles.toggleSubLabel}>
+            {showLinks ? t('account.showSocialLinksOnHint') : t('account.showSocialLinksOffHint')}
+          </span>
+        </label>
+        <button
+          type="button"
+          id="show-social-links-toggle"
+          className={`${styles.toggle}${showLinks ? ' ' + styles.toggleOn : ''}`}
+          role="switch"
+          aria-checked={showLinks}
+          aria-label={t('account.showSocialLinksAria')}
+          onClick={() => setShowLinks((v) => !v)}
+        />
+      </div>
+
+      {/* Featured cafe — single Place, optional. Renders above the
+          passport on /yourname. We avoid a server-side Places hit by
+          shipping the picker's resolved fields straight to PATCH. */}
+      <div className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.featuredCafeLabel')}</span>
+        <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+          {t('account.featuredCafeHint')}
+        </p>
+        {ownerCafe ? (
+          <div className={styles.featuredCafeChosen}>
+            <div className={styles.featuredCafeMeta}>
+              <strong>{ownerCafe.name}</strong>
+              <span className={styles.featuredCafeAddress}>{ownerCafe.address}</span>
+            </div>
+            <button
+              type="button"
+              className={styles.linkRemove}
+              onClick={() => setOwnerCafe(null)}
+              aria-label={t('account.featuredCafeRemoveAria')}
+            >
+              ×
+            </button>
+          </div>
+        ) : (
+          <div className={styles.featuredCafeSearch}>
+            <input
+              type="text"
+              className={styles.linkLabelInput}
+              placeholder={t('account.featuredCafePlaceholder')}
+              value={cafeQuery}
+              onChange={(e) => {
+                setCafeQuery(e.target.value);
+                cafeAutocomplete.query(e.target.value);
+              }}
+              onBlur={() => {
+                // Defer clear so an in-progress click on a suggestion still
+                // fires before the dropdown disappears.
+                window.setTimeout(() => cafeAutocomplete.clear(), 150);
+              }}
+            />
+            {cafeAutocomplete.suggestions.length > 0 ? (
+              <ul className={styles.featuredCafeSuggestions} role="listbox">
+                {cafeAutocomplete.suggestions.map((s, i) => {
+                  const text = s.placePrediction?.text.text ?? '';
+                  if (!text) return null;
+                  return (
+                    <li key={`${i}-${text}`}>
+                      <button
+                        type="button"
+                        className={styles.featuredCafeSuggestion}
+                        onMouseDown={(e) => e.preventDefault() /* keep input focus */}
+                        onClick={async () => {
+                          const picked = await cafeAutocomplete.pick(s);
+                          if (picked) {
+                            setOwnerCafe(picked);
+                            setCafeQuery('');
+                          }
+                        }}
+                      >
+                        {text}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+          </div>
+        )}
       </div>
 
       <div className={styles.formRow}>

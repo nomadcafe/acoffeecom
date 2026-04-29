@@ -311,3 +311,35 @@ export async function enrichWithDurations(
   }
 }
 
+export interface OwnerAttribution {
+  username: string;
+  displayName: string | null;
+}
+
+/**
+ * Look up which result placeIds match an existing public ACoffee profile's
+ * "featured cafe." Soft-fails to an empty map — the chip just doesn't
+ * render rather than blocking the search results.
+ *
+ * Caps at the top 20 placeIds to keep the request small; results below
+ * the fold rarely matter for a discovery chip and the server enforces
+ * the same cap.
+ */
+export async function fetchOwnerAttributions(
+  shopIds: string[],
+): Promise<Record<string, OwnerAttribution>> {
+  const ids = shopIds.slice(0, 20);
+  if (ids.length === 0) return {};
+  try {
+    const r = await fetch('/api/places/owner-attributions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ placeIds: ids }),
+    });
+    if (!r.ok) return {};
+    const json = (await r.json()) as { attributions?: Record<string, OwnerAttribution> };
+    return json.attributions ?? {};
+  } catch {
+    return {};
+  }
+}

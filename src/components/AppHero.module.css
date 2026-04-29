@@ -1,8 +1,16 @@
 .hero {
-  /* Transparent so the page cream shows through; header stays white and
-     becomes visually distinct from the hero content zone. */
+  /* Soft warm radial behind the showcase — gives the section a "premium
+   * landing" feel without committing to a hard banner. The two stops
+   * are very close in luminance so the gradient is felt, not seen. */
+  background:
+    radial-gradient(
+      ellipse 1100px 480px at 50% 0%,
+      rgba(111, 78, 55, 0.06),
+      transparent 70%
+    ),
+    var(--ac-page-bg);
   border-bottom: 1px solid var(--ac-border);
-  padding: 0.85rem 1rem 0.95rem;
+  padding: 1.5rem 1rem 1.25rem;
 }
 
 .inner {
@@ -11,88 +19,18 @@
   text-align: center;
 }
 
-.title {
-  margin: 0 0 0.3rem 0;
-  font-family: var(--ac-font-display);
-  font-size: 1.7rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  color: var(--ac-text);
-  line-height: 1.1;
-  font-variation-settings: 'opsz' 60;
-}
-
 .tagline {
-  margin: 0 0 0.7rem 0;
-  font-size: 0.85rem;
-  color: var(--ac-text-muted);
-  line-height: 1.4;
-}
-
-.steps {
-  /* Hidden on mobile: the LocationInput / Near-me CTA are self-explanatory and
-     the steps card was eating ~80px of vertical space, squeezing the map.
-     Re-shown as a visual aid on tablet+ where there's room to spare. */
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .steps {
-    list-style: none;
-    margin: 0 auto;
-    padding: 0.55rem 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    background: var(--ac-surface);
-    border: 1px solid var(--ac-border);
-    border-radius: 10px;
-    max-width: 520px;
-    box-shadow: var(--ac-shadow-card);
-  }
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-  flex: 1 1 0;
-  min-width: 0;
-  text-align: center;
-}
-
-.stepNum {
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  background: var(--ac-accent);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.stepLabel {
-  font-size: 0.68rem;
+  /* Sits between the showcase (above) and the samples/near-me
+   * (below). Top margin opens space from the cards; bottom margin is
+   * smaller so the tagline reads as the intro to the action zone
+   * rather than a free-floating sentence. */
+  margin: 1.2rem 0 0.7rem 0;
+  font-size: 0.92rem;
   color: var(--ac-text);
+  line-height: 1.4;
   font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: -0.005em;
 }
 
-.stepArrow {
-  flex-shrink: 0;
-  font-size: 0.85rem;
-  color: var(--ac-border-strong);
-  font-weight: 600;
-  margin-top: -0.3rem;
-}
 
 .samples {
   margin: 0.75rem auto 0;
@@ -177,28 +115,8 @@
     padding: 1.15rem 1.5rem 1.25rem;
   }
 
-  .title {
-    font-size: 2.25rem;
-  }
-
   .tagline {
-    font-size: 0.95rem;
-    margin-bottom: 0.9rem;
-  }
-
-  .steps {
-    padding: 0.75rem 1rem;
-    gap: 0.6rem;
-    max-width: 620px;
-  }
-
-  .stepNum {
-    width: 1.65rem;
-    height: 1.65rem;
-    font-size: 0.85rem;
-  }
-
-  .stepLabel {
-    font-size: 0.78rem;
+    font-size: 1rem;
+    margin: 1.4rem 0 0.9rem 0;
   }
 }

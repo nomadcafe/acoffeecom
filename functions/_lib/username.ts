@@ -13,26 +13,62 @@ import { getDb, type DbEnv } from './db';
  */
 export const USERNAME_REGEX = /^[a-z][a-z0-9_-]{2,29}$/;
 
+/**
+ * Names blocked from public registration. Two reasons to add a name here:
+ *   1. Route collision (api, account, passport, signin, …) — these would
+ *      shadow our own pages at acoffee.com/<reserved>.
+ *   2. Brand / marketing reservation (cafe, cake, free, money, …) —
+ *      generic high-value slugs we want to keep for partnerships,
+ *      Pro-tier upgrades, or our own future surfaces.
+ *
+ * Users hitting a reserved name see a "this slug is reserved — please
+ * contact us if you need it" message rather than a flat "taken" error,
+ * so the gating reads as intentional. Add new names alphabetically so
+ * future audits stay easy.
+ */
 export const RESERVED_USERNAMES = new Set([
   'account',
   'admin',
+  'administrator',
   'api',
   'app',
   'auth',
+  'blue',
   'booking',
   'bookings',
+  'cafe',
+  'cafes',
+  'cake',
+  'cash',
+  'chain',
+  'coffee',
+  'domain',
+  'free',
+  'game',
+  'hello',
   'help',
+  'link',
   'login',
   'logout',
+  'love',
+  'market',
   'me',
+  'money',
   'passport',
+  'payment',
+  'play',
   'pro',
   'settings',
+  'shop',
+  'show',
   'signin',
   'signout',
   'signup',
+  'space',
   'support',
   'updates',
+  'webmaster',
+  'white',
   'www',
 ]);
 

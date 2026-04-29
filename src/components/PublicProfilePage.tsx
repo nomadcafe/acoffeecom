@@ -24,11 +24,20 @@ interface SocialLink {
   url: string;
 }
 
+interface OwnerCafe {
+  placeId: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
+
 interface PublicProfile {
   username: string;
   displayName: string | null;
   bio: string | null;
   socialLinks: SocialLink[];
+  ownerCafe: OwnerCafe | null;
   memberSince: number;
   cups: number;
   shops: number;
@@ -196,6 +205,25 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
           {t('profile.memberSince', { date: formatAbsoluteDate(profile.memberSince, locale) })}
         </p>
       </section>
+
+      {profile.ownerCafe ? (
+        <section className={styles.section} aria-label={t('profile.featuredCafeTitle')}>
+          <h2 className={styles.sectionTitle}>{t('profile.featuredCafeTitle')}</h2>
+          <a
+            className={styles.shopRow}
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              profile.ownerCafe.name + ' ' + profile.ownerCafe.address,
+            )}&query_place_id=${encodeURIComponent(profile.ownerCafe.placeId)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className={styles.shopName}>
+              {profile.ownerCafe.name}
+              <span className={styles.shopCity}> · {profile.ownerCafe.address}</span>
+            </span>
+          </a>
+        </section>
+      ) : null}
 
       <section className={styles.statsCard} aria-label={t('account.statsTitle')}>
         <div className={styles.statCell}>

@@ -7,6 +7,11 @@ import styles from './AuthModal.module.css';
 interface AuthModalProps {
   open: boolean;
   onClose: () => void;
+  /** Override post-sign-in destination. When omitted we send the user back
+   *  to whichever page they opened the modal from. CTAs that pull users
+   *  into a setup flow (e.g. "claim your acoffee page") set this to
+   *  `/account` so they land where the next step lives. */
+  callbackURL?: string;
 }
 
 // Google's official "G" mark — required for "Continue with Google"
@@ -61,7 +66,7 @@ function buildCallbackURL(): string {
   return path + '?' + encodeURIComponent(search.slice(1));
 }
 
-export function AuthModal({ open, onClose }: AuthModalProps) {
+export function AuthModal({ open, onClose, callbackURL }: AuthModalProps) {
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
@@ -130,7 +135,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
     try {
       const { error } = await authClient.signIn.magicLink({
         email: email.trim(),
-        callbackURL: buildCallbackURL(),
+        callbackURL: callbackURL ?? buildCallbackURL(),
       });
       if (error) {
         setPhase('error');
@@ -153,7 +158,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       // sends the visitor to callbackURL.
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: buildCallbackURL(),
+        callbackURL: callbackURL ?? buildCallbackURL(),
       });
     } catch (err) {
       setPhase('error');

@@ -6,10 +6,10 @@ import { user } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
 import { checkUsernameAvailability } from '../../_lib/username';
 
-/* Public username picker is gated until the Pro tier launches — we're holding
- * back high-value names (admin, coffee, etc.) for paid users. The route is
- * intact so we can flip this flag without redeploying schema. */
-const USERNAMES_PUBLIC = false;
+/* Public username picker is open. Reserved-names policy (admin, coffee,
+ * etc.) lives in `checkUsernameAvailability` as a block-list rather than
+ * a flat feature flag so we can keep adding names without redeploys. */
+const USERNAMES_PUBLIC = true;
 
 const InputSchema = z.object({
   username: z.string().nullable(),
@@ -37,7 +37,13 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
     const check = await checkUsernameAvailability(env, value, sessionUser.id);
     if (!check.available) {
       const status = check.reason === 'taken' ? 409 : 400;
-      return jsonError(`Username ${check.reason}`, status);
+      /* `reason` echoed to the client so the AccountPage form can show
+       * the right copy — "reserved" gets a friendlier "contact us"
+       * message rather than the generic "invalid format" line. */
+      return Response.json(
+        { error: `Username ${check.reason}`, reason: check.reason },
+        { status },
+      );
     }
     await db
       .update(user)
