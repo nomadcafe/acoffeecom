@@ -8,30 +8,33 @@ import { getDb, type DbEnv } from './db';
  * The user-facing AccountPage form tightens this to 4+ chars so super-short
  * slugs are reserved; the server stays permissive so existing 3-char names
  * keep working and so we can hand-pick short slugs in D1 later.
- * Reserved words (api, account, passport, etc.) collide with our own routes
- * — block them at write time so the future `/yourname` surface stays safe.
+ * Reserved words (account, passport, signin, etc.) collide with our own
+ * routes — block them at write time so the future `/yourname` surface
+ * stays safe.
  */
 export const USERNAME_REGEX = /^[a-z][a-z0-9_-]{2,29}$/;
 
 /**
  * Names blocked from public registration. Two reasons to add a name here:
- *   1. Route collision (api, account, passport, signin, …) — these would
+ *   1. Route collision (account, passport, signin, …) — these would
  *      shadow our own pages at acoffee.com/<reserved>.
  *   2. Brand / marketing reservation (cafe, cake, free, money, …) —
  *      generic high-value slugs we want to keep for partnerships,
  *      Pro-tier upgrades, or our own future surfaces.
  *
+ * Only 4+ char names are listed: the public AccountPage form rejects
+ * anything shorter, so `api`/`app`/`me`/`pro`/`www` etc. are already
+ * unreachable through normal sign-up. Add new names alphabetically and
+ * keep them ≥4 chars so the list stays focused on real risks.
+ *
  * Users hitting a reserved name see a "this slug is reserved — please
  * contact us if you need it" message rather than a flat "taken" error,
- * so the gating reads as intentional. Add new names alphabetically so
- * future audits stay easy.
+ * so the gating reads as intentional.
  */
 export const RESERVED_USERNAMES = new Set([
   'account',
   'admin',
   'administrator',
-  'api',
-  'app',
   'auth',
   'blue',
   'booking',
@@ -40,6 +43,7 @@ export const RESERVED_USERNAMES = new Set([
   'cafes',
   'cake',
   'cash',
+  'casino',
   'chain',
   'coffee',
   'domain',
@@ -52,12 +56,10 @@ export const RESERVED_USERNAMES = new Set([
   'logout',
   'love',
   'market',
-  'me',
   'money',
   'passport',
   'payment',
   'play',
-  'pro',
   'settings',
   'shop',
   'show',
@@ -66,10 +68,12 @@ export const RESERVED_USERNAMES = new Set([
   'signup',
   'space',
   'support',
+  'tour',
+  'travel',
   'updates',
   'webmaster',
   'white',
-  'www',
+  'world',
 ]);
 
 export type UsernameValidation =
