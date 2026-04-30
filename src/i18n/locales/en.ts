@@ -608,6 +608,10 @@ export const messages: MessageDict = {
   'bottomNav.passport': 'Passport',
   'bottomNav.bmacDisclaimer': 'ACoffee.com is not affiliated with buymeacoffee.com.',
 
+  'homeCta.aria': 'Get your own ACoffee page',
+  'homeCta.lead': 'Get your own ACoffee page',
+  'homeCta.slugPlaceholder': 'yourname',
+
   'sheet.label': 'Search and results',
   'sheet.dragHandle': 'Drag to resize. Up/Down arrows or Enter to snap.',
   'sheet.snap.peek': 'Peek',

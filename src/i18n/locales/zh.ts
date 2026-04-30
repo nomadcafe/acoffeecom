@@ -591,6 +591,10 @@ export const messages: MessageDict = {
   'bottomNav.home': '查找',
   'bottomNav.passport': '护照',
 
+  'homeCta.aria': '免费拥有自己的 ACoffee 主页',
+  'homeCta.lead': '免费拥有自己的 ACoffee 主页',
+  'homeCta.slugPlaceholder': 'yourname',
+
   'sheet.label': '搜索与结果',
   'sheet.dragHandle': '拖动调整高度。上下方向键或回车键可吸附切换。',
   'sheet.snap.peek': '收起',

@@ -223,6 +223,32 @@ function SignedInAccountPage({
   const { visitedShops, starredShops } = useApp();
   const [sessionsState, setSessionsState] = useState<SessionsState>({ kind: 'loading' });
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  // Ref for the slug input so the home-page CTA's `?focus=username`
+  // landing can scroll it into view and put the cursor in it on first
+  // paint. Mount-time effect below consumes this.
+  const usernameInputRef = useRef<HTMLInputElement>(null);
+
+  // Honour `?focus=username` from the HomeFooterCta callback URL: scroll
+  // the slug card into view, focus the input, then strip the param so a
+  // page refresh / share doesn't re-trigger the auto-focus. Runs once.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('focus') !== 'username') return;
+    // Wait a frame so the lazy AccountPage has had a chance to render the
+    // username card before we try to scroll/focus it.
+    const id = window.requestAnimationFrame(() => {
+      const el = usernameInputRef.current;
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus({ preventScroll: true });
+      }
+    });
+    params.delete('focus');
+    const nextSearch = params.toString();
+    const target = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
+    window.history.replaceState({}, '', target);
+    return () => window.cancelAnimationFrame(id);
+  }, []);
 
   const trimmed = draft.trim().toLowerCase();
   const cleared = trimmed === '';
@@ -460,6 +486,7 @@ function SignedInAccountPage({
               <div className={styles.usernamePrefix}>
                 <span className={styles.usernamePrefixLabel}>acoffee.com/</span>
                 <input
+                  ref={usernameInputRef}
                   className={styles.usernameInput}
                   type="text"
                   inputMode="text"

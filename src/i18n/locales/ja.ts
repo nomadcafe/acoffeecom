@@ -598,6 +598,10 @@ export const messages: MessageDict = {
   'bottomNav.home': '検索',
   'bottomNav.passport': 'パスポート',
 
+  'homeCta.aria': '自分の ACoffee ページを作る',
+  'homeCta.lead': '自分の ACoffee ページを作ろう',
+  'homeCta.slugPlaceholder': 'yourname',
+
   'sheet.label': '検索と候補',
   'sheet.dragHandle': 'ドラッグで高さを変更。上下キーまたは Enter でスナップします。',
   'sheet.snap.peek': 'プレビュー',

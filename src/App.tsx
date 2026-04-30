@@ -16,6 +16,7 @@ import { SiteBottomNav } from './components/SiteBottomNav';
 import { HeaderNavLinks } from './components/HeaderNavLinks';
 import { BottomSheet } from './components/BottomSheet';
 import { AppHero } from './components/AppHero';
+import { HomeFooterCta } from './components/HomeFooterCta';
 import { CoffeeNudge } from './components/CoffeeNudge';
 import { GoogleNetworkBanner } from './components/GoogleNetworkBanner';
 import { StreakReminder } from './components/StreakReminder';
@@ -193,6 +194,7 @@ function AppShell() {
           </>
         )}
       </main>
+      <HomeFooterCta />
       <SiteBottomNav />
     </div>
   );

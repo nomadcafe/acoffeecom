@@ -1,0 +1,115 @@
+/* Anonymous-only promo strip for acoffee.com/yourname.
+ * Mobile: sits in normal document flow at the bottom of the home page, with
+ *   bottom margin to clear the fixed SiteBottomNav so it isn't hidden under
+ *   the nav when the page is short.
+ * Desktop: SiteBottomNav is hidden (≥768px), so this acts as a regular
+ *   page-end strip with no extra spacing math needed. */
+
+.strip {
+  /* matches AppHero/inline sidebar gutters so the strip aligns with the
+     content above it instead of going edge-to-edge */
+  max-width: 720px;
+  margin: 1.25rem auto 0;
+  padding: 0 0.85rem;
+  /* Clear the fixed SiteBottomNav (~3.4rem inner + 0.4rem padding + safe-
+     area). Desktop overrides this back to 0 since the bottom nav hides. */
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ac-border);
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(111, 78, 55, 0.06),
+    rgba(111, 78, 55, 0.02)
+  );
+  color: #4a3d35;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.cta:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(111, 78, 55, 0.1),
+    rgba(111, 78, 55, 0.04)
+  );
+  border-color: rgba(111, 78, 55, 0.35);
+}
+
+.cta:focus-visible {
+  outline: 2px solid #6f4e37;
+  outline-offset: 2px;
+}
+
+.cta:active {
+  transform: scale(0.99);
+}
+
+.icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.lead {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #3d2f27;
+}
+
+.url {
+  font-size: 0.78rem;
+  color: #7a6a60;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  /* So narrow viewports clip rather than wrap a second line and break the
+     "single line" promise */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.urlSlug {
+  color: #6f4e37;
+  font-weight: 600;
+}
+
+.arrow {
+  font-size: 1rem;
+  color: #6f4e37;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.cta:hover .arrow {
+  transform: translateX(2px);
+}
+
+@media (min-width: 768px) {
+  .strip {
+    /* Bottom nav is hidden on desktop — give the strip natural breathing
+       room from the page edge instead of fixed-nav clearance */
+    padding-bottom: 1.5rem;
+    margin-top: 2rem;
+  }
+}
