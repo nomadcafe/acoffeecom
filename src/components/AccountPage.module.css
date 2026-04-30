@@ -1102,3 +1102,27 @@
   font-size: 0.78rem;
   color: var(--ac-text-muted);
 }
+
+/* Wraps a single editable featured cafe (name, relation, note, links).
+   Visually separates each card in the multi-card list — a 1px border +
+   tiny padding is enough to chunk them without competing with the
+   surrounding form layout. */
+.featuredCafeCard {
+  border: 1px solid var(--ac-border, #e3dccf);
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+  margin-top: 0.75rem;
+  background: var(--ac-surface-soft, transparent);
+}
+
+.featuredCafeCard:first-of-type {
+  margin-top: 0.5rem;
+}
+
+/* ✓ badge next to a verified owned cafe's name. Subtle green accent so
+   it reads as a trust signal without dominating the card heading. */
+.featuredCafeVerified {
+  color: #2e8b57;
+  font-weight: 700;
+  margin-left: 0.15rem;
+}

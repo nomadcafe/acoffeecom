@@ -13,6 +13,10 @@ export interface PickedCafe {
   address: string;
   lat: number;
   lng: number;
+  /** Cafe website from Places, when available. Sent to /api/account so
+   *  the server can auto-verify owner relation by comparing host to the
+   *  user's account email domain. Null when Google has no listed site. */
+  websiteUri: string | null;
 }
 
 export interface UseCafeAutocomplete {
@@ -84,7 +88,9 @@ export function useCafeAutocomplete(language: string): UseCafeAutocomplete {
     setSuggestions([]);
     try {
       const place = prediction.toPlace();
-      await place.fetchFields({ fields: ['id', 'displayName', 'formattedAddress', 'location'] });
+      await place.fetchFields({
+        fields: ['id', 'displayName', 'formattedAddress', 'location', 'websiteURI'],
+      });
       const lat = place.location?.lat();
       const lng = place.location?.lng();
       if (!place.id || !place.displayName || !place.formattedAddress || lat == null || lng == null) {
@@ -96,6 +102,7 @@ export function useCafeAutocomplete(language: string): UseCafeAutocomplete {
         address: place.formattedAddress,
         lat,
         lng,
+        websiteUri: place.websiteURI ?? null,
       };
     } catch (err) {
       console.error('[cafe-autocomplete/pick]', err);

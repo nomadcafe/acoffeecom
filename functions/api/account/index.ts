@@ -1,11 +1,49 @@
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { type AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
-import { user } from '../../_lib/db/schema';
+import { user, featuredCafes } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
 import { GoogleMapsError, geocodeAddress, lookupTimezone } from '../../_lib/googleMaps';
 import { fetchBusyWindows } from '../../_lib/icsBusy';
+import { verifyOwnerByEmailDomain } from '../../_lib/ownerVerify';
+
+/**
+ * GET — return account-scope data that doesn't fit on the Better Auth
+ * session object. Currently just the user's featured-cafes list (lives
+ * in its own table, can't piggyback on the session). AccountPage calls
+ * this on mount so the form can render with the existing rows.
+ */
+export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => {
+  const sessionUser = await getSessionUser(env, request);
+  if (!sessionUser) return jsonError('Unauthorized', 401);
+
+  const db = getDb(env);
+  const rows = await db
+    .select()
+    .from(featuredCafes)
+    .where(eq(featuredCafes.userId, sessionUser.id))
+    .orderBy(asc(featuredCafes.position));
+
+  return Response.json({
+    featuredCafes: rows.map((r) => ({
+      placeId: r.placeId,
+      name: r.name,
+      address: r.address,
+      lat: r.lat,
+      lng: r.lng,
+      relation: r.relation === 'owned' ? 'owned' : 'favorite',
+      position: r.position,
+      note: r.note ?? null,
+      linkInstagram: r.linkInstagram ?? null,
+      linkWebsite: r.linkWebsite ?? null,
+      linkMenu: r.linkMenu ?? null,
+      linkBookingExternal: r.linkBookingExternal ?? null,
+      ownerPinnedNote: r.ownerPinnedNote ?? null,
+      ownerVerified: r.ownerVerified === true,
+    })),
+  });
+};
 
 /**
  * Hard-delete the signed-in user's account. FK constraints in schema.ts
@@ -74,8 +112,13 @@ const AvailabilitySchema = z
  * resolved Place ID + display fields + relation in one body — saves a
  * server-side Places API hit on every save and keeps the canonical
  * name/address aligned with what the user actually picked. We still bound
- * each field to defend against odd payloads. */
-const OwnerCafeSchema = z
+ * each field to defend against odd payloads.
+ *
+ * `websiteUri` is consumed (not stored) — used at upsert time to decide
+ * `ownerVerified` for 'owned' rows. Sent only when the picker has it
+ * from Places Place Details; if absent or empty, the row stays
+ * unverified, which is the safe default. */
+const FeaturedCafeSchema = z
   .object({
     placeId: z.string().trim().min(1).max(200),
     name: z.string().trim().min(1).max(120),
@@ -86,8 +129,34 @@ const OwnerCafeSchema = z
      * a shop they want to highlight. Drives copy on the public profile
      * and the reverse-link chip on search results. */
     relation: z.enum(['owned', 'favorite']),
+    /* "Why this café" — short static blurb. ~140 chars to match what the
+     * card layout can render without truncation. Empty / null → field
+     * stored as NULL, card just doesn't render the line. */
+    note: z.string().trim().max(140).nullable().optional(),
+    /* Up to 4 typed external links. Each is optional and validated to be
+     * http(s) URL or empty; the public profile picks an icon per slot. */
+    linkInstagram: z.string().trim().max(200).nullable().optional(),
+    linkWebsite: z.string().trim().max(200).nullable().optional(),
+    linkMenu: z.string().trim().max(200).nullable().optional(),
+    linkBookingExternal: z.string().trim().max(200).nullable().optional(),
+    /* Owned-only "what's brewing this week" pinned note. Server doesn't
+     * enforce — if the user puts it on a 'favorite' row it just won't
+     * render. ~80 chars to match the smaller pill layout. */
+    ownerPinnedNote: z.string().trim().max(80).nullable().optional(),
+    /* Cafe website host, used only for owner-domain verification at save
+     * time. Never persisted on its own. Populated by the picker when
+     * Places returns websiteUri; absent for cafes Google doesn't list a
+     * site for. */
+    websiteUri: z.string().trim().max(300).nullable().optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (c) =>
+      [c.linkInstagram, c.linkWebsite, c.linkMenu, c.linkBookingExternal].every(
+        (l) => l == null || l === '' || /^https?:\/\//i.test(l),
+      ),
+    'Links must start with http(s)',
+  );
 
 const PatchSchema = z.object({
   profilePublic: z.boolean().optional(),
@@ -96,10 +165,11 @@ const PatchSchema = z.object({
   bio: z.string().trim().max(160).nullable().optional(),
   socialLinks: z.array(SocialLinkSchema).max(5).optional(),
   showSocialLinks: z.boolean().optional(),
-  /* null clears the featured cafe; otherwise full object replaces it.
-   * No partial updates — we always have all five fields together when the
-   * user picks something, so an object-or-null shape stays simple. */
-  ownerCafe: OwnerCafeSchema.nullable().optional(),
+  /* Full replacement of the user's featured-cafes list. Up to 5 entries.
+   * Empty array clears all. Omitting the key leaves the existing rows
+   * untouched. The server wipes + re-inserts on every save (atomic enough
+   * at v1 scale; one user, ≤5 rows). */
+  featuredCafes: z.array(FeaturedCafeSchema).max(5).optional(),
   homeBaseAddress: z.string().trim().max(200).nullable().optional(),
   availabilitySlots: AvailabilitySchema.optional(),
   /* IANA tz captured from the organizer's browser when they save
@@ -159,23 +229,9 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
     patch.socialLinks = JSON.stringify(input.socialLinks);
   }
   if (input.showSocialLinks !== undefined) patch.showSocialLinks = input.showSocialLinks;
-  if (input.ownerCafe !== undefined) {
-    if (input.ownerCafe === null) {
-      patch.ownerCafePlaceId = null;
-      patch.ownerCafeName = null;
-      patch.ownerCafeAddress = null;
-      patch.ownerCafeLat = null;
-      patch.ownerCafeLng = null;
-      patch.ownerCafeRelation = null;
-    } else {
-      patch.ownerCafePlaceId = input.ownerCafe.placeId;
-      patch.ownerCafeName = input.ownerCafe.name;
-      patch.ownerCafeAddress = input.ownerCafe.address;
-      patch.ownerCafeLat = input.ownerCafe.lat;
-      patch.ownerCafeLng = input.ownerCafe.lng;
-      patch.ownerCafeRelation = input.ownerCafe.relation;
-    }
-  }
+  // featuredCafes: handled separately from the user-table patch because
+  // it lives in its own table. We skip the user-table touch unless the
+  // top-level patch object also has user-row fields to set.
   if (input.homeBaseAddress !== undefined) {
     const next = input.homeBaseAddress ? input.homeBaseAddress : null;
     patch.homeBaseAddress = next;
@@ -232,6 +288,48 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
       .update(user)
       .set(patch)
       .where(eq(user.id, sessionUser.id));
+  }
+
+  // featured_cafes lives in its own table — wipe + re-insert when the
+  // client sends the array. (Omitting the key leaves rows alone.) The
+  // ≤5-row cap keeps this O(small) and the user-only WHERE keeps blast
+  // radius tight; we don't bother with diff-and-merge logic.
+  if (input.featuredCafes !== undefined) {
+    await db.delete(featuredCafes).where(eq(featuredCafes.userId, sessionUser.id));
+    if (input.featuredCafes.length > 0) {
+      const now = new Date();
+      const rows = input.featuredCafes.map((c, idx) => {
+        const verified =
+          c.relation === 'owned' && verifyOwnerByEmailDomain(sessionUser.email, c.websiteUri);
+        // Empty-string nullable fields collapse to NULL so the public
+        // renderer's "if not null, render" checks stay clean.
+        const norm = (v: string | null | undefined) => (v && v.trim() ? v.trim() : null);
+        return {
+          userId: sessionUser.id,
+          placeId: c.placeId,
+          name: c.name,
+          address: c.address,
+          lat: c.lat,
+          lng: c.lng,
+          relation: c.relation,
+          position: idx,
+          note: norm(c.note),
+          linkInstagram: norm(c.linkInstagram),
+          linkWebsite: norm(c.linkWebsite),
+          linkMenu: norm(c.linkMenu),
+          linkBookingExternal: norm(c.linkBookingExternal),
+          // Owner-only field — stored on favorite rows too so a relation
+          // flip later doesn't lose the text, but the renderer only shows
+          // it on owned cards.
+          ownerPinnedNote: norm(c.ownerPinnedNote),
+          ownerVerified: verified,
+          ownerVerifiedAt: verified ? now : null,
+          createdAt: now,
+          updatedAt: now,
+        };
+      });
+      await db.insert(featuredCafes).values(rows);
+    }
   }
 
   return Response.json({ ok: true });

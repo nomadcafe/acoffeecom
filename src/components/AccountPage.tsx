@@ -590,9 +590,6 @@ function SignedInAccountPage({
           initialShowSocialLinks={
             (sessionUser as { showSocialLinks?: boolean }).showSocialLinks !== false
           }
-          initialOwnerCafe={parseInitialOwnerCafe(
-            sessionUser as Parameters<typeof parseInitialOwnerCafe>[0],
-          )}
         />
 
         <BookingSetupCard
@@ -1070,43 +1067,54 @@ function parseInitialSocialLinks(raw: string | undefined): SocialLinkDraft[] {
   }
 }
 
-type OwnerCafeRelation = 'owned' | 'favorite';
+type FeaturedCafeRelation = 'owned' | 'favorite';
 
-interface InitialOwnerCafe {
+/** Draft shape held in form state. Mirrors the request body sent on save
+ *  plus server-computed `ownerVerified` (read-only here; refreshed by the
+ *  GET round-trip after each save). `websiteUri` is captured from the
+ *  picker so the server can re-run domain verification on save without
+ *  another Places API call — never shown in the UI. */
+interface FeaturedCafeDraft {
   placeId: string;
   name: string;
   address: string;
   lat: number;
   lng: number;
-  relation: OwnerCafeRelation;
+  relation: FeaturedCafeRelation;
+  note: string;
+  linkInstagram: string;
+  linkWebsite: string;
+  linkMenu: string;
+  linkBookingExternal: string;
+  ownerPinnedNote: string;
+  websiteUri: string | null;
+  ownerVerified: boolean;
 }
 
-function parseInitialOwnerCafe(sessionUser: {
-  ownerCafePlaceId?: string | null;
-  ownerCafeName?: string | null;
-  ownerCafeAddress?: string | null;
-  ownerCafeLat?: number | null;
-  ownerCafeLng?: number | null;
-  ownerCafeRelation?: string | null;
-}): InitialOwnerCafe | null {
-  if (
-    !sessionUser.ownerCafePlaceId ||
-    !sessionUser.ownerCafeName ||
-    !sessionUser.ownerCafeAddress ||
-    typeof sessionUser.ownerCafeLat !== 'number' ||
-    typeof sessionUser.ownerCafeLng !== 'number'
-  ) {
-    return null;
-  }
+const FEATURED_MAX = 5;
+const FEATURED_NOTE_MAX = 140;
+const FEATURED_PINNED_NOTE_MAX = 80;
+const FEATURED_LINK_MAX = 200;
+
+function emptyCafeFromPicked(
+  picked: { placeId: string; name: string; address: string; lat: number; lng: number; websiteUri?: string | null },
+  relation: FeaturedCafeRelation,
+): FeaturedCafeDraft {
   return {
-    placeId: sessionUser.ownerCafePlaceId,
-    name: sessionUser.ownerCafeName,
-    address: sessionUser.ownerCafeAddress,
-    lat: sessionUser.ownerCafeLat,
-    lng: sessionUser.ownerCafeLng,
-    // Server backfills 'favorite' for old rows; defensive fallback here
-    // covers the rare race where the column came back null.
-    relation: sessionUser.ownerCafeRelation === 'owned' ? 'owned' : 'favorite',
+    placeId: picked.placeId,
+    name: picked.name,
+    address: picked.address,
+    lat: picked.lat,
+    lng: picked.lng,
+    relation,
+    note: '',
+    linkInstagram: '',
+    linkWebsite: '',
+    linkMenu: '',
+    linkBookingExternal: '',
+    ownerPinnedNote: '',
+    websiteUri: picked.websiteUri ?? null,
+    ownerVerified: false,
   };
 }
 
@@ -1115,7 +1123,6 @@ interface ProfileContentProps {
   initialBio: string;
   initialSocialLinks: SocialLinkDraft[];
   initialShowSocialLinks: boolean;
-  initialOwnerCafe: InitialOwnerCafe | null;
 }
 
 const DISPLAY_NAME_MAX = 50;
@@ -1135,7 +1142,6 @@ function ProfileContentCard({
   initialBio,
   initialSocialLinks,
   initialShowSocialLinks,
-  initialOwnerCafe,
 }: ProfileContentProps) {
   const { t, locale } = useI18n();
   const { visitedShops } = useApp();
@@ -1143,41 +1149,98 @@ function ProfileContentCard({
   const [bio, setBio] = useState(initialBio);
   const [links, setLinks] = useState<SocialLinkDraft[]>(initialSocialLinks);
   const [showLinks, setShowLinks] = useState(initialShowSocialLinks);
-  const [ownerCafe, setOwnerCafe] = useState<InitialOwnerCafe | null>(initialOwnerCafe);
+  const [cafes, setCafes] = useState<FeaturedCafeDraft[]>([]);
   const [cafeQuery, setCafeQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
   // zh-CN is what Google's autocomplete expects; our locale code is `zh`.
   const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
 
+  // Hydrate the featured-cafes list from /api/account on mount. Lives in
+  // its own table, so it can't piggyback on the Better Auth session like
+  // the other profile fields do.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch('/api/account');
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          featuredCafes?: Array<Omit<FeaturedCafeDraft, 'note' | 'linkInstagram' | 'linkWebsite' | 'linkMenu' | 'linkBookingExternal' | 'ownerPinnedNote' | 'websiteUri'> & {
+            note: string | null;
+            linkInstagram: string | null;
+            linkWebsite: string | null;
+            linkMenu: string | null;
+            linkBookingExternal: string | null;
+            ownerPinnedNote: string | null;
+          }>;
+        };
+        if (cancelled || !data.featuredCafes) return;
+        setCafes(
+          data.featuredCafes.map((c) => ({
+            placeId: c.placeId,
+            name: c.name,
+            address: c.address,
+            lat: c.lat,
+            lng: c.lng,
+            relation: c.relation,
+            note: c.note ?? '',
+            linkInstagram: c.linkInstagram ?? '',
+            linkWebsite: c.linkWebsite ?? '',
+            linkMenu: c.linkMenu ?? '',
+            linkBookingExternal: c.linkBookingExternal ?? '',
+            ownerPinnedNote: c.ownerPinnedNote ?? '',
+            // websiteUri is server-only — not returned by GET. Stays null
+            // until the user re-picks via autocomplete; verification flag
+            // we already have stays sticky.
+            websiteUri: null,
+            ownerVerified: c.ownerVerified,
+          })),
+        );
+      } catch {
+        /* keep cafes empty — user can still add fresh ones */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   /* Top passport cafes — sorted by visit count desc. Powers the one-tap
-   * "from your passport" picker so the most common case ("set my favorite,
-   * which I've already stamped") doesn't require typing into autocomplete.
-   * Capped at 5 to keep the row from running long; users with more visits
-   * can always fall through to the search input. */
+   * "from your passport" picker so the most common case ("add a favorite
+   * I've already stamped") doesn't require typing into autocomplete.
+   * Filtered to exclude cafes already in the featured list so the user
+   * can't accidentally add a duplicate (the (user_id, place_id) PK on
+   * the server would reject it anyway). */
+  const featuredPlaceIds = new Set(cafes.map((c) => c.placeId));
   const passportPicks = visitedShops
-    .filter((s) => s.visits.length > 0)
+    .filter((s) => s.visits.length > 0 && !featuredPlaceIds.has(s.id))
     .slice()
     .sort((a, b) => b.visits.length - a.visits.length || a.name.localeCompare(b.name))
     .slice(0, 5);
 
-  function pickPassportCafe(shop: typeof visitedShops[number]) {
-    setOwnerCafe({
-      placeId: shop.id,
-      name: shop.name,
-      address: shop.address,
-      lat: shop.lat,
-      lng: shop.lng,
-      // Picked from passport → almost certainly a "favorite" semantic.
-      // Owners can flip the relation pill afterwards if they want.
-      relation: 'favorite',
-    });
+  function addCafe(picked: Parameters<typeof emptyCafeFromPicked>[0], relation: FeaturedCafeRelation) {
+    if (cafes.some((c) => c.placeId === picked.placeId)) return;
+    setCafes((prev) => [...prev, emptyCafeFromPicked(picked, relation)]);
     setCafeQuery('');
     cafeAutocomplete.clear();
   }
 
-  function setRelation(next: OwnerCafeRelation) {
-    setOwnerCafe((c) => (c ? { ...c, relation: next } : c));
+  function pickPassportCafe(shop: typeof visitedShops[number]) {
+    // Passport pick → no websiteUri (we never stored it client-side); the
+    // user can re-pick via search if they want owner verification.
+    addCafe(
+      { placeId: shop.id, name: shop.name, address: shop.address, lat: shop.lat, lng: shop.lng, websiteUri: null },
+      'favorite',
+    );
+  }
+
+  function updateCafe(idx: number, patch: Partial<FeaturedCafeDraft>) {
+    setCafes((prev) => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
+  }
+
+  function removeCafe(idx: number) {
+    setCafes((prev) => prev.filter((_, i) => i !== idx));
   }
 
   function setLinkField(idx: number, field: 'label' | 'url', value: string) {
@@ -1210,6 +1273,25 @@ function ProfileContentCard({
     const cleanLinks = links
       .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
       .filter(isLinkValid);
+    // Strip blanks from each cafe's optional fields and snapshot the
+    // payload before the fetch. Server collapses '' → NULL anyway but
+    // doing it here keeps the wire smaller and keeps the user's local
+    // state aligned with what gets persisted.
+    const cleanCafes = cafes.map((c) => ({
+      placeId: c.placeId,
+      name: c.name,
+      address: c.address,
+      lat: c.lat,
+      lng: c.lng,
+      relation: c.relation,
+      note: c.note.trim() || null,
+      linkInstagram: c.linkInstagram.trim() || null,
+      linkWebsite: c.linkWebsite.trim() || null,
+      linkMenu: c.linkMenu.trim() || null,
+      linkBookingExternal: c.linkBookingExternal.trim() || null,
+      ownerPinnedNote: c.ownerPinnedNote.trim() || null,
+      websiteUri: c.websiteUri,
+    }));
     try {
       const res = await fetch('/api/account', {
         method: 'PATCH',
@@ -1219,7 +1301,7 @@ function ProfileContentCard({
           bio: bio.trim() ? bio.trim() : null,
           socialLinks: cleanLinks,
           showSocialLinks: showLinks,
-          ownerCafe: ownerCafe,
+          featuredCafes: cleanCafes,
         }),
       });
       if (!res.ok) {
@@ -1227,12 +1309,48 @@ function ProfileContentCard({
         return;
       }
       setLinks(cleanLinks); // strip any blanks that were filtered out
+      // Re-fetch so the verified flag reflects the server's decision
+      // after this save. Cheap; one row per cafe and we cap at 5.
+      try {
+        const refresh = await fetch('/api/account');
+        if (refresh.ok) {
+          const data = (await refresh.json()) as {
+            featuredCafes?: Array<{
+              placeId: string; name: string; address: string; lat: number; lng: number;
+              relation: FeaturedCafeRelation;
+              note: string | null;
+              linkInstagram: string | null; linkWebsite: string | null; linkMenu: string | null; linkBookingExternal: string | null;
+              ownerPinnedNote: string | null;
+              ownerVerified: boolean;
+            }>;
+          };
+          if (data.featuredCafes) {
+            setCafes(
+              data.featuredCafes.map((c) => ({
+                placeId: c.placeId, name: c.name, address: c.address, lat: c.lat, lng: c.lng,
+                relation: c.relation,
+                note: c.note ?? '',
+                linkInstagram: c.linkInstagram ?? '',
+                linkWebsite: c.linkWebsite ?? '',
+                linkMenu: c.linkMenu ?? '',
+                linkBookingExternal: c.linkBookingExternal ?? '',
+                ownerPinnedNote: c.ownerPinnedNote ?? '',
+                websiteUri: null,
+                ownerVerified: c.ownerVerified,
+              })),
+            );
+          }
+        }
+      } catch {
+        /* non-fatal — local state already has the unverified default */
+      }
       setStatus({ kind: 'ok', message: t('account.profileContentSaved') });
       track('profile_content_set', {
         hasName: !!displayName.trim(),
         hasBio: !!bio.trim(),
         linkCount: cleanLinks.length,
-        hasOwnerCafe: !!ownerCafe,
+        cafeCount: cleanCafes.length,
+        ownedCount: cleanCafes.filter((c) => c.relation === 'owned').length,
         showLinks,
       });
     } catch {
@@ -1342,34 +1460,43 @@ function ProfileContentCard({
         />
       </div>
 
-      {/* Featured cafe — single Place, optional. Renders above the
-          passport on /yourname. We avoid a server-side Places hit by
-          shipping the picker's resolved fields straight to PATCH. */}
+      {/* Featured cafés — up to 5 Places, each with its own relation,
+          note, links, and (for owned) pinned note. Render order follows
+          the array; remove + re-add to reorder (drag is v2). */}
       <div className={styles.fieldGroup}>
         <span className={styles.fieldLabel}>{t('account.featuredCafeLabel')}</span>
         <p className={styles.usernameHint} style={{ marginTop: 0 }}>
           {t('account.featuredCafeHint')}
         </p>
-        {ownerCafe ? (
-          <>
+
+        {cafes.map((cafe, idx) => (
+          <div key={cafe.placeId} className={styles.featuredCafeCard}>
             <div className={styles.featuredCafeChosen}>
               <div className={styles.featuredCafeMeta}>
-                <strong>{ownerCafe.name}</strong>
-                <span className={styles.featuredCafeAddress}>{ownerCafe.address}</span>
+                <strong>
+                  {cafe.name}
+                  {cafe.relation === 'owned' && cafe.ownerVerified ? (
+                    <span
+                      className={styles.featuredCafeVerified}
+                      title={t('account.featuredCafeVerifiedTitle')}
+                      aria-label={t('account.featuredCafeVerifiedTitle')}
+                    >
+                      {' '}✓
+                    </span>
+                  ) : null}
+                </strong>
+                <span className={styles.featuredCafeAddress}>{cafe.address}</span>
               </div>
               <button
                 type="button"
                 className={styles.linkRemove}
-                onClick={() => setOwnerCafe(null)}
+                onClick={() => removeCafe(idx)}
                 aria-label={t('account.featuredCafeRemoveAria')}
               >
                 ×
               </button>
             </div>
-            {/* Relation pills — drive both the public profile heading
-                ("Owned café" vs "My favorite") and the search-result
-                attribution chip wording. Default 'favorite' since most
-                users won't actually own the cafe. */}
+
             <div
               className={styles.featuredCafeRelation}
               role="radiogroup"
@@ -1378,13 +1505,13 @@ function ProfileContentCard({
               <button
                 type="button"
                 role="radio"
-                aria-checked={ownerCafe.relation === 'favorite'}
+                aria-checked={cafe.relation === 'favorite'}
                 className={`${styles.featuredCafeRelationPill}${
-                  ownerCafe.relation === 'favorite'
+                  cafe.relation === 'favorite'
                     ? ' ' + styles.featuredCafeRelationPillActive
                     : ''
                 }`}
-                onClick={() => setRelation('favorite')}
+                onClick={() => updateCafe(idx, { relation: 'favorite' })}
               >
                 <span className={styles.featuredCafeRelationPillTitle}>
                   <span aria-hidden>❤️</span>
@@ -1397,13 +1524,13 @@ function ProfileContentCard({
               <button
                 type="button"
                 role="radio"
-                aria-checked={ownerCafe.relation === 'owned'}
+                aria-checked={cafe.relation === 'owned'}
                 className={`${styles.featuredCafeRelationPill}${
-                  ownerCafe.relation === 'owned'
+                  cafe.relation === 'owned'
                     ? ' ' + styles.featuredCafeRelationPillActive
                     : ''
                 }`}
-                onClick={() => setRelation('owned')}
+                onClick={() => updateCafe(idx, { relation: 'owned' })}
               >
                 <span className={styles.featuredCafeRelationPillTitle}>
                   <span aria-hidden>🏠</span>
@@ -1414,13 +1541,105 @@ function ProfileContentCard({
                 </span>
               </button>
             </div>
-          </>
-        ) : (
+
+            {/* Verification status hint on owned cards: explain why the
+                badge is/isn't showing. Most useful for unverified owners
+                so they know auto-verify is gated on email-domain match. */}
+            {cafe.relation === 'owned' ? (
+              <p
+                className={styles.usernameHint}
+                style={{ marginTop: 6, marginBottom: 0 }}
+              >
+                {cafe.ownerVerified
+                  ? t('account.featuredCafeVerifiedHint')
+                  : t('account.featuredCafeUnverifiedHint')}
+              </p>
+            ) : null}
+
+            {/* "Why this café" — short blurb under the address. Same
+                shape as bio. Empty stays empty. */}
+            <label className={styles.fieldGroup} style={{ marginTop: 12 }}>
+              <span className={styles.fieldLabel}>
+                {t('account.featuredCafeNoteLabel')}
+              </span>
+              <textarea
+                className={styles.bioTextarea}
+                rows={2}
+                maxLength={FEATURED_NOTE_MAX}
+                placeholder={t('account.featuredCafeNotePlaceholder')}
+                value={cafe.note}
+                onChange={(e) => updateCafe(idx, { note: e.target.value })}
+              />
+              <span className={styles.charCount}>
+                {cafe.note.length} / {FEATURED_NOTE_MAX}
+              </span>
+            </label>
+
+            {/* Owned-only "what's brewing" pinned note — shorter, framed
+                as "this week's special" so owners are nudged to refresh
+                rather than treating it as a static second blurb. */}
+            {cafe.relation === 'owned' ? (
+              <label className={styles.fieldGroup} style={{ marginTop: 8 }}>
+                <span className={styles.fieldLabel}>
+                  {t('account.featuredCafePinnedLabel')}
+                </span>
+                <input
+                  type="text"
+                  className={styles.linkLabelInput}
+                  maxLength={FEATURED_PINNED_NOTE_MAX}
+                  placeholder={t('account.featuredCafePinnedPlaceholder')}
+                  value={cafe.ownerPinnedNote}
+                  onChange={(e) => updateCafe(idx, { ownerPinnedNote: e.target.value })}
+                />
+                <span className={styles.charCount}>
+                  {cafe.ownerPinnedNote.length} / {FEATURED_PINNED_NOTE_MAX}
+                </span>
+              </label>
+            ) : null}
+
+            {/* 4 typed link slots — the public profile picks an icon per
+                slot. Empty slots collapse on save. We don't validate
+                live; server enforces http(s). */}
+            <div className={styles.fieldGroup} style={{ marginTop: 8 }}>
+              <span className={styles.fieldLabel}>{t('account.featuredCafeLinksLabel')}</span>
+              {(
+                [
+                  ['linkInstagram', t('account.featuredCafeLinkInstagram')],
+                  ['linkWebsite', t('account.featuredCafeLinkWebsite')],
+                  ['linkMenu', t('account.featuredCafeLinkMenu')],
+                  ['linkBookingExternal', t('account.featuredCafeLinkBooking')],
+                ] as Array<[keyof FeaturedCafeDraft, string]>
+              ).map(([field, label]) => (
+                <div className={styles.linkRow} key={field}>
+                  <span className={styles.linkLabelInput} style={{ pointerEvents: 'none' }}>
+                    {label}
+                  </span>
+                  <input
+                    type="url"
+                    className={styles.linkUrlInput}
+                    maxLength={FEATURED_LINK_MAX}
+                    placeholder="https://…"
+                    value={cafe[field] as string}
+                    onChange={(e) => updateCafe(idx, { [field]: e.target.value } as Partial<FeaturedCafeDraft>)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {/* Add surface — only visible when we're under the cap. Mirrors
+            the v1 single-card empty-state UI: passport quick-pick row +
+            search input. Each pick pushes a new card with default
+            relation='favorite'; the user flips to 'owned' on the new
+            card if they want, which triggers verification on next save. */}
+        {cafes.length < FEATURED_MAX ? (
           <>
-            {/* Quick-pick from passport: short list of the user's most-
-                visited cafes. One-tap sets all five display fields with
-                relation='favorite'. Falls through to the typed search
-                below when none match the user's intent. */}
+            <p className={styles.usernameHint} style={{ marginTop: 12, marginBottom: 4 }}>
+              {t('account.featuredCafeAddPrompt', {
+                remaining: FEATURED_MAX - cafes.length,
+              })}
+            </p>
             {passportPicks.length > 0 ? (
               <div className={styles.featuredCafePassport}>
                 <span className={styles.featuredCafePassportLabel}>
@@ -1459,8 +1678,6 @@ function ProfileContentCard({
                   cafeAutocomplete.query(e.target.value);
                 }}
                 onBlur={() => {
-                  // Defer clear so an in-progress click on a suggestion still
-                  // fires before the dropdown disappears.
                   window.setTimeout(() => cafeAutocomplete.clear(), 150);
                 }}
               />
@@ -1474,15 +1691,10 @@ function ProfileContentCard({
                         <button
                           type="button"
                           className={styles.featuredCafeSuggestion}
-                          onMouseDown={(e) => e.preventDefault() /* keep input focus */}
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={async () => {
                             const picked = await cafeAutocomplete.pick(s);
-                            if (picked) {
-                              // New autocomplete picks default to 'favorite' — most
-                              // users aren't claiming ownership. Pill flip is one tap.
-                              setOwnerCafe({ ...picked, relation: 'favorite' });
-                              setCafeQuery('');
-                            }
+                            if (picked) addCafe(picked, 'favorite');
                           }}
                         >
                           {text}
@@ -1494,6 +1706,10 @@ function ProfileContentCard({
               ) : null}
             </div>
           </>
+        ) : (
+          <p className={styles.usernameHint} style={{ marginTop: 12 }}>
+            {t('account.featuredCafeAtMax', { max: FEATURED_MAX })}
+          </p>
         )}
       </div>
 

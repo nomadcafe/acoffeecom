@@ -127,6 +127,20 @@
       "when": 1777529675545,
       "tag": "0017_sharp_nightmare",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1777534242604,
+      "tag": "0018_lying_silver_surfer",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1777535292098,
+      "tag": "0019_closed_jean_grey",
+      "breakpoints": true
     }
   ]
 }

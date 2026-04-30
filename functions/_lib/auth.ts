@@ -75,12 +75,9 @@ export function createAuth(env: AuthEnv) {
         bio: { type: 'string', required: false },
         socialLinks: { type: 'string', required: false, defaultValue: '[]' },
         showSocialLinks: { type: 'boolean', required: false, defaultValue: true },
-        ownerCafePlaceId: { type: 'string', required: false },
-        ownerCafeName: { type: 'string', required: false },
-        ownerCafeAddress: { type: 'string', required: false },
-        ownerCafeLat: { type: 'number', required: false },
-        ownerCafeLng: { type: 'number', required: false },
-        ownerCafeRelation: { type: 'string', required: false },
+        // Featured cafés moved to their own `featured_cafes` table — see
+        // /api/account GET. The legacy single-cafe columns (ownerCafe*)
+        // were dropped in migration 0019.
         homeBaseAddress: { type: 'string', required: false },
         availabilitySlots: { type: 'string', required: false, defaultValue: '{}' },
         timezone: { type: 'string', required: false, defaultValue: 'UTC' },

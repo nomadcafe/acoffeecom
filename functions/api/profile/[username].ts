@@ -1,7 +1,7 @@
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { type AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
-import { user, visitedShops } from '../../_lib/db/schema';
+import { featuredCafes, user, visitedShops } from '../../_lib/db/schema';
 import { jsonError } from '../../_lib/passport';
 
 interface PublicShop {
@@ -16,15 +16,42 @@ interface SocialLink {
   url: string;
 }
 
-type OwnerCafeRelation = 'owned' | 'favorite';
+type FeaturedCafeRelation = 'owned' | 'favorite';
 
-interface OwnerCafe {
+interface FeaturedCafeLinks {
+  instagram: string | null;
+  website: string | null;
+  menu: string | null;
+  bookingExternal: string | null;
+}
+
+/** Passport tie-in shown on `favorite` cards: visitor sees "owner has been
+ *  here N times, last visit X days ago." `null` if the cafe isn't in the
+ *  owner's passport (still featured, just no visit data to display). */
+interface FeaturedCafePassport {
+  visits: number;
+  lastVisitMs: number;
+}
+
+interface PublicFeaturedCafe {
   placeId: string;
   name: string;
   address: string;
   lat: number;
   lng: number;
-  relation: OwnerCafeRelation;
+  relation: FeaturedCafeRelation;
+  position: number;
+  note: string | null;
+  links: FeaturedCafeLinks;
+  /** Only meaningful on `owned` cards; null on `favorite`. */
+  ownerPinnedNote: string | null;
+  /** True only when relation='owned' and the auto-domain check passed.
+   *  Drives the ✓ badge + the search-result reverse-link wording. */
+  ownerVerified: boolean;
+  /** Visit data joined from passport — only populated for `favorite`
+   *  cards (owners visiting their own cafe is implicit, not a credibility
+   *  signal). Null when the cafe isn't in the owner's passport. */
+  passport: FeaturedCafePassport | null;
 }
 
 export interface PublicProfile {
@@ -32,7 +59,7 @@ export interface PublicProfile {
   displayName: string | null;
   bio: string | null;
   socialLinks: SocialLink[];
-  ownerCafe: OwnerCafe | null;
+  featuredCafes: PublicFeaturedCafe[];
   memberSince: number;
   cups: number;
   shops: number;
@@ -137,27 +164,59 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
   const memberSince =
     owner.createdAt instanceof Date ? owner.createdAt.getTime() : Number(owner.createdAt);
 
-  /* Featured cafe — only render if all required fields are present. The
-   * schema allows the display columns to be NULL independently, so the
-   * server-side guard avoids leaking a half-populated card. `relation`
-   * gets a 'favorite' fallback for any rare row where the column slipped
-   * past the migration backfill — the safer wording given we can't infer
-   * actual ownership. */
-  const ownerCafe: OwnerCafe | null =
-    owner.ownerCafePlaceId &&
-    owner.ownerCafeName &&
-    owner.ownerCafeAddress &&
-    typeof owner.ownerCafeLat === 'number' &&
-    typeof owner.ownerCafeLng === 'number'
-      ? {
-          placeId: owner.ownerCafePlaceId,
-          name: owner.ownerCafeName,
-          address: owner.ownerCafeAddress,
-          lat: owner.ownerCafeLat,
-          lng: owner.ownerCafeLng,
-          relation: owner.ownerCafeRelation === 'owned' ? 'owned' : 'favorite',
-        }
-      : null;
+  /* Featured cafés — up to 5, ordered by `position`. We compute the
+   *  passport tie-in (visits / last visit) for `favorite` cards by
+   *  scanning the rows we already fetched above, so no extra query. */
+  const featuredRows = await db
+    .select()
+    .from(featuredCafes)
+    .where(eq(featuredCafes.userId, owner.id))
+    .orderBy(asc(featuredCafes.position));
+
+  // Build a placeId → {visits, lastVisitMs} map from the passport data
+  // we already loaded for the cup/shop counts. Owned cards skip this
+  // entirely (visits there are weird flex-y info, not credibility).
+  const passportByPlace = new Map<string, FeaturedCafePassport>();
+  for (const r of rows) {
+    let visits: number[] = [];
+    try {
+      const parsed = JSON.parse(r.visits);
+      if (Array.isArray(parsed)) {
+        visits = parsed.filter((n): n is number => typeof n === 'number' && Number.isFinite(n));
+      }
+    } catch {
+      /* ignore */
+    }
+    if (visits.length === 0) continue;
+    let last = visits[0];
+    for (const v of visits) if (v > last) last = v;
+    passportByPlace.set(r.placeId, { visits: visits.length, lastVisitMs: last });
+  }
+
+  const featuredCafesPublic: PublicFeaturedCafe[] = featuredRows.map((r) => {
+    const relation: FeaturedCafeRelation = r.relation === 'owned' ? 'owned' : 'favorite';
+    return {
+      placeId: r.placeId,
+      name: r.name,
+      address: r.address,
+      lat: r.lat,
+      lng: r.lng,
+      relation,
+      position: r.position,
+      note: r.note ?? null,
+      links: {
+        instagram: r.linkInstagram ?? null,
+        website: r.linkWebsite ?? null,
+        menu: r.linkMenu ?? null,
+        bookingExternal: r.linkBookingExternal ?? null,
+      },
+      // Owner pin only on owned cards — keeps the favorite layout clean
+      // even if a row has stale text from a relation flip.
+      ownerPinnedNote: relation === 'owned' ? r.ownerPinnedNote ?? null : null,
+      ownerVerified: relation === 'owned' && r.ownerVerified === true,
+      passport: relation === 'favorite' ? passportByPlace.get(r.placeId) ?? null : null,
+    };
+  });
 
   const payload: PublicProfile = {
     username,
@@ -167,7 +226,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
      * public response simply ships an empty array — same shape, no
      * special-casing needed in the renderer. */
     socialLinks: owner.showSocialLinks === false ? [] : parseSocialLinks(owner.socialLinks),
-    ownerCafe,
+    featuredCafes: featuredCafesPublic,
     memberSince,
     cups: allTimestamps.length,
     shops: shopsAgg.length,

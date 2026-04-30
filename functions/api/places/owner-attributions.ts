@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { and, eq, inArray } from 'drizzle-orm';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
-import { user } from '../../_lib/db/schema';
+import { featuredCafes, user } from '../../_lib/db/schema';
 import { jsonError } from '../../_lib/passport';
 
 /**
@@ -31,11 +31,16 @@ const InputSchema = z.object({
 interface Attribution {
   username: string;
   displayName: string | null;
-  /* Mirrors user.ownerCafeRelation: 'owned' tags the cafe owner so the chip
-   * reads "@user 经营 / Owned by @user"; 'favorite' is the looser default
-   * for anyone just highlighting a cafe they like. Older cached entries
-   * may lack the field — readers default it to 'favorite'. */
+  /* Mirrors featured_cafes.relation: 'owned' tags the cafe owner so the
+   * chip reads "@user 经营 / Owned by @user"; 'favorite' is the looser
+   * default for anyone just highlighting a cafe they like. Older cached
+   * entries may lack the field — readers default to 'favorite'. */
   relation: 'owned' | 'favorite';
+  /* True only for 'owned' rows where the email-domain auto-verify check
+   * passed. Drives whether the chip can say "Owned by" (verified) vs
+   * fall back to "Shared by" wording. Older cache entries default to
+   * false. */
+  verified: boolean;
 }
 
 const CACHE_TTL_S = 300;
@@ -68,11 +73,13 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
             const parsed = JSON.parse(cached) as Partial<Attribution>;
             if (parsed && typeof parsed.username === 'string') {
               // Tolerate legacy cache entries that pre-date the relation
-              // field — fall back to 'favorite' rather than re-querying.
+              // / verified fields — fall back to safe defaults rather
+              // than re-querying.
               result[placeId] = {
                 username: parsed.username,
                 displayName: parsed.displayName ?? null,
                 relation: parsed.relation === 'owned' ? 'owned' : 'favorite',
+                verified: parsed.verified === true,
               };
             } else {
               missing.push(placeId);
@@ -94,34 +101,45 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   const db = getDb(env);
   const rows = await db
     .select({
-      placeId: user.ownerCafePlaceId,
+      placeId: featuredCafes.placeId,
       username: user.username,
       displayName: user.displayName,
-      relation: user.ownerCafeRelation,
+      relation: featuredCafes.relation,
+      verified: featuredCafes.ownerVerified,
     })
-    .from(user)
+    .from(featuredCafes)
+    .innerJoin(user, eq(user.id, featuredCafes.userId))
     .where(
-      and(eq(user.profilePublic, true), inArray(user.ownerCafePlaceId, missing)),
+      and(eq(user.profilePublic, true), inArray(featuredCafes.placeId, missing)),
     );
 
-  /* Multiple users can mark the same Place as featured (e.g. a manager and
-   * a barista at the same shop). Tie-break: prefer 'owned' over 'favorite'
-   * — if a real cafe owner has claimed the place, their chip is the more
-   * useful one to surface; favorites are a fallback. Within the same
-   * relation tier the DB-iteration order wins; we'll add a stricter
-   * tie-break (created_at, follower count) only if we see real conflicts. */
+  /* Multiple users can feature the same Place (a manager + a regular).
+   * Tie-break tier order:
+   *   1. owned + verified  (real, claimed owner)
+   *   2. owned + unverified (claimed but no domain match)
+   *   3. favorite           (someone who likes it)
+   * Within a tier, DB-iteration order wins; stricter tie-breaks (newest
+   * verification, followers) can come later if we see real conflicts. */
+  const tierRank = (a: Pick<Attribution, 'relation' | 'verified'>) =>
+    a.relation === 'owned' ? (a.verified ? 2 : 1) : 0;
+
   const dbHits = new Map<string, Attribution>();
   for (const r of rows) {
     if (!r.placeId || !r.username) continue;
-    const relation: 'owned' | 'favorite' =
-      r.relation === 'owned' ? 'owned' : 'favorite';
+    const relation: 'owned' | 'favorite' = r.relation === 'owned' ? 'owned' : 'favorite';
+    // ownerVerified only makes sense for 'owned' rows; force false on
+    // favorites so the chip wording layer can rely on (relation, verified)
+    // alone without re-checking.
+    const verified = relation === 'owned' && r.verified === true;
+    const candidate: Attribution = {
+      username: r.username,
+      displayName: r.displayName ?? null,
+      relation,
+      verified,
+    };
     const existing = dbHits.get(r.placeId);
-    if (!existing || (existing.relation !== 'owned' && relation === 'owned')) {
-      dbHits.set(r.placeId, {
-        username: r.username,
-        displayName: r.displayName ?? null,
-        relation,
-      });
+    if (!existing || tierRank(candidate) > tierRank(existing)) {
+      dbHits.set(r.placeId, candidate);
     }
   }
 

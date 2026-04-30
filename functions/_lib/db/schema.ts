@@ -30,24 +30,6 @@ export const user = sqliteTable('user', {
    * true so existing users who already filled the field keep them visible
    * after the migration — opt-in privacy would silently hide their links. */
   showSocialLinks: integer('show_social_links', { mode: 'boolean' }).notNull().default(true),
-  /* Owner / featured cafe — a Google Place the user wants to attach to
-   * their public profile (e.g. "the cafe I run" or "my favourite spot").
-   * Display fields are cached client-pick output (name/address/lat/lng);
-   * we don't re-fetch from Places at render time. All nullable: a profile
-   * without a featured cafe just doesn't render the card. */
-  ownerCafePlaceId: text('owner_cafe_place_id'),
-  ownerCafeName: text('owner_cafe_name'),
-  ownerCafeAddress: text('owner_cafe_address'),
-  ownerCafeLat: real('owner_cafe_lat'),
-  ownerCafeLng: real('owner_cafe_lng'),
-  /* How the user relates to that cafe — 'owned' (they run it) vs
-   * 'favorite' (they just like it). Drives the public-profile section
-   * heading and the search-result reverse-link chip wording. Stored as
-   * plain text since SQLite has no native enum; the API layer enforces
-   * the two allowed values. Null only when ownerCafePlaceId is also null;
-   * existing rows pre-migration get backfilled to 'favorite' (the safer
-   * default — implies less commitment than 'owned'). */
-  ownerCafeRelation: text('owner_cafe_relation'),
   /* Booking config — anchor address used as one endpoint of the midpoint
    * search when a visitor books a coffee, plus a JSON map of weekday →
    * { enabled, start, end } describing weekly recurring availability.
@@ -265,6 +247,77 @@ export const proposals = sqliteTable(
   },
   (t) => ({
     expiresIdx: index('proposals_expires_idx').on(t.expiresAt),
+  }),
+);
+
+// Featured cafés on the public profile — replaces the v1 single-cafe
+// `user.owner_cafe_*` columns. Up to 5 per user, each with its own
+// relation (owned/favorite), a short "why" note, up to 4 typed external
+// links, and (for owned entries) a "what's brewing" pinned note that the
+// owner is expected to refresh. Owned rows get an auto-verified flag set
+// when the user's account email host matches the Place's website host —
+// the ✓ badge and the reverse-link chip wording both gate on this.
+//
+// Schema notes:
+//  - PK (user_id, place_id) prevents the same shop from being featured
+//    twice by one user. Re-saving the same place updates in-place.
+//  - `position` is plain 0..4 ordering — we don't bother with fractional
+//    indexes since v1 has no drag reorder; remove + re-add covers it.
+//  - `relation` is plain text + an API-layer enum check; SQLite enums
+//    aren't worth a custom CHECK constraint when the API is the only
+//    writer.
+//  - Hours / open_now / visits-count are NOT stored here — derived at
+//    render time from Places cache + visited_shops, so they stay fresh
+//    without a write path.
+export const featuredCafes = sqliteTable(
+  'featured_cafes',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    placeId: text('place_id').notNull(),
+    name: text('name').notNull(),
+    address: text('address').notNull(),
+    lat: real('lat').notNull(),
+    lng: real('lng').notNull(),
+    /** 'owned' (user runs the cafe) | 'favorite' (user just likes it).
+     *  Drives the public-profile card variant + reverse-link wording. */
+    relation: text('relation').notNull(),
+    /** 0..4 — ascending render order. v1 has no drag reorder; remove +
+     *  re-add suffices for 5-card lists. */
+    position: integer('position').notNull(),
+    /** Static "why this café" line, ~140 chars, optional. Both relations. */
+    note: text('note'),
+    /** Optional external links — typed slots so the UI picks the right
+     *  icon and the favorite-card variant can prioritise (e.g. Instagram
+     *  over Menu). */
+    linkInstagram: text('link_instagram'),
+    linkWebsite: text('link_website'),
+    linkMenu: text('link_menu'),
+    linkBookingExternal: text('link_booking_external'),
+    /** Owned-only "本周特别 / what's brewing" pinned note, ~80 chars.
+     *  Owner is expected to refresh — we don't expire automatically in
+     *  v1, but a stale-after-N-days hint surfaces on AccountPage. */
+    ownerPinnedNote: text('owner_pinned_note'),
+    /** Auto-set true at upsert when the user's account email host matches
+     *  the Place's website host. False otherwise. The badge + the
+     *  search-result reverse-link chip wording both gate on this. */
+    ownerVerified: integer('owner_verified', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    /** ms-since-epoch of the last successful verification. Used both as
+     *  a "is this still claimed?" signal and to support a future re-check
+     *  cron without re-touching every row blindly. */
+    ownerVerifiedAt: integer('owner_verified_at', { mode: 'timestamp_ms' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.placeId] }),
+    /** Render-order lookup: list a user's cards sorted by position. */
+    userIdx: index('featured_cafes_user_idx').on(t.userId, t.position),
+    /** Reverse-link lookup: given a place_id, who features it? */
+    placeIdx: index('featured_cafes_place_idx').on(t.placeId),
   }),
 );
 
