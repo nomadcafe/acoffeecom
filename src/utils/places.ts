@@ -314,6 +314,10 @@ export async function enrichWithDurations(
 export interface OwnerAttribution {
   username: string;
   displayName: string | null;
+  /* 'owned' = the linked user runs the cafe; 'favorite' = it's a cafe
+   * they highlighted but don't claim to operate. Drives chip wording on
+   * CoffeeShopCard. */
+  relation: 'owned' | 'favorite';
 }
 
 /**

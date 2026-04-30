@@ -80,6 +80,7 @@ export function createAuth(env: AuthEnv) {
         ownerCafeAddress: { type: 'string', required: false },
         ownerCafeLat: { type: 'number', required: false },
         ownerCafeLng: { type: 'number', required: false },
+        ownerCafeRelation: { type: 'string', required: false },
         homeBaseAddress: { type: 'string', required: false },
         availabilitySlots: { type: 'string', required: false, defaultValue: '{}' },
         timezone: { type: 'string', required: false, defaultValue: 'UTC' },

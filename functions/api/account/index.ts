@@ -70,10 +70,11 @@ const AvailabilitySchema = z
   .strict();
 
 /* Featured-cafe payload from the AccountPage picker. The client picks via
- * Places autocomplete and sends the resolved Place ID + display fields in
- * one body — saves a server-side Places API hit on every save and keeps the
- * canonical name/address aligned with what the user actually picked. We
- * still bound each field to defend against odd payloads. */
+ * Places autocomplete (or one-tap from the passport list) and sends the
+ * resolved Place ID + display fields + relation in one body — saves a
+ * server-side Places API hit on every save and keeps the canonical
+ * name/address aligned with what the user actually picked. We still bound
+ * each field to defend against odd payloads. */
 const OwnerCafeSchema = z
   .object({
     placeId: z.string().trim().min(1).max(200),
@@ -81,6 +82,10 @@ const OwnerCafeSchema = z
     address: z.string().trim().min(1).max(300),
     lat: z.number().finite().min(-90).max(90),
     lng: z.number().finite().min(-180).max(180),
+    /* 'owned' = the user runs / works at the cafe; 'favorite' = it's just
+     * a shop they want to highlight. Drives copy on the public profile
+     * and the reverse-link chip on search results. */
+    relation: z.enum(['owned', 'favorite']),
   })
   .strict();
 
@@ -161,12 +166,14 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
       patch.ownerCafeAddress = null;
       patch.ownerCafeLat = null;
       patch.ownerCafeLng = null;
+      patch.ownerCafeRelation = null;
     } else {
       patch.ownerCafePlaceId = input.ownerCafe.placeId;
       patch.ownerCafeName = input.ownerCafe.name;
       patch.ownerCafeAddress = input.ownerCafe.address;
       patch.ownerCafeLat = input.ownerCafe.lat;
       patch.ownerCafeLng = input.ownerCafe.lng;
+      patch.ownerCafeRelation = input.ownerCafe.relation;
     }
   }
   if (input.homeBaseAddress !== undefined) {

@@ -977,3 +977,128 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Relation pill row — only meaningful once a cafe is picked. Two pills
+ * (favorite / owned) so the choice is binary and obvious; each pill is
+ * tappable on mobile (≥40px touch target via padding). */
+.featuredCafeRelation {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.featuredCafeRelationPill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: 8px;
+  color: var(--ac-text);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.featuredCafeRelationPill:hover {
+  background: var(--ac-surface-tinted);
+}
+
+.featuredCafeRelationPillActive {
+  background: rgba(111, 78, 55, 0.1);
+  border-color: rgba(111, 78, 55, 0.45);
+}
+
+.featuredCafeRelationPillTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.featuredCafeRelationPillHint {
+  font-size: 0.75rem;
+  color: var(--ac-text-muted);
+  line-height: 1.3;
+}
+
+/* Passport quick-pick — shown above the autocomplete when the user has
+ * already logged cafes in their passport. Avoids a redundant search for
+ * the most common case ("I want my favorite, which I've already
+ * stamped"). Hides automatically when there are no visited cafes. */
+.featuredCafePassport {
+  margin-bottom: 0.65rem;
+}
+
+.featuredCafePassportLabel {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.featuredCafePassportList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.featuredCafePassportItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: 8px;
+  color: var(--ac-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.featuredCafePassportItem:hover,
+.featuredCafePassportItem:focus {
+  background: var(--ac-surface-tinted);
+  border-color: rgba(111, 78, 55, 0.35);
+  outline: none;
+}
+
+.featuredCafePassportItemName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.featuredCafePassportItemMeta {
+  font-size: 0.75rem;
+  color: var(--ac-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.featuredCafePassportEmpty {
+  margin: 0.25rem 0 0.6rem;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+}

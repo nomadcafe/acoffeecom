@@ -1070,12 +1070,15 @@ function parseInitialSocialLinks(raw: string | undefined): SocialLinkDraft[] {
   }
 }
 
+type OwnerCafeRelation = 'owned' | 'favorite';
+
 interface InitialOwnerCafe {
   placeId: string;
   name: string;
   address: string;
   lat: number;
   lng: number;
+  relation: OwnerCafeRelation;
 }
 
 function parseInitialOwnerCafe(sessionUser: {
@@ -1084,6 +1087,7 @@ function parseInitialOwnerCafe(sessionUser: {
   ownerCafeAddress?: string | null;
   ownerCafeLat?: number | null;
   ownerCafeLng?: number | null;
+  ownerCafeRelation?: string | null;
 }): InitialOwnerCafe | null {
   if (
     !sessionUser.ownerCafePlaceId ||
@@ -1100,6 +1104,9 @@ function parseInitialOwnerCafe(sessionUser: {
     address: sessionUser.ownerCafeAddress,
     lat: sessionUser.ownerCafeLat,
     lng: sessionUser.ownerCafeLng,
+    // Server backfills 'favorite' for old rows; defensive fallback here
+    // covers the rare race where the column came back null.
+    relation: sessionUser.ownerCafeRelation === 'owned' ? 'owned' : 'favorite',
   };
 }
 
@@ -1131,6 +1138,7 @@ function ProfileContentCard({
   initialOwnerCafe,
 }: ProfileContentProps) {
   const { t, locale } = useI18n();
+  const { visitedShops } = useApp();
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [bio, setBio] = useState(initialBio);
   const [links, setLinks] = useState<SocialLinkDraft[]>(initialSocialLinks);
@@ -1141,6 +1149,36 @@ function ProfileContentCard({
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
   // zh-CN is what Google's autocomplete expects; our locale code is `zh`.
   const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
+
+  /* Top passport cafes — sorted by visit count desc. Powers the one-tap
+   * "from your passport" picker so the most common case ("set my favorite,
+   * which I've already stamped") doesn't require typing into autocomplete.
+   * Capped at 5 to keep the row from running long; users with more visits
+   * can always fall through to the search input. */
+  const passportPicks = visitedShops
+    .filter((s) => s.visits.length > 0)
+    .slice()
+    .sort((a, b) => b.visits.length - a.visits.length || a.name.localeCompare(b.name))
+    .slice(0, 5);
+
+  function pickPassportCafe(shop: typeof visitedShops[number]) {
+    setOwnerCafe({
+      placeId: shop.id,
+      name: shop.name,
+      address: shop.address,
+      lat: shop.lat,
+      lng: shop.lng,
+      // Picked from passport → almost certainly a "favorite" semantic.
+      // Owners can flip the relation pill afterwards if they want.
+      relation: 'favorite',
+    });
+    setCafeQuery('');
+    cafeAutocomplete.clear();
+  }
+
+  function setRelation(next: OwnerCafeRelation) {
+    setOwnerCafe((c) => (c ? { ...c, relation: next } : c));
+  }
 
   function setLinkField(idx: number, field: 'label' | 'url', value: string) {
     setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
@@ -1313,64 +1351,149 @@ function ProfileContentCard({
           {t('account.featuredCafeHint')}
         </p>
         {ownerCafe ? (
-          <div className={styles.featuredCafeChosen}>
-            <div className={styles.featuredCafeMeta}>
-              <strong>{ownerCafe.name}</strong>
-              <span className={styles.featuredCafeAddress}>{ownerCafe.address}</span>
+          <>
+            <div className={styles.featuredCafeChosen}>
+              <div className={styles.featuredCafeMeta}>
+                <strong>{ownerCafe.name}</strong>
+                <span className={styles.featuredCafeAddress}>{ownerCafe.address}</span>
+              </div>
+              <button
+                type="button"
+                className={styles.linkRemove}
+                onClick={() => setOwnerCafe(null)}
+                aria-label={t('account.featuredCafeRemoveAria')}
+              >
+                ×
+              </button>
             </div>
-            <button
-              type="button"
-              className={styles.linkRemove}
-              onClick={() => setOwnerCafe(null)}
-              aria-label={t('account.featuredCafeRemoveAria')}
+            {/* Relation pills — drive both the public profile heading
+                ("Owned café" vs "My favorite") and the search-result
+                attribution chip wording. Default 'favorite' since most
+                users won't actually own the cafe. */}
+            <div
+              className={styles.featuredCafeRelation}
+              role="radiogroup"
+              aria-label={t('account.featuredCafeRelationLabel')}
             >
-              ×
-            </button>
-          </div>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={ownerCafe.relation === 'favorite'}
+                className={`${styles.featuredCafeRelationPill}${
+                  ownerCafe.relation === 'favorite'
+                    ? ' ' + styles.featuredCafeRelationPillActive
+                    : ''
+                }`}
+                onClick={() => setRelation('favorite')}
+              >
+                <span className={styles.featuredCafeRelationPillTitle}>
+                  <span aria-hidden>❤️</span>
+                  {t('account.featuredCafeRelationFavoriteTitle')}
+                </span>
+                <span className={styles.featuredCafeRelationPillHint}>
+                  {t('account.featuredCafeRelationFavoriteHint')}
+                </span>
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={ownerCafe.relation === 'owned'}
+                className={`${styles.featuredCafeRelationPill}${
+                  ownerCafe.relation === 'owned'
+                    ? ' ' + styles.featuredCafeRelationPillActive
+                    : ''
+                }`}
+                onClick={() => setRelation('owned')}
+              >
+                <span className={styles.featuredCafeRelationPillTitle}>
+                  <span aria-hidden>🏠</span>
+                  {t('account.featuredCafeRelationOwnedTitle')}
+                </span>
+                <span className={styles.featuredCafeRelationPillHint}>
+                  {t('account.featuredCafeRelationOwnedHint')}
+                </span>
+              </button>
+            </div>
+          </>
         ) : (
-          <div className={styles.featuredCafeSearch}>
-            <input
-              type="text"
-              className={styles.linkLabelInput}
-              placeholder={t('account.featuredCafePlaceholder')}
-              value={cafeQuery}
-              onChange={(e) => {
-                setCafeQuery(e.target.value);
-                cafeAutocomplete.query(e.target.value);
-              }}
-              onBlur={() => {
-                // Defer clear so an in-progress click on a suggestion still
-                // fires before the dropdown disappears.
-                window.setTimeout(() => cafeAutocomplete.clear(), 150);
-              }}
-            />
-            {cafeAutocomplete.suggestions.length > 0 ? (
-              <ul className={styles.featuredCafeSuggestions} role="listbox">
-                {cafeAutocomplete.suggestions.map((s, i) => {
-                  const text = s.placePrediction?.text.text ?? '';
-                  if (!text) return null;
-                  return (
-                    <li key={`${i}-${text}`}>
+          <>
+            {/* Quick-pick from passport: short list of the user's most-
+                visited cafes. One-tap sets all five display fields with
+                relation='favorite'. Falls through to the typed search
+                below when none match the user's intent. */}
+            {passportPicks.length > 0 ? (
+              <div className={styles.featuredCafePassport}>
+                <span className={styles.featuredCafePassportLabel}>
+                  {t('account.featuredCafeFromPassport')}
+                </span>
+                <ul className={styles.featuredCafePassportList}>
+                  {passportPicks.map((shop) => (
+                    <li key={shop.id}>
                       <button
                         type="button"
-                        className={styles.featuredCafeSuggestion}
-                        onMouseDown={(e) => e.preventDefault() /* keep input focus */}
-                        onClick={async () => {
-                          const picked = await cafeAutocomplete.pick(s);
-                          if (picked) {
-                            setOwnerCafe(picked);
-                            setCafeQuery('');
-                          }
-                        }}
+                        className={styles.featuredCafePassportItem}
+                        onClick={() => pickPassportCafe(shop)}
                       >
-                        {text}
+                        <span className={styles.featuredCafePassportItemName}>
+                          {shop.name}
+                        </span>
+                        <span className={styles.featuredCafePassportItemMeta}>
+                          {shop.city ?? shop.address}
+                          {' · '}
+                          {t('account.featuredCafeVisitCount', { count: shop.visits.length })}
+                        </span>
                       </button>
                     </li>
-                  );
-                })}
-              </ul>
+                  ))}
+                </ul>
+              </div>
             ) : null}
-          </div>
+            <div className={styles.featuredCafeSearch}>
+              <input
+                type="text"
+                className={styles.linkLabelInput}
+                placeholder={t('account.featuredCafePlaceholder')}
+                value={cafeQuery}
+                onChange={(e) => {
+                  setCafeQuery(e.target.value);
+                  cafeAutocomplete.query(e.target.value);
+                }}
+                onBlur={() => {
+                  // Defer clear so an in-progress click on a suggestion still
+                  // fires before the dropdown disappears.
+                  window.setTimeout(() => cafeAutocomplete.clear(), 150);
+                }}
+              />
+              {cafeAutocomplete.suggestions.length > 0 ? (
+                <ul className={styles.featuredCafeSuggestions} role="listbox">
+                  {cafeAutocomplete.suggestions.map((s, i) => {
+                    const text = s.placePrediction?.text.text ?? '';
+                    if (!text) return null;
+                    return (
+                      <li key={`${i}-${text}`}>
+                        <button
+                          type="button"
+                          className={styles.featuredCafeSuggestion}
+                          onMouseDown={(e) => e.preventDefault() /* keep input focus */}
+                          onClick={async () => {
+                            const picked = await cafeAutocomplete.pick(s);
+                            if (picked) {
+                              // New autocomplete picks default to 'favorite' — most
+                              // users aren't claiming ownership. Pill flip is one tap.
+                              setOwnerCafe({ ...picked, relation: 'favorite' });
+                              setCafeQuery('');
+                            }
+                          }}
+                        >
+                          {text}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </div>
+          </>
         )}
       </div>
 

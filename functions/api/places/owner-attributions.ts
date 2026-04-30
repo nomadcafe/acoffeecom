@@ -31,6 +31,11 @@ const InputSchema = z.object({
 interface Attribution {
   username: string;
   displayName: string | null;
+  /* Mirrors user.ownerCafeRelation: 'owned' tags the cafe owner so the chip
+   * reads "@user 经营 / Owned by @user"; 'favorite' is the looser default
+   * for anyone just highlighting a cafe they like. Older cached entries
+   * may lack the field — readers default it to 'favorite'. */
+  relation: 'owned' | 'favorite';
 }
 
 const CACHE_TTL_S = 300;
@@ -60,9 +65,15 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
           /* cached "no owner" — skip, don't refetch */
         } else {
           try {
-            const parsed = JSON.parse(cached) as Attribution;
+            const parsed = JSON.parse(cached) as Partial<Attribution>;
             if (parsed && typeof parsed.username === 'string') {
-              result[placeId] = parsed;
+              // Tolerate legacy cache entries that pre-date the relation
+              // field — fall back to 'favorite' rather than re-querying.
+              result[placeId] = {
+                username: parsed.username,
+                displayName: parsed.displayName ?? null,
+                relation: parsed.relation === 'owned' ? 'owned' : 'favorite',
+              };
             } else {
               missing.push(placeId);
             }
@@ -86,6 +97,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       placeId: user.ownerCafePlaceId,
       username: user.username,
       displayName: user.displayName,
+      relation: user.ownerCafeRelation,
     })
     .from(user)
     .where(
@@ -93,14 +105,23 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     );
 
   /* Multiple users can mark the same Place as featured (e.g. a manager and
-   * a barista at the same shop). v1 picks whichever the DB returns first
-   * — deterministic enough; we'll add explicit tie-breaking (username
-   * length / created_at) only when we see real collisions in production. */
+   * a barista at the same shop). Tie-break: prefer 'owned' over 'favorite'
+   * — if a real cafe owner has claimed the place, their chip is the more
+   * useful one to surface; favorites are a fallback. Within the same
+   * relation tier the DB-iteration order wins; we'll add a stricter
+   * tie-break (created_at, follower count) only if we see real conflicts. */
   const dbHits = new Map<string, Attribution>();
   for (const r of rows) {
     if (!r.placeId || !r.username) continue;
-    if (!dbHits.has(r.placeId)) {
-      dbHits.set(r.placeId, { username: r.username, displayName: r.displayName ?? null });
+    const relation: 'owned' | 'favorite' =
+      r.relation === 'owned' ? 'owned' : 'favorite';
+    const existing = dbHits.get(r.placeId);
+    if (!existing || (existing.relation !== 'owned' && relation === 'owned')) {
+      dbHits.set(r.placeId, {
+        username: r.username,
+        displayName: r.displayName ?? null,
+        relation,
+      });
     }
   }
 

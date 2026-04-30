@@ -40,6 +40,14 @@ export const user = sqliteTable('user', {
   ownerCafeAddress: text('owner_cafe_address'),
   ownerCafeLat: real('owner_cafe_lat'),
   ownerCafeLng: real('owner_cafe_lng'),
+  /* How the user relates to that cafe — 'owned' (they run it) vs
+   * 'favorite' (they just like it). Drives the public-profile section
+   * heading and the search-result reverse-link chip wording. Stored as
+   * plain text since SQLite has no native enum; the API layer enforces
+   * the two allowed values. Null only when ownerCafePlaceId is also null;
+   * existing rows pre-migration get backfilled to 'favorite' (the safer
+   * default — implies less commitment than 'owned'). */
+  ownerCafeRelation: text('owner_cafe_relation'),
   /* Booking config — anchor address used as one endpoint of the midpoint
    * search when a visitor books a coffee, plus a JSON map of weekday →
    * { enabled, start, end } describing weekly recurring availability.

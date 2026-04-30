@@ -30,6 +30,7 @@ interface OwnerCafe {
   address: string;
   lat: number;
   lng: number;
+  relation: 'owned' | 'favorite';
 }
 
 interface PublicProfile {
@@ -207,22 +208,33 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
       </section>
 
       {profile.ownerCafe ? (
-        <section className={styles.section} aria-label={t('profile.featuredCafeTitle')}>
-          <h2 className={styles.sectionTitle}>{t('profile.featuredCafeTitle')}</h2>
-          <a
-            className={styles.shopRow}
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              profile.ownerCafe.name + ' ' + profile.ownerCafe.address,
-            )}&query_place_id=${encodeURIComponent(profile.ownerCafe.placeId)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className={styles.shopName}>
-              {profile.ownerCafe.name}
-              <span className={styles.shopCity}> · {profile.ownerCafe.address}</span>
-            </span>
-          </a>
-        </section>
+        (() => {
+          /* Heading switches on relation: 'owned' reads as a soft brag /
+           * business claim, 'favorite' reads as a recommendation. Same
+           * underlying data, very different social meaning. */
+          const titleKey =
+            profile.ownerCafe.relation === 'owned'
+              ? 'profile.ownedCafeTitle'
+              : 'profile.favoriteCafeTitle';
+          return (
+            <section className={styles.section} aria-label={t(titleKey)}>
+              <h2 className={styles.sectionTitle}>{t(titleKey)}</h2>
+              <a
+                className={styles.shopRow}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  profile.ownerCafe.name + ' ' + profile.ownerCafe.address,
+                )}&query_place_id=${encodeURIComponent(profile.ownerCafe.placeId)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className={styles.shopName}>
+                  {profile.ownerCafe.name}
+                  <span className={styles.shopCity}> · {profile.ownerCafe.address}</span>
+                </span>
+              </a>
+            </section>
+          );
+        })()
       ) : null}
 
       <section className={styles.statsCard} aria-label={t('account.statsTitle')}>

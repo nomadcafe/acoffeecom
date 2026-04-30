@@ -228,7 +228,18 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
                 handle: ownerAttribution.displayName ?? `@${ownerAttribution.username}`,
               })}
             >
-              ↗ {t('card.ownerChip', { handle: `@${ownerAttribution.username}` })}
+              {/* Relation flips the chip's meaning: 'owned' = the linked
+                  user runs this place ("operated by …"); 'favorite' = a
+                  user picked it as a personal favorite. The ownership
+                  case is the higher-signal one and we already tie-break
+                  toward it server-side, so the chip text follows. */}
+              ↗{' '}
+              {t(
+                ownerAttribution.relation === 'owned'
+                  ? 'card.ownerChipOwned'
+                  : 'card.ownerChipFavorite',
+                { handle: `@${ownerAttribution.username}` },
+              )}
             </a>
           ) : null}
         </div>

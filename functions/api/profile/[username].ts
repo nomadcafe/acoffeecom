@@ -16,12 +16,15 @@ interface SocialLink {
   url: string;
 }
 
+type OwnerCafeRelation = 'owned' | 'favorite';
+
 interface OwnerCafe {
   placeId: string;
   name: string;
   address: string;
   lat: number;
   lng: number;
+  relation: OwnerCafeRelation;
 }
 
 export interface PublicProfile {
@@ -134,9 +137,12 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
   const memberSince =
     owner.createdAt instanceof Date ? owner.createdAt.getTime() : Number(owner.createdAt);
 
-  /* Featured cafe — only render if all five fields are present. The
-   * schema allows the four display columns to be NULL independently, so
-   * the server-side guard avoids leaking a half-populated card. */
+  /* Featured cafe — only render if all required fields are present. The
+   * schema allows the display columns to be NULL independently, so the
+   * server-side guard avoids leaking a half-populated card. `relation`
+   * gets a 'favorite' fallback for any rare row where the column slipped
+   * past the migration backfill — the safer wording given we can't infer
+   * actual ownership. */
   const ownerCafe: OwnerCafe | null =
     owner.ownerCafePlaceId &&
     owner.ownerCafeName &&
@@ -149,6 +155,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
           address: owner.ownerCafeAddress,
           lat: owner.ownerCafeLat,
           lng: owner.ownerCafeLng,
+          relation: owner.ownerCafeRelation === 'owned' ? 'owned' : 'favorite',
         }
       : null;
 
