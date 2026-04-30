@@ -285,6 +285,12 @@ export function expandBusyWindows(
   return out;
 }
 
+// Hard limits for the user-supplied iCal fetch. The URL is attacker-
+// controlled (anyone can paste anything into their account), so we cap
+// the blast radius: only http(s), short timeout, bounded body size.
+const ICS_FETCH_TIMEOUT_MS = 5_000;
+const ICS_MAX_BYTES = 512 * 1024;
+
 /**
  * Top-level: fetch the iCal URL, parse, and return busy windows that
  * overlap [windowStartMs, windowEndMs]. Throws on fetch / parse failure
@@ -300,15 +306,62 @@ export async function fetchBusyWindows(
   // Some calendar providers serve `webcal://` URLs (Apple iCloud) that
   // are really HTTPS — normalise so fetch() doesn't choke.
   const httpUrl = url.replace(/^webcal:\/\//i, 'https://');
+
+  let parsed: URL;
+  try {
+    parsed = new URL(httpUrl);
+  } catch {
+    throw new Error('Invalid calendar URL');
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    throw new Error('Calendar URL must use https');
+  }
+
   const r = await fetch(httpUrl, {
     cache: 'no-store',
     redirect: 'follow',
+    signal: AbortSignal.timeout(ICS_FETCH_TIMEOUT_MS),
   });
   if (!r.ok) throw new Error(`ICS fetch failed: ${r.status}`);
-  const text = await r.text();
+
+  const declared = Number(r.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > ICS_MAX_BYTES) {
+    throw new Error('Calendar feed is too large');
+  }
+
+  const text = await readCappedText(r, ICS_MAX_BYTES);
   if (!text.includes('BEGIN:VCALENDAR')) {
     throw new Error('Not a valid iCalendar feed');
   }
   const events = parseEvents(text);
   return expandBusyWindows(events, windowStartMs, windowEndMs);
+}
+
+/** Read the response body as text, aborting if it exceeds maxBytes. */
+async function readCappedText(r: Response, maxBytes: number): Promise<string> {
+  if (!r.body) return '';
+  const reader = r.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error('Calendar feed is too large');
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    merged.set(c, offset);
+    offset += c.byteLength;
+  }
+  return new TextDecoder('utf-8').decode(merged);
 }
