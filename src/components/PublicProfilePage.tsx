@@ -264,14 +264,17 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
 
       <section className={styles.statsCard} aria-label={t('account.statsTitle')}>
         <div className={styles.statCell}>
+          <div className={styles.statIcon} aria-hidden>☕</div>
           <div className={styles.statValue}>{profile.cups}</div>
           <div className={styles.statLabel}>{t('passport.statVisits')}</div>
         </div>
         <div className={styles.statCell}>
+          <div className={styles.statIcon} aria-hidden>🏪</div>
           <div className={styles.statValue}>{profile.shops}</div>
           <div className={styles.statLabel}>{t('passport.statShops')}</div>
         </div>
         <div className={styles.statCell}>
+          <div className={styles.statIcon} aria-hidden>🔥</div>
           <div className={styles.statValue}>{profile.streak}</div>
           <div className={styles.statLabel}>{t('passport.statStreak')}</div>
         </div>
@@ -281,15 +284,29 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
         <section className={styles.section} aria-label={t('profile.topShopsTitle')}>
           <h2 className={styles.sectionTitle}>{t('profile.topShopsTitle')}</h2>
           <ol className={styles.shopList}>
-            {profile.topShops.map((s) => (
-              <li key={s.id} className={styles.shopRow}>
-                <span className={styles.shopName}>
-                  {s.name}
-                  {s.city ? <span className={styles.shopCity}> · {s.city}</span> : null}
-                </span>
-                <span className={styles.shopVisits}>
-                  {t('profile.shopVisits', { count: s.visits })}
-                </span>
+            {profile.topShops.map((s, i) => (
+              <li key={s.id}>
+                {/* Each row jumps to the cafe in Google Maps. Using the
+                    stable place_id form so renames / address changes don't
+                    rot the link. The rank badge on the left mirrors the
+                    "1, 2, 3..." mental model visitors get from "top shops"
+                    without needing the visible <ol> numerals. */}
+                <a
+                  className={styles.shopRow}
+                  href={`https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(s.id)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className={styles.shopRank} aria-hidden>{i + 1}</span>
+                  <span className={styles.shopMeta}>
+                    <span className={styles.shopName}>{s.name}</span>
+                    {s.city ? <span className={styles.shopCity}>{s.city}</span> : null}
+                  </span>
+                  <span className={styles.shopVisits}>
+                    {t('profile.shopVisits', { count: s.visits })}
+                  </span>
+                  <span className={styles.shopArrow} aria-hidden>↗</span>
+                </a>
               </li>
             ))}
           </ol>
