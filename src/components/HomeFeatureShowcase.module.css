@@ -42,11 +42,11 @@
 .title {
   margin: 0 0 0.85rem;
   font-family: var(--ac-font-display);
-  font-size: 2.4rem;
+  font-size: 2.6rem;
   font-weight: 800;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.045em;
   text-align: center;
-  line-height: 0.95;
+  line-height: 0.92;
   font-variation-settings: 'opsz' 60;
   background: linear-gradient(135deg, #2c1810 0%, #6f4e37 55%, #a36b3e 100%);
   -webkit-background-clip: text;
@@ -66,12 +66,16 @@
 @media (min-width: 768px) {
   .wrap { padding: 2rem 0 3rem; }
   .eyebrow { font-size: 0.78rem; margin-bottom: 1.1rem; }
-  .title { font-size: 4rem; margin-bottom: 1.2rem; }
+  .title { font-size: 5rem; margin-bottom: 1.2rem; }
   .lead { font-size: 1.15rem; margin-bottom: 2.6rem; }
 }
 
 @media (min-width: 1024px) {
-  .title { font-size: 4.75rem; }
+  .title { font-size: 6.5rem; }
+}
+
+@media (min-width: 1280px) {
+  .title { font-size: 7.5rem; }
 }
 
 /* ────── Carousel container ────── */
@@ -143,13 +147,22 @@
 
 /* Desktop: even wider asymmetry, looser padding, longer aspect ratio
  * so the carousel reads as a "horizontal slab" rather than a square
- * card. */
+ * card. Visual column carries 60% of the inner width to give the mocks
+ * room to read clearly without compressing the headline / body. */
 @media (min-width: 1024px) {
   .slide {
-    grid-template-columns: 1fr 1.2fr;
+    grid-template-columns: 1fr 1.5fr;
     gap: 3rem;
-    padding: 2.5rem 3.5rem;
-    min-height: 340px;
+    padding: 2.75rem 3.5rem;
+    min-height: 380px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .slide {
+    grid-template-columns: 1fr 1.6fr;
+    padding: 3rem 4rem;
+    min-height: 420px;
   }
 }
 
@@ -291,21 +304,30 @@
 }
 
 @media (min-width: 768px) {
-  .mockAgent { max-width: 440px; }
-  .mockPassport,
-  .mockProfile,
-  .mockBooking,
-  .mockProposal,
-  .mockOwnerCafe { max-width: 400px; }
-}
-
-@media (min-width: 1024px) {
   .mockAgent { max-width: 480px; }
   .mockPassport,
   .mockProfile,
   .mockBooking,
   .mockProposal,
   .mockOwnerCafe { max-width: 440px; }
+}
+
+@media (min-width: 1024px) {
+  .mockAgent { max-width: 600px; }
+  .mockPassport,
+  .mockProfile,
+  .mockBooking,
+  .mockProposal,
+  .mockOwnerCafe { max-width: 540px; }
+}
+
+@media (min-width: 1280px) {
+  .mockAgent { max-width: 680px; }
+  .mockPassport,
+  .mockProfile,
+  .mockBooking,
+  .mockProposal,
+  .mockOwnerCafe { max-width: 600px; }
 }
 
 @keyframes cafeGlow {
