@@ -1,3 +1,7 @@
+/* Shared by both CancelBookingPage and ConfirmBookingPage — the
+ * email-link landing pages. Both render a single card on a plain
+ * page chrome, so the styling is intentionally minimal. */
+
 .app {
   min-height: 100dvh;
   background: var(--ac-page-bg);
@@ -6,27 +10,60 @@
   flex-direction: column;
 }
 
+/* Mirror App.css .header so these landing pages feel of-the-same-app
+ * as the rest. Surface bg, hairline border-bottom, sticky to top. */
 .header {
-  background: rgba(250, 246, 241, 0.92);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(60, 30, 0, 0.06);
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--ac-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .headerInner {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0.6rem 1rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 2.75rem;
 }
 
 .logo {
-  font-family: 'Fraunces', serif;
-  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--ac-font-display);
+  font-size: 1.45rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variation-settings: 'opsz' 36;
   text-decoration: none;
   color: var(--ac-text);
-  letter-spacing: -0.01em;
+  transition: opacity var(--ac-motion-fast);
+}
+
+.logo:hover {
+  opacity: 0.85;
+}
+
+.logo:focus-visible {
+  outline: 2px solid var(--ac-accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: 0.55rem 1.5rem;
+  }
+
+  .logo {
+    font-size: 1.7rem;
+  }
 }
 
 .main {
@@ -41,10 +78,10 @@
 }
 
 .card {
-  background: #fff;
-  border-radius: 14px;
+  background: var(--ac-surface);
+  border-radius: var(--ac-radius-md);
   padding: 1.5rem 1.4rem;
-  box-shadow: 0 1px 3px rgba(60, 30, 0, 0.06);
+  box-shadow: var(--ac-shadow-card);
 }
 
 .title {
@@ -66,10 +103,13 @@
   gap: 0.6rem;
 }
 
+/* Destructive action — cancellation confirm. Red palette is intentional
+ * and not in the design tokens (no --ac-danger yet); keep the literals
+ * here as the canonical "destructive" red until/unless a token lands. */
 .confirm {
   flex: 1;
   padding: 0.7rem 1rem;
-  border-radius: 999px;
+  border-radius: var(--ac-radius-pill);
   border: 0;
   background: #8b3d28;
   color: #fff;
@@ -77,10 +117,16 @@
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
+  transition: background var(--ac-motion-fast);
 }
 
 .confirm:hover:not(:disabled) {
   background: #71301f;
+}
+
+.confirm:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 61, 40, 0.3);
 }
 
 .confirm:disabled {
@@ -91,9 +137,9 @@
 .back {
   flex: 1;
   padding: 0.7rem 1rem;
-  border-radius: 999px;
+  border-radius: var(--ac-radius-pill);
   border: 1px solid var(--ac-border);
-  background: #fff;
+  background: var(--ac-surface);
   color: var(--ac-text);
   font-family: inherit;
   font-size: 0.95rem;
@@ -103,14 +149,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: border-color var(--ac-motion-fast), background var(--ac-motion-fast);
 }
 
+.back:hover {
+  border-color: var(--ac-text-muted);
+  background: var(--ac-surface-tinted);
+}
+
+.back:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
+}
+
+/* Inline error pill — same destructive red family as .confirm. */
 .error {
   background: #fdecec;
   border: 1px solid #f3c2c2;
   color: #8b3d28;
   padding: 0.7rem 0.9rem;
-  border-radius: 8px;
+  border-radius: var(--ac-radius-sm);
   font-size: 0.9rem;
   margin-bottom: 1rem;
 }
@@ -126,7 +185,17 @@
   padding: 0.6rem 1rem;
   background: var(--ac-accent);
   color: #fff;
-  border-radius: 999px;
+  border-radius: var(--ac-radius-pill);
   text-decoration: none;
   font-weight: 600;
+  transition: background var(--ac-motion-fast);
+}
+
+.successCta:hover {
+  background: var(--ac-accent-dark);
+}
+
+.successCta:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
 }
