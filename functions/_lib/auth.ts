@@ -32,6 +32,16 @@ export interface AuthEnv extends DbEnv {
    *  dev session without the namespace doesn't crash the server — the
    *  computeRouteMatrix path detects undefined and skips caching. */
   ROUTES_CACHE?: KVNamespace;
+  /** R2 bucket for user-uploaded avatars. Keys are prefixed by user id;
+   *  contents are public via the bucket's r2.dev URL (or eventually a
+   *  custom CDN). Optional so /api/account routes that don't touch
+   *  avatars still work in environments where the binding isn't set. */
+  AVATARS?: R2Bucket;
+  /** Public URL prefix for the AVATARS bucket — what the browser
+   *  ultimately fetches. We construct `${prefix}/${key}` server-side
+   *  before storing it on user.image so no R2-specific URL shape leaks
+   *  into client code. */
+  AVATARS_PUBLIC_URL?: string;
 }
 
 export function createAuth(env: AuthEnv) {

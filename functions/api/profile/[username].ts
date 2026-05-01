@@ -57,6 +57,10 @@ interface PublicFeaturedCafe {
 export interface PublicProfile {
   username: string;
   displayName: string | null;
+  /** Avatar URL — populated by Better Auth from the OAuth provider for
+   *  Google sign-ins, or set explicitly by the user via /api/account/avatar.
+   *  Null = profile page falls back to a gradient + initial letter. */
+  image: string | null;
   bio: string | null;
   socialLinks: SocialLink[];
   featuredCafes: PublicFeaturedCafe[];
@@ -65,6 +69,12 @@ export interface PublicProfile {
   shops: number;
   streak: number;
   topShops: PublicShop[];
+  /** True only when the owner has both a home_base address (so we have an
+   *  endpoint for the midpoint search) and at least one enabled weekday
+   *  in their availability. The public profile page hides the booking
+   *  widget entirely when false instead of showing an "unavailable" placeholder
+   *  right under the hero. */
+  bookingEnabled: boolean;
 }
 
 function parseSocialLinks(raw: string | null | undefined): SocialLink[] {
@@ -218,9 +228,37 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
     };
   });
 
+  // Booking is "on" when both the home base + at least one enabled day
+  // are present. We parse the same JSON the booking endpoint expects,
+  // but only enough to know if any day is enabled — the widget itself
+  // re-fetches the full availability via /api/profile/[username]/availability
+  // when rendered.
+  let hasEnabledDay = false;
+  if (owner.availabilitySlots) {
+    try {
+      const parsed = JSON.parse(owner.availabilitySlots);
+      if (parsed && typeof parsed === 'object') {
+        for (const v of Object.values(parsed as Record<string, unknown>)) {
+          if (
+            v &&
+            typeof v === 'object' &&
+            (v as { enabled?: unknown }).enabled === true
+          ) {
+            hasEnabledDay = true;
+            break;
+          }
+        }
+      }
+    } catch {
+      /* malformed → bookingEnabled stays false */
+    }
+  }
+  const bookingEnabled = !!owner.homeBaseAddress && hasEnabledDay;
+
   const payload: PublicProfile = {
     username,
     displayName: owner.displayName ?? null,
+    image: owner.image ?? null,
     bio: owner.bio ?? null,
     /* Privacy toggle: when the owner has hidden their social links, the
      * public response simply ships an empty array — same shape, no
@@ -232,6 +270,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
     shops: shopsAgg.length,
     streak,
     topShops,
+    bookingEnabled,
   };
 
   return Response.json(payload, {

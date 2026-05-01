@@ -85,6 +85,17 @@
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
 }
 
+/* Real-image variant. Same footprint as the gradient avatar so the rest
+   of the hero layout doesn't shift when an image loads or fails. */
+.avatarImage {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: #d6cdc1;
+}
+
 .handle {
   margin: 0;
   font-family: var(--ac-font-display);

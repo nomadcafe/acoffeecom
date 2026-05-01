@@ -24,6 +24,18 @@ migrations_dir = "functions/_lib/db/migrations"
 binding = "ROUTES_CACHE"
 id = "11461dbc572d492a9f101e65b19f32f1"
 
+# R2 bucket for user-uploaded avatar images. Shared by dev + prod because
+# keys are user-id-prefixed and the dev/prod D1s have disjoint user IDs,
+# so collision is impossible. Public access is on at the bucket level —
+# the r2.dev URL is what we store in user.image and serve to browsers.
+# AVATARS_PUBLIC_URL env var holds the bucket's public URL prefix.
+[[r2_buckets]]
+binding = "AVATARS"
+bucket_name = "acoffee-avatars"
+
+[vars]
+AVATARS_PUBLIC_URL = "https://pub-8047aed0e1084fc3b99f34b3bb637d65.r2.dev"
+
 # Production D1 — separate database, same binding name. Set via
 # `wrangler d1 create acoffee-prod` and paste the id below.
 [env.production]
@@ -36,3 +48,10 @@ migrations_dir = "functions/_lib/db/migrations"
 [[env.production.kv_namespaces]]
 binding = "ROUTES_CACHE"
 id = "1ddd7e859cab4dcebebd0eb40704a53e"
+
+[[env.production.r2_buckets]]
+binding = "AVATARS"
+bucket_name = "acoffee-avatars"
+
+[env.production.vars]
+AVATARS_PUBLIC_URL = "https://pub-8047aed0e1084fc3b99f34b3bb637d65.r2.dev"

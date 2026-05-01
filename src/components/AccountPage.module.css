@@ -1103,6 +1103,46 @@
   color: var(--ac-text-muted);
 }
 
+/* Avatar card layout — preview circle on the left, file picker + remove
+   button stacked on the right. Same circle footprint (96px) regardless
+   of whether an image loaded so the row doesn't shift between states. */
+.avatarRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.avatarPreview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #d6cdc1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.avatarPreviewEmpty {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #ece4d4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #7a6f5e;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.avatarActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
 /* Wraps a single editable featured cafe (name, relation, note, links).
    Visually separates each card in the multi-card list — a 1px border +
    tiny padding is enough to chunk them without competing with the

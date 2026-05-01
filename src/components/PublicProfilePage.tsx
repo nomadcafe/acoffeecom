@@ -54,6 +54,7 @@ interface PublicFeaturedCafe {
 interface PublicProfile {
   username: string;
   displayName: string | null;
+  image: string | null;
   bio: string | null;
   socialLinks: SocialLink[];
   featuredCafes: PublicFeaturedCafe[];
@@ -62,6 +63,7 @@ interface PublicProfile {
   shops: number;
   streak: number;
   topShops: PublicShop[];
+  bookingEnabled: boolean;
 }
 
 type Fetch =
@@ -182,13 +184,28 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
   return (
     <>
       <section className={styles.heroCard} aria-label={t('profile.heroAria')}>
-        <div
-          className={styles.avatar}
-          aria-hidden
-          style={{ background: avatarGradient(profile.username) }}
-        >
-          {initialChar}
-        </div>
+        {profile.image ? (
+          // Real avatar (Google OAuth gave us one, or the user uploaded
+          // via /api/account/avatar). We render via <img> so browsers
+          // get cache headers; the gradient is a fallback only.
+          <img
+            className={styles.avatarImage}
+            src={profile.image}
+            alt=""
+            referrerPolicy="no-referrer"
+            loading="eager"
+            width={96}
+            height={96}
+          />
+        ) : (
+          <div
+            className={styles.avatar}
+            aria-hidden
+            style={{ background: avatarGradient(profile.username) }}
+          >
+            {initialChar}
+          </div>
+        )}
         {profile.displayName ? (
           <h1 className={styles.handle}>{profile.displayName}</h1>
         ) : null}
@@ -224,6 +241,15 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
           {t('profile.memberSince', { date: formatAbsoluteDate(profile.memberSince, locale) })}
         </p>
       </section>
+
+      {/* Booking widget — sits right under the hero so the conversion
+          path ("book a coffee with this person") is the first action a
+          visitor sees, not buried below stats and cafés. Only rendered
+          when the owner has actually configured booking; otherwise the
+          space stays clean. */}
+      {profile.bookingEnabled ? (
+        <BookingWidget username={profile.username} displayName={profile.displayName} />
+      ) : null}
 
       {profile.featuredCafes.length > 0 ? (
         <section className={styles.section} aria-label={t('profile.featuredCafesTitle')}>
@@ -269,8 +295,6 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
           </ol>
         </section>
       ) : null}
-
-      <BookingWidget username={profile.username} displayName={profile.displayName} />
     </>
   );
 }
