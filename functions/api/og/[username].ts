@@ -103,48 +103,51 @@ function renderTemplate(profile: ProfileForCard): string {
   const bio = profile.bio ? truncate(profile.bio, 110) : null;
   const initial = (profile.displayName ?? profile.username)[0]?.toUpperCase() ?? '?';
 
-  // Layout: brown banner top, big initial-circle, name + handle + bio,
-  // stat tiles row, ACoffee mark bottom-right. Inline styles only since
-  // satori (which workers-og uses) supports a flexbox subset.
+  // satori (workers-og's renderer) is strict: any <div> with more than
+  // one child node must have an explicit `display: flex` or
+  // `display: none`. Bare text mixed with siblings counts as multiple
+  // children, so we wrap every text run in <span> — that way the
+  // template stays valid no matter how the runtime parses whitespace
+  // around the JSX-ish HTML.
   return `
 <div style="display:flex;flex-direction:column;width:100%;height:100%;background:#fff7ec;font-family:system-ui,sans-serif;color:#2c1810;">
   <div style="display:flex;align-items:center;height:88px;background:#2c1810;color:#fff;padding:0 56px;">
     <div style="display:flex;align-items:center;font-size:32px;font-weight:600;letter-spacing:-0.5px;">
       <span style="font-size:38px;margin-right:14px;">☕</span>
-      ACoffee
+      <span>ACoffee</span>
     </div>
   </div>
   <div style="display:flex;flex-direction:column;flex:1;padding:64px 64px 56px;">
     <div style="display:flex;align-items:center;">
       <div style="display:flex;align-items:center;justify-content:center;width:140px;height:140px;border-radius:9999px;background:#a36b3e;color:#fff;font-size:74px;font-weight:600;font-family:Georgia,serif;letter-spacing:-1px;">
-        ${escapeSvg(initial)}
+        <span>${escapeSvg(initial)}</span>
       </div>
       <div style="display:flex;flex-direction:column;margin-left:36px;">
-        <div style="font-size:64px;font-weight:700;letter-spacing:-1.5px;line-height:1;">${truncate(heroName, 24)}</div>
-        ${handle ? `<div style="font-size:30px;color:#7a6a60;margin-top:10px;">${escapeSvg(handle)}</div>` : ''}
+        <span style="font-size:64px;font-weight:700;letter-spacing:-1.5px;line-height:1;">${truncate(heroName, 24)}</span>
+        ${handle ? `<span style="font-size:30px;color:#7a6a60;margin-top:10px;">${escapeSvg(handle)}</span>` : ''}
       </div>
     </div>
     ${
       bio
-        ? `<div style="font-size:32px;color:#3a2a20;margin-top:36px;line-height:1.4;max-width:1050px;">${escapeSvg(bio)}</div>`
+        ? `<div style="display:flex;font-size:32px;color:#3a2a20;margin-top:36px;line-height:1.4;max-width:1050px;"><span>${escapeSvg(bio)}</span></div>`
         : '<div style="height:36px;"></div>'
     }
     <div style="display:flex;margin-top:auto;gap:18px;">
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:#fff;border:1px solid #e8d8c4;border-radius:18px;padding:24px;">
-        <div style="font-size:64px;font-weight:700;color:#2c1810;line-height:1;">${profile.cups}</div>
-        <div style="font-size:22px;color:#7a6a60;margin-top:10px;letter-spacing:0.5px;">CUPS ☕</div>
+        <span style="font-size:64px;font-weight:700;color:#2c1810;line-height:1;">${profile.cups}</span>
+        <span style="font-size:22px;color:#7a6a60;margin-top:10px;letter-spacing:0.5px;">CUPS ☕</span>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:#fff;border:1px solid #e8d8c4;border-radius:18px;padding:24px;">
-        <div style="font-size:64px;font-weight:700;color:#2c1810;line-height:1;">${profile.shops}</div>
-        <div style="font-size:22px;color:#7a6a60;margin-top:10px;letter-spacing:0.5px;">CAFÉS</div>
+        <span style="font-size:64px;font-weight:700;color:#2c1810;line-height:1;">${profile.shops}</span>
+        <span style="font-size:22px;color:#7a6a60;margin-top:10px;letter-spacing:0.5px;">CAFÉS</span>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:#fff;border:1px solid #e8d8c4;border-radius:18px;padding:24px;">
-        <div style="font-size:64px;font-weight:700;color:#2c1810;line-height:1;">${profile.streak}</div>
-        <div style="font-size:22px;color:#7a6a60;margin-top:10px;letter-spacing:0.5px;">${profile.streak >= 2 ? 'STREAK 🔥' : 'STREAK'}</div>
+        <span style="font-size:64px;font-weight:700;color:#2c1810;line-height:1;">${profile.streak}</span>
+        <span style="font-size:22px;color:#7a6a60;margin-top:10px;letter-spacing:0.5px;">${profile.streak >= 2 ? 'STREAK 🔥' : 'STREAK'}</span>
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;font-size:22px;color:#7a6a60;margin-top:24px;">
-      acoffee.com/${escapeSvg(profile.username)}
+      <span>acoffee.com/${escapeSvg(profile.username)}</span>
     </div>
   </div>
 </div>`;

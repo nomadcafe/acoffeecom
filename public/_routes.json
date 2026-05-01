@@ -1,0 +1,15 @@
+{
+  "$comment": "Forces every URL through Pages Functions so the _middleware HTMLRewriter actually runs on /username and /<locale>/ paths. Without this, the SPA-fallback _redirects rule (`/* /index.html 200`) short-circuits before middleware can intercept, and the og:image meta tag never gets rewritten to /api/og/<username>. Static asset paths are excluded so chunk fetches don't pay the function-routing overhead on every request.",
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/logo.png",
+    "/manifest.webmanifest",
+    "/sw.js",
+    "/workbox-*.js",
+    "/registerSW.js",
+    "/robots.txt",
+    "/favicon.ico"
+  ]
+}
