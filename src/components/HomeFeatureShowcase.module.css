@@ -405,4 +405,7 @@
 .ownerCafeHeader strong { font-family: var(--ac-font-display); font-size: 1.2rem; font-weight: 800; color: var(--ac-text); letter-spacing: -0.01em; }
 .ownerCafeRating { font-size: 0.85rem; font-weight: 700; color: #f4a623; }
 .ownerCafeAddr { font-size: 0.85rem; color: var(--ac-text-muted); }
-.ownerCafeChip { margin-top: 0.4rem; align-self: flex-start; font-size: 0.82rem; font-weight: 600; color: var(--ac-accent); border-bottom: 1px dashed currentColor; padding-bottom: 1px; }
+.ownerCafeChip { margin-top: 0.4rem; align-self: flex-start; font-size: 0.82rem; font-weight: 600; color: var(--ac-accent); border-bottom: 1px dashed currentColor; padding-bottom: 1px; display: inline-flex; align-items: center; gap: 0.3rem; }
+.ownerCafeChipVerified { color: #2e8b57; }
+.ownerCafePinned { margin-top: 0.5rem; background: #fff4d8; border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.82rem; color: var(--ac-text); display: flex; flex-direction: column; gap: 0.1rem; }
+.ownerCafePinnedLabel { font-size: 0.66rem; color: #b07a1f; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }

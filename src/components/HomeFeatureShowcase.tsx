@@ -319,14 +319,25 @@ function MockProposal() {
 }
 
 function MockOwnerCafe() {
+  // Mocks a search-result card with the new reverse-link attribution
+  // chip: shows the verified ✓ + "Owned by" wording when the cafe owner
+  // has matched their email domain, plus a one-liner pinned note that
+  // demonstrates the "what's brewing this week" hook in real layout.
   return (
     <div className={styles.mockOwnerCafe}>
       <div className={styles.ownerCafeHeader}>
-        <strong>Blue Bottle Coffee</strong>
+        <strong>Blue Bottle Coffee Kyoto</strong>
         <span className={styles.ownerCafeRating}>★ 4.8</span>
       </div>
-      <div className={styles.ownerCafeAddr}>1-2-1 Shibuya · 8 min walk</div>
-      <a className={styles.ownerCafeChip}>↗ shared by @hello</a>
+      <div className={styles.ownerCafeAddr}>3-1 Karasuma-dōri · 8 min walk</div>
+      <div className={styles.ownerCafePinned}>
+        <span className={styles.ownerCafePinnedLabel}>This week</span>
+        <span>Seasonal Yirgacheffe is back — until Sunday.</span>
+      </div>
+      <a className={`${styles.ownerCafeChip} ${styles.ownerCafeChipVerified}`}>
+        <span aria-hidden>✓</span>
+        Owned by @bluebottle
+      </a>
     </div>
   );
 }
