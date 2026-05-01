@@ -227,6 +227,8 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
     if (url.pathname.startsWith(p)) return next();
   }
   if (SKIP_PATHS.has(url.pathname)) return next();
+
+  console.log('[mw]', url.pathname, 'home=', !!url.pathname.match(HOME_PATH_RE), 'user=', !!url.pathname.match(USERNAME_RE));
   // Path with a file extension (.png, .js, etc.) is definitely an asset.
   if (/\.[a-z0-9]{1,5}$/i.test(url.pathname)) return next();
 
