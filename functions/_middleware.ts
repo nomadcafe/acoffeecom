@@ -263,13 +263,20 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
   }
 
   const match = url.pathname.match(USERNAME_RE);
-  if (!match) return next();
+  if (!match) {
+    console.log('[mw user] no regex match', url.pathname);
+    return next();
+  }
   const username = match[2];
-  if (RESERVED_USERNAMES.has(username)) return next();
+  if (RESERVED_USERNAMES.has(username)) {
+    console.log('[mw user] reserved', username);
+    return next();
+  }
 
   let profile: ProfileForOg | null = null;
   try {
     profile = await fetchProfileForOg(env, username);
+    console.log('[mw user] fetch ok', username, 'profile=', !!profile);
   } catch (e) {
     console.error('[og] profile fetch failed', e);
     return next();
