@@ -548,6 +548,7 @@ export const messages: MessageDict = {
   'confirmPage.linkInvalidBody': '确认链接缺失或格式不对，请直接从邮件里打开。',
   'confirmPage.goHome': '返回 ACoffee',
   'profile.notFound': '没找到这个资料页。',
+  'profile.loadFailed': '加载资料页失败。刷新一下再试。',
   'account.exportTitle': '导出数据',
   'account.exportHint': '下载账户、到访记录、收藏咖啡店的 JSON 快照。作为备份，或者删除账户前的留底。',
   'account.exportButton': '下载 JSON',

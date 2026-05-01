@@ -35,13 +35,32 @@
   gap: 0.5rem;
   text-decoration: none;
   color: inherit;
+  transition: opacity var(--ac-motion-fast);
+}
+
+.logo:hover {
+  opacity: 0.85;
+}
+
+.logo:focus-visible {
+  outline: 2px solid var(--ac-accent);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .logoWordmark {
   font-family: var(--ac-font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variation-settings: 'opsz' 36;
+  color: var(--ac-text);
+}
+
+@media (min-width: 768px) {
+  .logoWordmark {
+    font-size: 1.7rem;
+  }
 }
 
 .main {
@@ -355,35 +374,6 @@
   opacity: 1;
 }
 
-.bookSection {
-  background: var(--ac-surface);
-  border: 1px dashed var(--ac-border-strong, #c9bdb1);
-  border-radius: 12px;
-  padding: 1rem 1.1rem;
-  text-align: center;
-}
-
-.bookButton {
-  display: inline-block;
-  margin-top: 0.6rem;
-  padding: 0.6rem 1.1rem;
-  border: 0;
-  border-radius: 999px;
-  background: #d6cdc1;
-  color: #5e4631;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: not-allowed;
-  font-family: inherit;
-}
-
-.bookHint {
-  margin: 0;
-  color: var(--ac-text-muted);
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
 .notFound {
   text-align: center;
   padding: 3rem 1rem;
@@ -401,9 +391,32 @@
   padding: 0.55rem 1rem;
   background: var(--ac-accent, #6f4e37);
   color: #fff;
+  border: 0;
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.notFoundCta:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
+/* Secondary link under the LoadFailed retry button — "or go home"
+ * fallback so the user has an exit even if reload doesn't help. */
+.notFoundLink {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: var(--ac-text-muted);
+  text-decoration: underline;
+  font-size: 0.85rem;
+}
+
+.notFoundLink:hover {
+  color: var(--ac-text);
 }
 
 .skeleton {

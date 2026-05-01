@@ -559,6 +559,7 @@ export const messages: MessageDict = {
   'confirmPage.linkInvalidBody': 'This confirmation link is missing or malformed. Open the link from your email directly.',
   'confirmPage.goHome': 'Back to ACoffee',
   'profile.notFound': "We couldn't find this profile.",
+  'profile.loadFailed': "Couldn't load this profile. Try refreshing the page.",
   'account.exportTitle': 'Export your data',
   'account.exportHint': 'Download a JSON snapshot of your account, visited cafés, and saved cafés. Useful as a backup or before deleting.',
   'account.exportButton': 'Download JSON',

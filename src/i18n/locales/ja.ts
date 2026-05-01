@@ -555,6 +555,7 @@ export const messages: MessageDict = {
   'confirmPage.linkInvalidBody': '確定用リンクが正しくありません。確認メール内のリンクを直接開いてください。',
   'confirmPage.goHome': 'ACoffee に戻る',
   'profile.notFound': 'プロフィールが見つかりませんでした。',
+  'profile.loadFailed': 'プロフィールの読み込みに失敗しました。ページを再読み込みしてみてください。',
   'account.exportTitle': 'データをエクスポート',
   'account.exportHint': 'アカウント・来店履歴・保存したカフェの JSON スナップショットをダウンロードします。バックアップや削除前にどうぞ。',
   'account.exportButton': 'JSON をダウンロード',

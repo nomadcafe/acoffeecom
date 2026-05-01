@@ -149,8 +149,10 @@ export function PublicProfilePage({ username }: Props) {
           <ProfileSkeleton />
         ) : state.kind === 'ready' ? (
           <ProfileBody profile={state.profile} />
-        ) : (
+        ) : state.kind === 'not-found' ? (
           <NotFound homeHref={homeHref} />
+        ) : (
+          <LoadFailed homeHref={homeHref} />
         )}
       </main>
     </div>
@@ -473,6 +475,32 @@ function NotFound({ homeHref }: { homeHref: string }) {
       <div className={styles.notFoundEmoji} aria-hidden>☕</div>
       <p>{t('profile.notFound')}</p>
       <a className={styles.notFoundCta} href={homeHref}>
+        {t('account.goHome')}
+      </a>
+    </div>
+  );
+}
+
+/**
+ * Distinct from NotFound: 4xx-other / 5xx / network failure.
+ * Tells the user this is a transient problem (refresh) instead of
+ * "this profile doesn't exist" (which 404 implies and which would
+ * be misleading if the API was just down).
+ */
+function LoadFailed({ homeHref }: { homeHref: string }) {
+  const { t } = useI18n();
+  return (
+    <div className={styles.notFound} role="alert">
+      <div className={styles.notFoundEmoji} aria-hidden>⚠️</div>
+      <p>{t('profile.loadFailed')}</p>
+      <button
+        type="button"
+        className={styles.notFoundCta}
+        onClick={() => window.location.reload()}
+      >
+        {t('errors.retry')}
+      </button>
+      <a className={styles.notFoundLink} href={homeHref}>
         {t('account.goHome')}
       </a>
     </div>
