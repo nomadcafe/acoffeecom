@@ -295,6 +295,11 @@
   cursor: not-allowed;
 }
 
+.saveButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
 .errorMsg {
   margin: 0;
   color: #b91c1c;
@@ -356,6 +361,11 @@
   background: #fff5f5;
 }
 
+.signOutButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
 .signedOut {
   text-align: center;
   padding: 2rem 1rem;
@@ -371,6 +381,11 @@
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
+}
+
+.signedOutCta:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
 }
 
 /* ---------- live username availability ---------- */
@@ -884,6 +899,11 @@
 .dangerButton:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.dangerButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
 }
 
 /* ---------- confirm modal ---------- */

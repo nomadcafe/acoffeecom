@@ -1,8 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
+import { buildLocalizedPathname } from '../i18n/detectLocale';
+import { ACCOUNT_PATH } from '../routes';
 import styles from './HomeFeatureShowcase.module.css';
+
+// AuthModal pulls in @better-auth/client + magic-link UI; only anonymous
+// visitors who tap the profile-slide CTA pay the chunk cost.
+const AuthModal = lazy(() => import('./AuthModal').then((m) => ({ default: m.AuthModal })));
 
 /**
  * Hero feature showcase — horizontal carousel. Each slide is one
@@ -24,6 +30,9 @@ interface Feature {
   titleKey: string;
   bodyKey: string;
   mock: () => ReactNode;
+  /** Optional inline CTA rendered below the slide body (e.g. "claim your
+   * handle" on the profile slide). Self-contained — owns its own state. */
+  cta?: () => ReactNode;
 }
 
 const MODE_CHIPS = [
@@ -47,7 +56,7 @@ export function HomeFeatureShowcase() {
   const FEATURES: Feature[] = [
     { id: 'agent', eyebrowKey: 'showcase.featuredEyebrow', titleKey: 'showcase.row1Title', bodyKey: 'showcase.row1Body', mock: () => <MockAgent /> },
     { id: 'passport', eyebrowKey: 'showcase.passportEyebrow', titleKey: 'showcase.row2Title', bodyKey: 'showcase.row2Body', mock: () => <MockPassport /> },
-    { id: 'profile', eyebrowKey: 'showcase.profileEyebrow', titleKey: 'showcase.row3Title', bodyKey: 'showcase.row3Body', mock: () => <MockProfile /> },
+    { id: 'profile', eyebrowKey: 'showcase.profileEyebrow', titleKey: 'showcase.row3Title', bodyKey: 'showcase.row3Body', mock: () => <MockProfile />, cta: () => <ProfileClaimCta /> },
     { id: 'booking', eyebrowKey: 'showcase.bookingEyebrow', titleKey: 'showcase.row4Title', bodyKey: 'showcase.row4Body', mock: () => <MockBooking /> },
     { id: 'proposal', eyebrowKey: 'showcase.proposalEyebrow', titleKey: 'showcase.row5Title', bodyKey: 'showcase.row5Body', mock: () => <MockProposal /> },
     { id: 'owner', eyebrowKey: 'showcase.featuredCafeEyebrow', titleKey: 'showcase.row6Title', bodyKey: 'showcase.row6Body', mock: () => <MockOwnerCafe /> },
@@ -135,6 +144,7 @@ export function HomeFeatureShowcase() {
                 <span className={styles.slideEyebrow}>{t(f.eyebrowKey)}</span>
                 <h2 className={styles.slideTitle}>{t(f.titleKey)}</h2>
                 <p className={styles.slideBody}>{t(f.bodyKey)}</p>
+                {f.cta ? f.cta() : null}
               </div>
               <div className={styles.slideVisual}>{f.mock()}</div>
             </article>
@@ -142,14 +152,18 @@ export function HomeFeatureShowcase() {
         </div>
       </div>
 
-      <div className={styles.dots} role="tablist" aria-label={t('showcase.dotsAria')}>
+      {/* Plain navigation buttons, not an ARIA tablist — slides aren't
+          tabpanels (the carousel scrolls a single track of articles, no
+          per-tab `aria-controls`/panel pair). aria-current="true" tells
+          screen readers which slide is active without faking a pattern
+          we don't fulfil. */}
+      <div className={styles.dots} aria-label={t('showcase.dotsAria')}>
         {FEATURES.map((f, i) => (
           <button
             key={f.id}
             type="button"
-            role="tab"
             className={`${styles.dot} ${i === activeIdx ? styles.dotActive : ''}`}
-            aria-selected={i === activeIdx}
+            aria-current={i === activeIdx ? 'true' : undefined}
             aria-label={t(f.titleKey)}
             onClick={() => setActiveIdx(i)}
           />
@@ -165,6 +179,62 @@ export function HomeFeatureShowcase() {
         ))}
       </div>
     </section>
+  );
+}
+
+/* ────────── Slide CTAs ────────── */
+
+/**
+ * "Claim your acoffee.com/yourname" inline CTA for the profile slide.
+ * Opens AuthModal; after sign-in lands on `/account?focus=username` so
+ * AccountPage scrolls to and focuses the slug picker (the whole reason
+ * the visitor tapped this).
+ *
+ * Auth gate / signed-in suppression: HomeFeatureShowcase already
+ * returns null for signed-in users, so the CTA is auto-hidden for
+ * them. We still need the build-flag gate so the modal isn't a
+ * dead-end when auth is disabled.
+ */
+function ProfileClaimCta() {
+  const { t, locale } = useI18n();
+  const [modalOpen, setModalOpen] = useState(false);
+
+  if (import.meta.env.VITE_AUTH_ENABLED !== 'true') return null;
+
+  const callbackURL = `${buildLocalizedPathname(ACCOUNT_PATH, locale)}?focus=username`;
+
+  return (
+    <>
+      <button
+        type="button"
+        className={styles.slideCta}
+        onClick={() => setModalOpen(true)}
+        aria-label={t('homeCta.aria')}
+      >
+        <span className={styles.slideCtaIcon} aria-hidden>
+          ☕
+        </span>
+        <span className={styles.slideCtaCopy}>
+          <span className={styles.slideCtaLead}>{t('homeCta.lead')}</span>
+          <span className={styles.slideCtaUrl}>
+            acoffee.com/
+            <span className={styles.slideCtaSlug}>{t('homeCta.slugPlaceholder')}</span>
+          </span>
+        </span>
+        <span className={styles.slideCtaArrow} aria-hidden>
+          →
+        </span>
+      </button>
+      {modalOpen ? (
+        <Suspense fallback={null}>
+          <AuthModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            callbackURL={callbackURL}
+          />
+        </Suspense>
+      ) : null}
+    </>
   );
 }
 
@@ -334,10 +404,12 @@ function MockOwnerCafe() {
         <span className={styles.ownerCafePinnedLabel}>This week</span>
         <span>Seasonal Yirgacheffe is back — until Sunday.</span>
       </div>
-      <a className={`${styles.ownerCafeChip} ${styles.ownerCafeChipVerified}`}>
+      {/* Mock chip — pure visual, not interactive. Use a span (not <a>
+          without href) so it doesn't read as a broken link. */}
+      <span className={`${styles.ownerCafeChip} ${styles.ownerCafeChipVerified}`}>
         <span aria-hidden>✓</span>
         Owned by @bluebottle
-      </a>
+      </span>
     </div>
   );
 }

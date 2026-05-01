@@ -66,7 +66,11 @@ export function AppHeroNearMe() {
 
   return (
     <div className={styles.wrap}>
-      <span className={styles.divider} aria-hidden>
+      {/* Decorative lines flanking "or" are pure CSS pseudo-elements
+          (::before / ::after on .divider), so they're already invisible
+          to screen readers. The visible "or" label needs to be
+          announced — don't aria-hide the wrapping span. */}
+      <span className={styles.divider}>
         <span className={styles.dividerLabel}>{t('hero.or')}</span>
       </span>
       <button

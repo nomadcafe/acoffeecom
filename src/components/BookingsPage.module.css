@@ -286,6 +286,12 @@
   cursor: not-allowed;
 }
 
+.weekNav:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
+}
+
 .weekGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

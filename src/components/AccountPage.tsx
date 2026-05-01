@@ -228,9 +228,9 @@ function SignedInAccountPage({
   // paint. Mount-time effect below consumes this.
   const usernameInputRef = useRef<HTMLInputElement>(null);
 
-  // Honour `?focus=username` from the HomeFooterCta callback URL: scroll
-  // the slug card into view, focus the input, then strip the param so a
-  // page refresh / share doesn't re-trigger the auto-focus. Runs once.
+  // Honour `?focus=username` from the home profile-slide CTA callback URL:
+  // scroll the slug card into view, focus the input, then strip the param
+  // so a page refresh / share doesn't re-trigger the auto-focus. Runs once.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('focus') !== 'username') return;
