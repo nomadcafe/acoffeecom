@@ -227,9 +227,6 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
     if (url.pathname.startsWith(p)) return next();
   }
   if (SKIP_PATHS.has(url.pathname)) return next();
-
-  console.log('[mwV3]', url.pathname, 'home=', !!url.pathname.match(HOME_PATH_RE), 'user=', !!url.pathname.match(USERNAME_RE));
-  console.log('[mwV3:before-branches]', url.pathname);
   // Path with a file extension (.png, .js, etc.) is definitely an asset.
   if (/\.[a-z0-9]{1,5}$/i.test(url.pathname)) return next();
 
@@ -242,15 +239,11 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
   // we already reserved 'en' is too short — but be explicit).
   const homeMatch = url.pathname.match(HOME_PATH_RE);
   if (homeMatch) {
-    console.log('[mwV3:home-enter]', url.pathname);
     const locale = (homeMatch[1] as Locale | undefined) ?? 'en';
     const copy = SEO_COPY[locale];
     const canonicalHref = `${url.origin}${url.pathname.endsWith('/') ? url.pathname : url.pathname + '/'}`;
-    console.log('[mwV3:home-before-next]', url.pathname);
     const response = await next();
-    console.log('[mwV3:home-after-next]', url.pathname, 'status=', response.status);
     const ctype = response.headers.get('content-type') ?? '';
-    console.log('[mw home]', url.pathname, 'status=', response.status, 'ctype=', ctype);
     if (!ctype.includes('text/html')) return response;
     const rewriter = new HTMLRewriter()
       .on('html', new HtmlLangSetter(copy.htmlLang))
@@ -267,20 +260,13 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
   }
 
   const match = url.pathname.match(USERNAME_RE);
-  if (!match) {
-    console.log('[mw user] no regex match', url.pathname);
-    return next();
-  }
+  if (!match) return next();
   const username = match[2];
-  if (RESERVED_USERNAMES.has(username)) {
-    console.log('[mw user] reserved', username);
-    return next();
-  }
+  if (RESERVED_USERNAMES.has(username)) return next();
 
   let profile: ProfileForOg | null = null;
   try {
     profile = await fetchProfileForOg(env, username);
-    console.log('[mw user] fetch ok', username, 'profile=', !!profile);
   } catch (e) {
     console.error('[og] profile fetch failed', e);
     return next();
@@ -292,7 +278,6 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
   // Only transform HTML responses — if the static handler 404'd we shouldn't
   // touch the body shape.
   const ctype = response.headers.get('content-type') ?? '';
-  console.log('[mw user]', url.pathname, 'status=', response.status, 'ctype=', ctype);
   if (!ctype.includes('text/html')) return response;
 
   const rewriter = new HTMLRewriter()
