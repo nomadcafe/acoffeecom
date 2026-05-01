@@ -33,21 +33,18 @@ id = "11461dbc572d492a9f101e65b19f32f1"
 binding = "AVATARS"
 bucket_name = "acoffee-avatars"
 
-# R2 bucket for cached Google Places photos. Bucket isn't created yet —
-# binding is commented out so Pages deploy doesn't fail. Restore once
-# the bucket exists in CF dashboard / via `wrangler r2 bucket create
-# acoffee-place-photos` + `wrangler r2 bucket dev-url enable
-# acoffee-place-photos`. The /api/places/photo/[placeId] proxy guards
-# on the binding being undefined and returns 503; the public profile's
-# <img onError> falls back to a hashed gradient so visitors see the
-# rank-numbered rows with colored tiles instead of broken thumbnails.
-# [[r2_buckets]]
-# binding = "PLACE_PHOTOS"
-# bucket_name = "acoffee-place-photos"
+# R2 bucket for cached Google Places photos. Different lifecycle from
+# avatars (purely a server-side cache, no user control), so it gets its
+# own bucket. Public access via r2.dev URL; the proxy endpoint at
+# /api/places/photo/[placeId] writes here on cache miss and 302s
+# subsequent loads directly to the public URL.
+[[r2_buckets]]
+binding = "PLACE_PHOTOS"
+bucket_name = "acoffee-place-photos"
 
 [vars]
 AVATARS_PUBLIC_URL = "https://pub-8047aed0e1084fc3b99f34b3bb637d65.r2.dev"
-# PLACE_PHOTOS_PUBLIC_URL = "https://pub-XXXXXXXX.r2.dev"  # set after enabling r2.dev access
+PLACE_PHOTOS_PUBLIC_URL = "https://pub-dd937f8ea2cb40c1b5271c1d62bcd678.r2.dev"
 
 # Production D1 — separate database, same binding name. Set via
 # `wrangler d1 create acoffee-prod` and paste the id below.
@@ -66,10 +63,10 @@ id = "1ddd7e859cab4dcebebd0eb40704a53e"
 binding = "AVATARS"
 bucket_name = "acoffee-avatars"
 
-# [[env.production.r2_buckets]]
-# binding = "PLACE_PHOTOS"
-# bucket_name = "acoffee-place-photos"
+[[env.production.r2_buckets]]
+binding = "PLACE_PHOTOS"
+bucket_name = "acoffee-place-photos"
 
 [env.production.vars]
 AVATARS_PUBLIC_URL = "https://pub-8047aed0e1084fc3b99f34b3bb637d65.r2.dev"
-# PLACE_PHOTOS_PUBLIC_URL = "https://pub-XXXXXXXX.r2.dev"
+PLACE_PHOTOS_PUBLIC_URL = "https://pub-dd937f8ea2cb40c1b5271c1d62bcd678.r2.dev"
