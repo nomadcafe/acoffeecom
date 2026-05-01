@@ -55,7 +55,7 @@ body {
   gap: 0.5rem;
   text-decoration: none;
   color: inherit;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--ac-motion-fast);
 }
 
 .logo:hover {
