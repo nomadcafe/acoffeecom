@@ -4,18 +4,18 @@
   align-items: center;
   justify-content: center;
   padding: 2rem 1.5rem;
-  background: var(--ac-page-bg, #faf7f2);
-  color: var(--ac-text, #2a1f17);
-  font-family: var(--ac-font-body, system-ui, -apple-system, Segoe UI, sans-serif);
+  background: var(--ac-page-bg);
+  color: var(--ac-text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   box-sizing: border-box;
 }
 
 .card {
   max-width: 28rem;
   width: 100%;
-  background: var(--ac-surface, #fff);
+  background: var(--ac-surface);
   border-radius: 14px;
-  box-shadow: var(--ac-shadow-card, 0 1px 3px rgba(0, 0, 0, 0.08));
+  box-shadow: var(--ac-shadow-card);
   padding: 2rem 1.75rem;
   text-align: center;
 }
@@ -36,32 +36,32 @@
   margin: 0 0 1.5rem 0;
   font-size: 0.95rem;
   line-height: 1.5;
-  color: var(--ac-text-muted, #6c5d50);
+  color: var(--ac-text-muted);
 }
 
 .reload {
   display: inline-block;
   padding: 0.7rem 1.4rem;
-  background: var(--ac-accent, #6f4e37);
+  background: var(--ac-accent);
   color: #fff;
   border: none;
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .reload:hover {
-  background: var(--ac-accent-dark, #553a28);
+  background: var(--ac-accent-dark);
 }
 
 .detail {
   margin-top: 1.25rem;
   font-size: 0.78rem;
-  color: var(--ac-text-muted, #8b7d70);
+  color: var(--ac-text-muted);
   text-align: left;
-  background: var(--ac-surface-tinted, #f4ede5);
+  background: var(--ac-surface-tinted);
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
   word-break: break-word;

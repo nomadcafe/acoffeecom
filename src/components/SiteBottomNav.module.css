@@ -39,8 +39,8 @@
   color: #7a6a60;
   font-weight: 600;
   transition:
-    background 0.15s ease,
-    color 0.15s ease,
+    background var(--ac-motion-fast),
+    color var(--ac-motion-fast),
     transform 0.12s ease;
 }
 
@@ -73,7 +73,7 @@
 .tabIcon {
   display: block;
   color: #8a7b70;
-  transition: color 0.15s ease;
+  transition: color var(--ac-motion-fast);
 }
 
 .tabActive .tabIcon {

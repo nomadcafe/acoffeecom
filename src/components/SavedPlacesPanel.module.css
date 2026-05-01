@@ -43,7 +43,7 @@
   border-radius: 8px;
   padding: 0.1rem 0.25rem;
   margin: -0.1rem -0.25rem;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .rowMainClickable:hover {

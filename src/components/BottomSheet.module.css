@@ -64,7 +64,7 @@
   height: 6px;
   background: var(--ac-border-strong);
   border-radius: 3px;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .handle:hover .handleBar {

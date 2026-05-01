@@ -3,7 +3,7 @@
   border-radius: var(--ac-radius-lg);
   padding: 1rem;
   box-shadow: var(--ac-shadow-card);
-  transition: box-shadow 0.2s, transform 0.15s ease;
+  transition: box-shadow 0.2s, transform var(--ac-motion-fast);
   position: relative;
 }
 
@@ -209,10 +209,10 @@
   font-size: 0.78rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  background: var(--ac-accent-2, #5e7a52);
+  background: var(--ac-accent-2);
   color: #fff;
   padding: 0.05rem 0.45rem;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   cursor: help;
 }
 

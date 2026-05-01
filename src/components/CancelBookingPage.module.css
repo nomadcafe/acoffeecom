@@ -1,7 +1,7 @@
 .app {
   min-height: 100dvh;
-  background: var(--ac-bg, #faf6f1);
-  color: var(--ac-text, #3c2918);
+  background: var(--ac-page-bg);
+  color: var(--ac-text);
   display: flex;
   flex-direction: column;
 }
@@ -25,7 +25,7 @@
   font-size: 1.05rem;
   font-weight: 700;
   text-decoration: none;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text);
   letter-spacing: -0.01em;
 }
 
@@ -50,7 +50,7 @@
 .title {
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text);
   margin: 0 0 0.5rem;
 }
 
@@ -92,9 +92,9 @@
   flex: 1;
   padding: 0.7rem 1rem;
   border-radius: 999px;
-  border: 1px solid var(--ac-border, #e3d8cb);
+  border: 1px solid var(--ac-border);
   background: #fff;
-  color: var(--ac-text, #3c2918);
+  color: var(--ac-text);
   font-family: inherit;
   font-size: 0.95rem;
   cursor: pointer;
@@ -124,7 +124,7 @@
   display: inline-block;
   margin-top: 1.2rem;
   padding: 0.6rem 1rem;
-  background: var(--ac-accent, #a36b3e);
+  background: var(--ac-accent);
   color: #fff;
   border-radius: 999px;
   text-decoration: none;

@@ -16,7 +16,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast), color var(--ac-motion-fast);
 }
 
 .trigger:hover {
@@ -153,7 +153,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: background var(--ac-motion-fast), transform 0.1s ease;
   white-space: nowrap;
 }
 

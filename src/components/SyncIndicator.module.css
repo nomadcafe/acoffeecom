@@ -12,8 +12,8 @@
 }
 
 .syncing {
-  color: var(--ac-text-muted, #6c5d50);
-  background: var(--ac-surface-tinted, #f4ede5);
+  color: var(--ac-text-muted);
+  background: var(--ac-surface-tinted);
 }
 
 .synced {

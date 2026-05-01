@@ -17,7 +17,7 @@
 @media (hover: hover) {
   .shareButton:hover:not(:disabled) {
     transform: scale(1.15);
-    color: var(--ac-accent, #6f4e37);
+    color: var(--ac-accent);
   }
 }
 

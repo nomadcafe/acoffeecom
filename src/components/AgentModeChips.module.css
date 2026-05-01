@@ -16,24 +16,24 @@
   gap: 0.35rem;
   flex-shrink: 0;
   padding: 0.5rem 0.85rem;
-  border: 1px solid var(--ac-border, #e3d8cb);
-  background: var(--ac-surface, #fff);
-  color: var(--ac-text, #2c1810);
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  color: var(--ac-text);
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 600;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   cursor: pointer;
   scroll-snap-align: start;
   /* Soft shadow gives the row a "designed pill bar" feel rather than
    * a flat outlined button strip — matches the modeChip styling in
    * the hero showcase. */
   box-shadow: 0 1px 3px rgba(111, 78, 55, 0.06);
-  transition: background var(--ac-motion-fast, 120ms),
-    border-color var(--ac-motion-fast, 120ms),
-    color var(--ac-motion-fast, 120ms),
-    box-shadow var(--ac-motion-fast, 120ms),
-    transform var(--ac-motion-fast, 120ms);
+  transition: background var(--ac-motion-fast),
+    border-color var(--ac-motion-fast),
+    color var(--ac-motion-fast),
+    box-shadow var(--ac-motion-fast),
+    transform var(--ac-motion-fast);
   line-height: 1;
 }
 
@@ -45,7 +45,7 @@
 
 .chip:focus-visible {
   outline: none;
-  box-shadow: var(--ac-focus-ring, 0 0 0 3px rgba(111, 78, 55, 0.18));
+  box-shadow: var(--ac-focus-ring);
 }
 
 .chip:disabled {
@@ -57,15 +57,15 @@
   /* Sage = the "this is the live agent decision" colour, same accent
    * used on submit + Fairness Score badges throughout. Confident
    * sage shadow signals "this is the live mode." */
-  background: var(--ac-accent-2, #5e7a52);
-  border-color: var(--ac-accent-2, #5e7a52);
+  background: var(--ac-accent-2);
+  border-color: var(--ac-accent-2);
   color: #fff;
   box-shadow: 0 4px 12px rgba(94, 122, 82, 0.28);
 }
 
 .chipSelected:hover {
-  background: var(--ac-accent-2-dark, #4c6342);
-  border-color: var(--ac-accent-2-dark, #4c6342);
+  background: var(--ac-accent-2-dark);
+  border-color: var(--ac-accent-2-dark);
   color: #fff;
   box-shadow: 0 6px 16px rgba(94, 122, 82, 0.34);
 }

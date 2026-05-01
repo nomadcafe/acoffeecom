@@ -142,7 +142,7 @@
 
 .tocLinkActive {
   color: var(--ac-text);
-  border-left-color: var(--ac-accent, #6f4e37);
+  border-left-color: var(--ac-accent);
   font-weight: 600;
 }
 
@@ -225,7 +225,7 @@
 .usernamePrefix {
   display: inline-flex;
   align-items: stretch;
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 8px;
   overflow: hidden;
   background: #fff;
@@ -278,12 +278,12 @@
   padding: 0.5rem 0.95rem;
   border: 0;
   border-radius: 8px;
-  background: var(--ac-accent, #6f4e37);
+  background: var(--ac-accent);
   color: #fff;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition: background var(--ac-motion-fast), opacity var(--ac-motion-fast);
 }
 
 .saveButton:hover:not(:disabled) {
@@ -354,7 +354,7 @@
   font-weight: 600;
   cursor: pointer;
   align-self: flex-start;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .signOutButton:hover:not(:disabled) {
@@ -376,7 +376,7 @@
   display: inline-block;
   margin-top: 0.75rem;
   padding: 0.55rem 1rem;
-  background: var(--ac-accent, #6f4e37);
+  background: var(--ac-accent);
   color: #fff;
   border-radius: 8px;
   text-decoration: none;
@@ -440,7 +440,7 @@
 .bookingLinkValue {
   flex: 1 1 auto;
   min-width: 0;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.85rem;
   text-decoration: none;
@@ -449,26 +449,26 @@
 
 .bookingLinkValue:hover {
   text-decoration: underline;
-  color: var(--ac-accent, #a36b3e);
+  color: var(--ac-accent);
 }
 
 .bookingLinkCopy {
   appearance: none;
-  border: 1px solid var(--ac-border-strong, #d6c7bb);
+  border: 1px solid var(--ac-border-strong);
   background: #fff;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 500;
   padding: 0.35rem 0.7rem;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   cursor: pointer;
   flex-shrink: 0;
   transition: border-color 0.15s, background 0.15s;
 }
 
 .bookingLinkCopy:hover {
-  border-color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
   background: #fdf8f1;
 }
 
@@ -497,7 +497,7 @@
 
 .bioTextarea {
   width: 100%;
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 8px;
   padding: 0.55rem 0.7rem;
   background: #fff;
@@ -508,11 +508,11 @@
   resize: vertical;
   outline: none;
   min-height: 4.5rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--ac-motion-fast), box-shadow var(--ac-motion-fast);
 }
 
 .bioTextarea:focus {
-  border-color: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
 }
 
@@ -526,7 +526,7 @@
 
 .linkLabelInput,
 .linkUrlInput {
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 8px;
   padding: 0.45rem 0.6rem;
   background: #fff;
@@ -539,7 +539,7 @@
 
 .linkLabelInput:focus,
 .linkUrlInput:focus {
-  border-color: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
 }
 
@@ -570,7 +570,7 @@
 .linkAdd {
   align-self: flex-start;
   margin-top: 0.5rem;
-  border: 1px dashed var(--ac-border-strong, #c9bdb1);
+  border: 1px dashed var(--ac-border-strong);
   background: transparent;
   color: var(--ac-text-muted);
   border-radius: 8px;
@@ -610,7 +610,7 @@
 }
 
 .timeInput {
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 8px;
   padding: 0.4rem 0.5rem;
   background: #fff;
@@ -624,7 +624,7 @@
 }
 
 .timeInput:focus {
-  border-color: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
 }
 
@@ -690,7 +690,7 @@
   padding: 0;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .toggleOn {
@@ -707,7 +707,7 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: transform 0.15s ease;
+  transition: transform var(--ac-motion-fast);
 }
 
 .toggleOn::after {
@@ -746,7 +746,7 @@
   display: block;
   text-decoration: none;
   color: inherit;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .statCellLink:hover {
@@ -754,7 +754,7 @@
 }
 
 .statCellLink:focus-visible {
-  outline: 2px solid var(--ac-accent, #6f4e37);
+  outline: 2px solid var(--ac-accent);
   outline-offset: 2px;
 }
 
@@ -889,7 +889,7 @@
   font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .dangerButton:hover:not(:disabled) {
@@ -949,7 +949,7 @@
 .modalInput {
   width: 100%;
   padding: 0.55rem 0.7rem;
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 8px;
   font-size: 1rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -1123,8 +1123,8 @@
   cursor: pointer;
   text-align: left;
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+    background var(--ac-motion-fast),
+    border-color var(--ac-motion-fast);
 }
 
 .featuredCafeRelationPill:hover {
@@ -1189,8 +1189,8 @@
   text-align: left;
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+    background var(--ac-motion-fast),
+    border-color var(--ac-motion-fast);
 }
 
 .featuredCafePassportItem:hover,
@@ -1288,10 +1288,10 @@
    surrounding form layout. The grid handles spacing between cards now,
    so the card itself doesn't carry margins. */
 .featuredCafeCard {
-  border: 1px solid var(--ac-border, #e3dccf);
+  border: 1px solid var(--ac-border);
   border-radius: 12px;
   padding: 0.85rem 0.95rem;
-  background: var(--ac-surface-soft, transparent);
+  background: transparent;
   display: flex;
   flex-direction: column;
 }

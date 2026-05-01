@@ -12,11 +12,11 @@
   resize: vertical;
   min-height: 2.1rem;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--ac-motion-fast), box-shadow var(--ac-motion-fast);
 }
 
 .input:focus {
-  border-color: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
 }
 

@@ -150,7 +150,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast), transform var(--ac-motion-fast);
   box-shadow: 0 1px 3px rgba(111, 78, 55, 0.08);
 }
 
@@ -181,9 +181,9 @@
 
 .addThirdButton {
   appearance: none;
-  border: 1px dashed var(--ac-border-strong, #d6c7bb);
+  border: 1px dashed var(--ac-border-strong);
   background: transparent;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   color: var(--ac-text-muted);
   font-family: inherit;
   font-size: 0.85rem;
@@ -191,7 +191,7 @@
   padding: 0.5rem 0.9rem;
   cursor: pointer;
   margin-bottom: 0.6rem;
-  transition: border-color var(--ac-motion-fast, 120ms), color var(--ac-motion-fast, 120ms);
+  transition: border-color var(--ac-motion-fast), color var(--ac-motion-fast);
 }
 
 .addThirdButton:hover:not(:disabled) {

@@ -7,7 +7,7 @@
   min-width: 40px;
   min-height: 40px;
   padding: 0.25rem;
-  transition: transform 0.15s ease;
+  transition: transform var(--ac-motion-fast);
   line-height: 1;
   display: inline-flex;
   align-items: center;

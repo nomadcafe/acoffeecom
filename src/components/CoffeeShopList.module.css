@@ -57,7 +57,7 @@
 .cardWrap {
   cursor: pointer;
   border-radius: 12px;
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow var(--ac-motion-fast);
 }
 
 .cardWrapSelected {
@@ -157,7 +157,7 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition: background var(--ac-motion-fast), opacity var(--ac-motion-fast);
 }
 
 .emptyWidenButton:hover:not(:disabled) {
@@ -190,7 +190,7 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition: background var(--ac-motion-fast), opacity var(--ac-motion-fast);
 }
 
 .loadMoreButton:hover:not(:disabled) {

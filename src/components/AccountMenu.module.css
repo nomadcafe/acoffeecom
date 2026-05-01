@@ -13,7 +13,7 @@
   border: 1px solid var(--ac-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color var(--ac-motion-fast), border-color var(--ac-motion-fast);
 }
 
 @media (hover: hover) {
@@ -45,7 +45,7 @@
   font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--ac-motion-fast);
   /* Same legibility insurance as the big profile avatar — keeps the
      letter readable when the gradient lands on a light hue. */
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
@@ -90,7 +90,7 @@
 .identity {
   padding: 8px 10px 10px;
   font-size: 0.8rem;
-  color: var(--ac-text-soft);
+  color: var(--ac-text-muted);
   border-bottom: 1px solid var(--ac-border);
   margin-bottom: 4px;
   word-break: break-all;

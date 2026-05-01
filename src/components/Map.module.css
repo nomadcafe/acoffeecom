@@ -30,7 +30,7 @@
   font-weight: 600;
   color: #1a73e8;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .locateButton:hover:not(:disabled) {

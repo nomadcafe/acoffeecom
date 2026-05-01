@@ -7,7 +7,7 @@
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  animation: fadeIn 0.15s ease;
+  animation: fadeIn var(--ac-motion-fast);
 }
 
 @keyframes fadeIn {
@@ -50,7 +50,7 @@
   height: 32px;
   border: none;
   background: transparent;
-  color: var(--ac-text-soft);
+  color: var(--ac-text-muted);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
@@ -70,7 +70,7 @@
 
 .subtitle {
   font-size: 0.9rem;
-  color: var(--ac-text-soft);
+  color: var(--ac-text-muted);
   margin: 0 0 20px;
   line-height: 1.5;
 }
@@ -90,7 +90,7 @@
   border: 1px solid #dadce0;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition: background var(--ac-motion-fast), box-shadow var(--ac-motion-fast);
 }
 
 .googleButton:hover:not(:disabled) {
@@ -120,7 +120,7 @@
 
 .dividerLabel {
   font-size: 0.78rem;
-  color: var(--ac-text-soft);
+  color: var(--ac-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 500;
@@ -135,7 +135,7 @@
 .label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--ac-text-soft);
+  color: var(--ac-text-muted);
 }
 
 .input {
@@ -147,7 +147,7 @@
   border-radius: 10px;
   background: var(--ac-surface);
   color: var(--ac-text);
-  transition: border-color 0.15s ease;
+  transition: border-color var(--ac-motion-fast);
   box-sizing: border-box;
 }
 
@@ -173,7 +173,7 @@
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.05s ease;
+  transition: opacity var(--ac-motion-fast), transform 0.05s ease;
 }
 
 .submit:hover {
@@ -201,7 +201,7 @@
 .privacy {
   margin: 16px 0 0;
   font-size: 0.75rem;
-  color: var(--ac-text-soft);
+  color: var(--ac-text-muted);
   line-height: 1.4;
 }
 
@@ -223,7 +223,7 @@
 
 .sentBody {
   font-size: 0.9rem;
-  color: var(--ac-text-soft);
+  color: var(--ac-text-muted);
   margin: 0 0 18px;
   line-height: 1.5;
 }

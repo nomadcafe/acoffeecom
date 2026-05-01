@@ -30,7 +30,7 @@
   background-position: right 0.5rem center;
   background-size: 10px 6px;
   max-width: 100%;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color var(--ac-motion-fast), border-color var(--ac-motion-fast);
 }
 
 .select:hover {

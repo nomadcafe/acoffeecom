@@ -1,7 +1,7 @@
 .app {
   min-height: 100dvh;
-  background: var(--ac-page-bg, #faf7f2);
-  color: var(--ac-text, #2c1810);
+  background: var(--ac-page-bg);
+  color: var(--ac-text);
   display: flex;
   flex-direction: column;
 }
@@ -10,10 +10,10 @@
  * as home / Account / Bookings / Passport / Updates: surface bg,
  * hairline border-bottom, sticky to top, dark wordmark. */
 .header {
-  background: var(--ac-surface, #fff);
-  color: var(--ac-text, #2c1810);
+  background: var(--ac-surface);
+  color: var(--ac-text);
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--ac-border, #ece4db);
+  border-bottom: 1px solid var(--ac-border);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -33,14 +33,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--ac-font-display, serif);
+  font-family: var(--ac-font-display);
   font-size: 1.45rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variation-settings: 'opsz' 36;
   text-decoration: none;
-  color: var(--ac-text, #2c1810);
-  transition: opacity var(--ac-motion-fast, 120ms);
+  color: var(--ac-text);
+  transition: opacity var(--ac-motion-fast);
 }
 
 .logo:hover {
@@ -48,7 +48,7 @@
 }
 
 .logo:focus-visible {
-  outline: 2px solid var(--ac-accent, #6f4e37);
+  outline: 2px solid var(--ac-accent);
   outline-offset: 3px;
   border-radius: 6px;
 }
@@ -72,31 +72,31 @@
 }
 
 .card {
-  background: var(--ac-surface, #fff);
-  border-radius: var(--ac-radius-lg, 16px);
+  background: var(--ac-surface);
+  border-radius: var(--ac-radius-lg);
   padding: 1.4rem 1.4rem 1.6rem;
-  box-shadow: var(--ac-shadow-card, 0 1px 3px rgba(60, 30, 0, 0.06));
+  box-shadow: var(--ac-shadow-card);
 }
 
 .lead {
   font-size: 0.85rem;
-  color: var(--ac-text-muted, #6b5848);
+  color: var(--ac-text-muted);
   margin: 0 0 0.4rem;
 }
 
 .title {
-  font-family: var(--ac-font-display, serif);
+  font-family: var(--ac-font-display);
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   margin: 0 0 1rem;
   line-height: 1.15;
 }
 
 .cafeBlock {
   background: #faf6f1;
-  border-radius: var(--ac-radius-md, 12px);
+  border-radius: var(--ac-radius-md);
   padding: 1rem 1.1rem;
   margin: 0 0 1rem;
 }
@@ -104,13 +104,13 @@
 .cafeName {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   margin: 0 0 0.2rem;
 }
 
 .cafeAddress {
   font-size: 0.9rem;
-  color: var(--ac-text-muted, #6b5848);
+  color: var(--ac-text-muted);
   margin: 0 0 0.5rem;
   line-height: 1.4;
 }
@@ -118,7 +118,7 @@
 .mapsLink {
   display: inline-block;
   font-size: 0.85rem;
-  color: var(--ac-accent, #6f4e37);
+  color: var(--ac-accent);
   text-decoration: none;
   font-weight: 500;
 }
@@ -132,7 +132,7 @@
   align-items: baseline;
   gap: 0.5rem;
   font-size: 1rem;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   margin: 0 0 1rem;
   font-variant-numeric: tabular-nums;
 }
@@ -149,9 +149,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  background: var(--ac-accent-2, #5e7a52);
+  background: var(--ac-accent-2);
   color: #fff;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   padding: 0.15rem 0.65rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -174,25 +174,25 @@
   grid-column: span 2;
   appearance: none;
   border: 0;
-  background: var(--ac-accent-2, #5e7a52);
+  background: var(--ac-accent-2);
   color: #fff;
   padding: 0.85rem 1.1rem;
   font-size: 1rem;
   font-weight: 700;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   cursor: pointer;
   font-family: inherit;
   /* The "moment of commit" — tokens prescribe sage + the CTA shadow
    * for primary actions like booking submit and proposal accept. */
   box-shadow: var(--ac-shadow-cta);
   transition:
-    background var(--ac-motion-fast, 120ms),
-    box-shadow var(--ac-motion-fast, 120ms),
-    transform var(--ac-motion-fast, 120ms);
+    background var(--ac-motion-fast),
+    box-shadow var(--ac-motion-fast),
+    transform var(--ac-motion-fast);
 }
 
 .btnAccept:hover:not(:disabled) {
-  background: var(--ac-accent-2-dark, #4c6342);
+  background: var(--ac-accent-2-dark);
 }
 
 .btnAccept:active:not(:disabled) {
@@ -212,18 +212,18 @@
 
 .btn {
   appearance: none;
-  border: 1px solid var(--ac-border, #ece4db);
-  background: var(--ac-surface, #fff);
-  color: var(--ac-text, #2c1810);
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  color: var(--ac-text);
   /* 0.75rem vertical bumps the secondary buttons over the WCAG 44px
    * tap-target floor (was 0.6rem ≈ 39px on mobile). */
   padding: 0.75rem 0.85rem;
   font-size: 0.88rem;
   font-weight: 500;
-  border-radius: var(--ac-radius-sm, 8px);
+  border-radius: var(--ac-radius-sm);
   cursor: pointer;
   font-family: inherit;
-  transition: border-color var(--ac-motion-fast, 120ms), background var(--ac-motion-fast, 120ms);
+  transition: border-color var(--ac-motion-fast), background var(--ac-motion-fast);
 }
 
 .btn:hover:not(:disabled) {
@@ -253,7 +253,7 @@
   background: #eef5ea;
   border: 1px solid #b9d3a8;
   color: #355e26;
-  border-radius: var(--ac-radius-md, 12px);
+  border-radius: var(--ac-radius-md);
   padding: 0.9rem 1rem;
   margin: 0 0 1rem;
 }
@@ -285,9 +285,9 @@
   display: inline-block;
   margin-top: 1rem;
   padding: 0.55rem 1rem;
-  background: var(--ac-accent, #a36b3e);
+  background: var(--ac-accent);
   color: #fff;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   text-decoration: none;
   font-weight: 600;
 }

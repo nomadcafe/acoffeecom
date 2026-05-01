@@ -22,7 +22,7 @@
 }
 
 .cell {
-  transition: stroke 0.15s ease;
+  transition: stroke var(--ac-motion-fast);
 }
 
 @media (hover: hover) {

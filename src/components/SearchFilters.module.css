@@ -205,7 +205,7 @@
   border: 1px solid #c9bfb5;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast), color var(--ac-motion-fast);
 }
 
 .widenButton:hover:not(:disabled) {

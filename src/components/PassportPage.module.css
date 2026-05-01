@@ -35,7 +35,7 @@
   gap: 0.5rem;
   text-decoration: none;
   color: inherit;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--ac-motion-fast);
 }
 
 .logo:hover {
@@ -113,7 +113,7 @@
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.95rem;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .emptyCta:hover {
@@ -196,7 +196,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 .shareButton:hover:not(:disabled) {
@@ -262,7 +262,7 @@
 .searchInput {
   width: 100%;
   padding: 0.55rem 2.4rem 0.55rem 2.1rem;
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 999px;
   background: #fff;
   font-family: inherit;
@@ -270,11 +270,11 @@
   font-size: 1rem;
   color: var(--ac-text);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--ac-motion-fast), box-shadow var(--ac-motion-fast);
 }
 
 .searchInput:focus {
-  border-color: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.12);
 }
 
@@ -322,7 +322,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--ac-motion-fast), color var(--ac-motion-fast);
   line-height: 1.2;
 }
 
@@ -332,7 +332,7 @@
 }
 
 .timeFilterTabActive {
-  background: var(--ac-accent, #6f4e37);
+  background: var(--ac-accent);
   color: #fff;
   cursor: default;
 }
@@ -410,7 +410,7 @@
   text-decoration: none;
   padding: 0.25rem 0.45rem;
   border-radius: 6px;
-  transition: background 0.15s ease;
+  transition: background var(--ac-motion-fast);
 }
 
 @media (hover: hover) {
@@ -430,7 +430,7 @@
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background var(--ac-motion-fast), color var(--ac-motion-fast), border-color var(--ac-motion-fast);
 }
 
 @media (hover: hover) {
@@ -508,7 +508,7 @@
   font-size: 0.9rem;
   line-height: 1.2;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
   font-family: inherit;
   color: inherit;
   /* Long city names (e.g. "越秀区广州市广东省 China") overflow the row
@@ -526,8 +526,8 @@
 }
 
 .cityPillActive {
-  background: var(--ac-accent, #6f4e37);
-  border-color: var(--ac-accent, #6f4e37);
+  background: var(--ac-accent);
+  border-color: var(--ac-accent);
   color: #fff;
 }
 
@@ -571,7 +571,7 @@
 .visitsToggle {
   border: 0;
   background: transparent;
-  color: var(--ac-accent, #6f4e37);
+  color: var(--ac-accent);
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
@@ -629,11 +629,11 @@
   resize: vertical;
   min-height: 2.1rem;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--ac-motion-fast), box-shadow var(--ac-motion-fast);
 }
 
 .visitNoteInput:focus {
-  border-color: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.12);
 }
 
@@ -663,7 +663,7 @@
   margin-left: 0.4rem;
   padding: 0.45rem 0.85rem;
   background: transparent;
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 8px;
   color: var(--ac-text);
   font-size: 0.82rem;

@@ -1,6 +1,6 @@
 .section {
   background: var(--ac-surface);
-  border: 1px solid var(--ac-border-strong, #c9bdb1);
+  border: 1px solid var(--ac-border-strong);
   border-radius: 12px;
   padding: 1.1rem 1.2rem 1.2rem;
 }
@@ -8,7 +8,7 @@
 .title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text);
   margin: 0 0 0.35rem;
 }
 
@@ -64,10 +64,10 @@
   align-items: center;
   gap: 0.1rem;
   padding: 0.55rem 0.7rem 0.6rem;
-  border: 1px solid var(--ac-border, #e3d8cb);
+  border: 1px solid var(--ac-border);
   border-radius: 10px;
   background: #fff;
-  color: var(--ac-text, #3c2918);
+  color: var(--ac-text);
   cursor: pointer;
   font-family: inherit;
   scroll-snap-align: start;
@@ -75,14 +75,14 @@
 }
 
 .dateChip:hover:not(:disabled) {
-  border-color: var(--ac-accent, #a36b3e);
-  color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
+  color: var(--ac-accent);
 }
 
 .dateChipSelected {
-  background: var(--ac-accent, #a36b3e);
+  background: var(--ac-accent);
   color: #fff;
-  border-color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
 }
 
 .dateChipSelected:hover:not(:disabled) {
@@ -122,10 +122,10 @@
 
 .slotChip {
   padding: 0.55rem 0.4rem;
-  border: 1px solid var(--ac-border, #e3d8cb);
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
   background: #fff;
-  color: var(--ac-text, #3c2918);
+  color: var(--ac-text);
   cursor: pointer;
   font-family: inherit;
   font-size: 0.9rem;
@@ -135,14 +135,14 @@
 }
 
 .slotChip:hover:not(:disabled) {
-  border-color: var(--ac-accent, #a36b3e);
-  color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
+  color: var(--ac-accent);
 }
 
 .slotChipSelected {
-  background: var(--ac-accent, #a36b3e);
+  background: var(--ac-accent);
   color: #fff;
-  border-color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
 }
 
 .slotChipSelected:hover:not(:disabled) {
@@ -153,7 +153,7 @@
 .formCard {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--ac-border, #e3d8cb);
+  border-top: 1px solid var(--ac-border);
   display: grid;
   gap: 0.6rem;
 }
@@ -175,36 +175,36 @@
 .input {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--ac-border, #e3d8cb);
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;
   background: #fff;
-  color: var(--ac-text, #3c2918);
+  color: var(--ac-text);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 3px rgba(163, 107, 62, 0.15);
 }
 
 .textarea {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--ac-border, #e3d8cb);
+  border: 1px solid var(--ac-border);
   border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;
   background: #fff;
-  color: var(--ac-text, #3c2918);
+  color: var(--ac-text);
   resize: vertical;
   min-height: 4.5rem;
 }
 
 .textarea:focus {
   outline: none;
-  border-color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
   box-shadow: 0 0 0 3px rgba(163, 107, 62, 0.15);
 }
 
@@ -223,7 +223,7 @@
 }
 
 .formChosen strong {
-  color: var(--ac-text, #3c2918);
+  color: var(--ac-text);
 }
 
 .formActions {
@@ -239,7 +239,7 @@
   border: 0;
   /* Sage = "this is the moment of commit" — same visual cue as the search
      submit button on the home page. */
-  background: var(--ac-accent-2, #5e7a52);
+  background: var(--ac-accent-2);
   color: #fff;
   font-size: 0.95rem;
   font-weight: 600;
@@ -254,7 +254,7 @@
 }
 
 .submit:hover:not(:disabled) {
-  background: var(--ac-accent-2-dark, #4c6342);
+  background: var(--ac-accent-2-dark);
 }
 
 .submit:disabled {
@@ -265,9 +265,9 @@
 .back {
   padding: 0.7rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid var(--ac-border, #e3d8cb);
+  border: 1px solid var(--ac-border);
   background: #fff;
-  color: var(--ac-text, #3c2918);
+  color: var(--ac-text);
   font-family: inherit;
   font-size: 0.9rem;
   cursor: pointer;
@@ -291,7 +291,7 @@
 .successTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text);
   margin: 0 0 0.35rem;
 }
 
@@ -313,7 +313,7 @@
 .successCafeName {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text);
   margin: 0;
 }
 
@@ -327,7 +327,7 @@
   display: inline-block;
   margin-top: 0.4rem;
   font-size: 0.85rem;
-  color: var(--ac-accent, #a36b3e);
+  color: var(--ac-accent);
   text-decoration: none;
   font-weight: 500;
 }

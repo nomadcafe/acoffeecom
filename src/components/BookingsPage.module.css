@@ -79,10 +79,10 @@
   margin-top: 0.4rem;
   padding: 0.45rem 0.6rem;
   background: #fdf8f1;
-  border-left: 2px solid var(--ac-accent, #a36b3e);
+  border-left: 2px solid var(--ac-accent);
   border-radius: 4px;
   font-size: 0.82rem;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   line-height: 1.45;
   white-space: pre-wrap;
   display: block;
@@ -128,25 +128,25 @@
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
 }
 
 .rescheduleButton {
   background: transparent;
-  border: 1px solid var(--ac-border-strong, #d6c7bb);
-  color: var(--ac-text, #2c1810);
+  border: 1px solid var(--ac-border-strong);
+  color: var(--ac-text);
   border-radius: 8px;
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
   font-family: inherit;
 }
 
 .rescheduleButton:hover:not(:disabled) {
   background: #fdf8f1;
-  border-color: var(--ac-accent, #a36b3e);
+  border-color: var(--ac-accent);
 }
 
 .cancelButton:hover:not(:disabled) {
@@ -198,8 +198,8 @@
 
 .tzGroup {
   display: inline-flex;
-  border: 1px solid var(--ac-border, #ece4db);
-  border-radius: var(--ac-radius-pill, 999px);
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-pill);
   background: #fff;
   padding: 2px;
 }
@@ -214,8 +214,8 @@
   font-weight: 500;
   color: var(--ac-text-muted);
   cursor: pointer;
-  border-radius: var(--ac-radius-pill, 999px);
-  transition: background var(--ac-motion-fast, 120ms), color var(--ac-motion-fast, 120ms);
+  border-radius: var(--ac-radius-pill);
+  transition: background var(--ac-motion-fast), color var(--ac-motion-fast);
 }
 
 .tzOption:hover:not(:disabled) {
@@ -223,7 +223,7 @@
 }
 
 .tzOptionSelected {
-  background: var(--ac-text, #2c1810);
+  background: var(--ac-text);
   color: #fff;
 }
 
@@ -259,20 +259,20 @@
 .weekTitle {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .weekNav {
   appearance: none;
-  border: 1px solid var(--ac-border, #e3d8cb);
+  border: 1px solid var(--ac-border);
   background: #fff;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   padding: 0.3rem 0.7rem;
   font-size: 0.85rem;
   font-family: inherit;
-  border-radius: var(--ac-radius-pill, 999px);
+  border-radius: var(--ac-radius-pill);
   cursor: pointer;
   font-variant-numeric: tabular-nums;
 }
@@ -310,7 +310,7 @@
 }
 
 .dayColToday {
-  border-color: var(--ac-accent, #6f4e37);
+  border-color: var(--ac-accent);
   background: #fff;
 }
 
@@ -331,7 +331,7 @@
 .dayDate {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   font-variant-numeric: tabular-nums;
   text-align: center;
   margin: 0 0 0.4rem;
@@ -344,7 +344,7 @@
   display: block;
   width: 100%;
   padding: 0.4rem 0.5rem;
-  background: var(--ac-accent-2, #5e7a52);
+  background: var(--ac-accent-2);
   color: #fff;
   border-radius: 6px;
   font-family: inherit;
@@ -352,11 +352,11 @@
   text-align: left;
   cursor: pointer;
   line-height: 1.25;
-  transition: background var(--ac-motion-fast, 120ms);
+  transition: background var(--ac-motion-fast);
 }
 
 .dayBlock:hover:not(:disabled) {
-  background: var(--ac-accent-2-dark, #4c6342);
+  background: var(--ac-accent-2-dark);
 }
 
 .dayBlockCancelled {
@@ -410,7 +410,7 @@
 .modalDialog {
   width: 100%;
   max-width: 420px;
-  background: var(--ac-surface, #fff);
+  background: var(--ac-surface);
   border-radius: 14px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   padding: 1.2rem 1.25rem;
@@ -423,14 +423,14 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
 }
 
 .modalBody {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: var(--ac-text-muted, #6b5848);
+  color: var(--ac-text-muted);
 }
 
 .modalSummary {
@@ -438,7 +438,7 @@
   border-radius: 10px;
   padding: 0.6rem 0.8rem;
   font-size: 0.85rem;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   line-height: 1.45;
 }
 
@@ -455,13 +455,13 @@
 
 .modalKeep {
   padding: 0.55rem 1rem;
-  border: 1px solid var(--ac-border, #ece4db);
+  border: 1px solid var(--ac-border);
   background: #fff;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  color: var(--ac-text, #2c1810);
+  color: var(--ac-text);
   font-family: inherit;
 }
 

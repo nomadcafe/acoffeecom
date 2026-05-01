@@ -90,7 +90,7 @@
   border-radius: 50%;
   /* Background is set inline via avatarGradient(username) — leaves a flat
      fallback for the loading skeleton that overrides this rule. */
-  background: var(--ac-accent, #6f4e37);
+  background: var(--ac-accent);
   color: #fff;
   font-family: var(--ac-font-display);
   font-size: 2rem;
@@ -166,7 +166,7 @@
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
 }
 
 .socialLink:hover {
@@ -280,12 +280,12 @@
   border-radius: 10px;
   text-decoration: none;
   color: inherit;
-  transition: background 100ms ease, border-color 100ms ease;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
 }
 .shopRow:hover,
 .shopRow:focus-visible {
-  background: var(--ac-surface, #fffaf2);
-  border-color: var(--ac-border, #ece4d4);
+  background: var(--ac-surface);
+  border-color: var(--ac-border);
 }
 
 /* Place photo thumbnail. The colored gradient on the parent span is the
@@ -367,7 +367,7 @@
   font-size: 0.95rem;
   color: var(--ac-text-muted);
   opacity: 0;
-  transition: opacity 100ms ease;
+  transition: opacity var(--ac-motion-fast);
 }
 .shopRow:hover .shopArrow,
 .shopRow:focus-visible .shopArrow {
@@ -389,7 +389,7 @@
   display: inline-block;
   margin-top: 1rem;
   padding: 0.55rem 1rem;
-  background: var(--ac-accent, #6f4e37);
+  background: var(--ac-accent);
   color: #fff;
   border: 0;
   border-radius: 8px;
@@ -451,8 +451,8 @@
 }
 
 .featuredCafeCard {
-  background: var(--ac-surface, #fffaf2);
-  border: 1px solid var(--ac-border, #ece4d4);
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
   border-radius: 14px;
   padding: 0.85rem 1rem;
 }
@@ -475,7 +475,7 @@
 .featuredCafeName {
   font-weight: 600;
   font-size: 1rem;
-  color: var(--ac-text, #2a2118);
+  color: var(--ac-text);
   text-decoration: none;
 }
 .featuredCafeName:hover {
@@ -489,7 +489,7 @@
 
 .featuredCafeRelationTag {
   font-size: 0.72rem;
-  color: var(--ac-text-muted, #7a6f5e);
+  color: var(--ac-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -497,7 +497,7 @@
 
 .featuredCafeAddress {
   font-size: 0.85rem;
-  color: var(--ac-text-muted, #7a6f5e);
+  color: var(--ac-text-muted);
   margin-top: 0.15rem;
 }
 
@@ -509,7 +509,7 @@
   border-radius: 8px;
   padding: 0.45rem 0.6rem;
   font-size: 0.85rem;
-  color: var(--ac-text, #2a2118);
+  color: var(--ac-text);
 }
 
 .featuredCafePinnedLabel {
@@ -529,13 +529,13 @@
   margin: 0.55rem 0 0;
   font-size: 0.92rem;
   line-height: 1.45;
-  color: var(--ac-text, #2a2118);
+  color: var(--ac-text);
 }
 
 .featuredCafePassport {
   margin: 0.5rem 0 0;
   font-size: 0.82rem;
-  color: var(--ac-text-muted, #7a6f5e);
+  color: var(--ac-text-muted);
   font-style: italic;
 }
 
@@ -550,21 +550,21 @@
   display: inline-block;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  border: 1px solid var(--ac-border, #ece4d4);
+  border: 1px solid var(--ac-border);
   background: #fff;
-  color: var(--ac-text, #2a2118);
+  color: var(--ac-text);
   font-size: 0.78rem;
   text-decoration: none;
 }
 .featuredCafeLinkChip:hover {
-  border-color: var(--ac-text, #2a2118);
+  border-color: var(--ac-text);
 }
 
 .featuredCafeFavoriteLink {
   display: inline-block;
   margin-top: 0.55rem;
   font-size: 0.85rem;
-  color: var(--ac-accent, #c0734f);
+  color: var(--ac-accent);
   text-decoration: none;
 }
 .featuredCafeFavoriteLink:hover {

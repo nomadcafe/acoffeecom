@@ -16,7 +16,7 @@
     color: var(--ac-text-muted);
     text-decoration: none;
     border-radius: 8px;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition: color var(--ac-motion-fast), background var(--ac-motion-fast);
   }
 
   .linkActive {
