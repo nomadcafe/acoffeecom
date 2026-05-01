@@ -6,25 +6,61 @@
   flex-direction: column;
 }
 
+/* Mirror App.css .header so the proposal page feels of-the-same-app
+ * as home / Account / Bookings / Passport / Updates: surface bg,
+ * hairline border-bottom, sticky to top, dark wordmark. */
 .header {
-  background: rgba(250, 247, 242, 0.92);
-  backdrop-filter: blur(8px);
+  background: var(--ac-surface, #fff);
+  color: var(--ac-text, #2c1810);
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--ac-border, #ece4db);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .headerInner {
-  max-width: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0.6rem 1rem;
+  min-height: 2.75rem;
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--ac-font-display, serif);
-  font-size: 1.05rem;
+  font-size: 1.45rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variation-settings: 'opsz' 36;
   text-decoration: none;
-  color: var(--ac-text-strong, #2c1810);
-  letter-spacing: -0.01em;
+  color: var(--ac-text, #2c1810);
+  transition: opacity var(--ac-motion-fast, 120ms);
+}
+
+.logo:hover {
+  opacity: 0.85;
+}
+
+.logo:focus-visible {
+  outline: 2px solid var(--ac-accent, #6f4e37);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: 0.55rem 1.5rem;
+  }
+
+  .logo {
+    font-size: 1.7rem;
+  }
 }
 
 .main {
@@ -53,7 +89,7 @@
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text, #2c1810);
   margin: 0 0 1rem;
   line-height: 1.15;
 }
@@ -68,7 +104,7 @@
 .cafeName {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text, #2c1810);
   margin: 0 0 0.2rem;
 }
 
@@ -96,7 +132,7 @@
   align-items: baseline;
   gap: 0.5rem;
   font-size: 1rem;
-  color: var(--ac-text-strong, #2c1810);
+  color: var(--ac-text, #2c1810);
   margin: 0 0 1rem;
   font-variant-numeric: tabular-nums;
 }
@@ -146,16 +182,32 @@
   border-radius: var(--ac-radius-pill, 999px);
   cursor: pointer;
   font-family: inherit;
-  transition: background var(--ac-motion-fast, 120ms);
+  /* The "moment of commit" — tokens prescribe sage + the CTA shadow
+   * for primary actions like booking submit and proposal accept. */
+  box-shadow: var(--ac-shadow-cta);
+  transition:
+    background var(--ac-motion-fast, 120ms),
+    box-shadow var(--ac-motion-fast, 120ms),
+    transform var(--ac-motion-fast, 120ms);
 }
 
 .btnAccept:hover:not(:disabled) {
   background: var(--ac-accent-2-dark, #4c6342);
 }
 
+.btnAccept:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btnAccept:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-shadow-cta), var(--ac-focus-ring-2);
+}
+
 .btnAccept:disabled {
   opacity: 0.6;
   cursor: progress;
+  box-shadow: none;
 }
 
 .btn {
@@ -163,7 +215,9 @@
   border: 1px solid var(--ac-border, #ece4db);
   background: var(--ac-surface, #fff);
   color: var(--ac-text, #2c1810);
-  padding: 0.6rem 0.7rem;
+  /* 0.75rem vertical bumps the secondary buttons over the WCAG 44px
+   * tap-target floor (was 0.6rem ≈ 39px on mobile). */
+  padding: 0.75rem 0.85rem;
   font-size: 0.88rem;
   font-weight: 500;
   border-radius: var(--ac-radius-sm, 8px);
@@ -174,7 +228,13 @@
 
 .btn:hover:not(:disabled) {
   border-color: var(--ac-text-muted);
-  background: #fdf8f1;
+  background: var(--ac-surface-tinted);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
 }
 
 .btn:disabled {
