@@ -269,6 +269,27 @@
   border-color: var(--ac-border, #ece4d4);
 }
 
+/* Place photo thumbnail. The colored gradient on the parent span is the
+   fallback that shows through when Google has no photo for the place
+   (proxy 404s, browser hides the img via onError). Same 44px footprint
+   regardless of whether the image loads, so the row layout doesn't
+   shift after the lazy fetch resolves. */
+.shopThumb {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.shopThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Numeric rank chip — circular tint with the position number. Replaces
    the visible <ol> numerals the browser would normally render. */
 .shopRank {

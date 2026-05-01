@@ -42,6 +42,16 @@ export interface AuthEnv extends DbEnv {
    *  before storing it on user.image so no R2-specific URL shape leaks
    *  into client code. */
   AVATARS_PUBLIC_URL?: string;
+  /** R2 bucket for cached Google Places photos, keyed by place id. The
+   *  /api/places/photo/[placeId] proxy fetches from Google on first hit,
+   *  stores here, and 302s every subsequent request directly to the
+   *  R2 public URL — so steady-state cost is zero. Optional binding so
+   *  envs without the bucket configured still boot. */
+  PLACE_PHOTOS?: R2Bucket;
+  /** Public URL prefix for the PLACE_PHOTOS bucket. Empty / unset means
+   *  the proxy returns 503 (rather than rewriting URLs that wouldn't
+   *  resolve). */
+  PLACE_PHOTOS_PUBLIC_URL?: string;
 }
 
 export function createAuth(env: AuthEnv) {

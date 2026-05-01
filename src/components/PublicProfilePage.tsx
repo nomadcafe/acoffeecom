@@ -297,6 +297,25 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
+                  <span
+                    className={styles.shopThumb}
+                    style={{ background: avatarGradient(s.id) }}
+                  >
+                    {/* The proxy at /api/places/photo/[placeId] handles
+                        cache + 302 to R2. onError hides the broken img
+                        so the colored gradient backing the span shows
+                        through — same footprint as a successful image. */}
+                    <img
+                      className={styles.shopThumbImg}
+                      src={`/api/places/photo/${encodeURIComponent(s.id)}`}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </span>
                   <span className={styles.shopRank} aria-hidden>{i + 1}</span>
                   <span className={styles.shopMeta}>
                     <span className={styles.shopName}>{s.name}</span>
