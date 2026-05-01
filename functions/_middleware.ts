@@ -246,6 +246,7 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
     const canonicalHref = `${url.origin}${url.pathname.endsWith('/') ? url.pathname : url.pathname + '/'}`;
     const response = await next();
     const ctype = response.headers.get('content-type') ?? '';
+    console.log('[mw home]', url.pathname, 'status=', response.status, 'ctype=', ctype);
     if (!ctype.includes('text/html')) return response;
     const rewriter = new HTMLRewriter()
       .on('html', new HtmlLangSetter(copy.htmlLang))
@@ -280,6 +281,7 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
   // Only transform HTML responses — if the static handler 404'd we shouldn't
   // touch the body shape.
   const ctype = response.headers.get('content-type') ?? '';
+  console.log('[mw user]', url.pathname, 'status=', response.status, 'ctype=', ctype);
   if (!ctype.includes('text/html')) return response;
 
   const rewriter = new HTMLRewriter()
