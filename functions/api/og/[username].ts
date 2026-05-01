@@ -1,8 +1,8 @@
 import { ImageResponse } from 'workers-og';
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
-import { user, visitedShops } from '../../_lib/db/schema';
+import { featuredCafes, user, visitedShops } from '../../_lib/db/schema';
 import { jsonError } from '../../_lib/passport';
 
 /**
@@ -21,6 +21,19 @@ interface ProfileForCard {
   cups: number;
   shops: number;
   streak: number;
+  /** First featured cafe (position 0) — surfaced on the share card to
+   *  give the OG preview an extra hook beyond bare stats. Null when the
+   *  profile has no featured cafe. */
+  featured: {
+    name: string;
+    relation: 'owned' | 'favorite';
+    /** Only meaningful on owned rows. */
+    verified: boolean;
+    /** Short blurb to show below the cafe name. Prefers the owner-only
+     *  pinned "this week" note (since it's the freshest signal), falls
+     *  back to the static note. Null when neither is set. */
+    snippet: string | null;
+  } | null;
 }
 
 function escapeSvg(s: string): string {
@@ -87,6 +100,40 @@ async function loadProfile(env: AuthEnv, username: string): Promise<ProfileForCa
     }
   }
 
+  // First featured cafe (position 0) — one extra row, no extra cost
+  // beyond a single indexed query.
+  const [topFeatured] = await db
+    .select({
+      name: featuredCafes.name,
+      relation: featuredCafes.relation,
+      ownerVerified: featuredCafes.ownerVerified,
+      note: featuredCafes.note,
+      ownerPinnedNote: featuredCafes.ownerPinnedNote,
+    })
+    .from(featuredCafes)
+    .where(eq(featuredCafes.userId, owner.id))
+    .orderBy(asc(featuredCafes.position))
+    .limit(1);
+
+  let featured: ProfileForCard['featured'] = null;
+  if (topFeatured) {
+    const relation: 'owned' | 'favorite' =
+      topFeatured.relation === 'owned' ? 'owned' : 'favorite';
+    // Pinned note wins over static note for the snippet — if the owner
+    // bothered to refresh "what's brewing this week", that's what they
+    // want shared. Truncate aggressively because the OG strip is short.
+    const rawSnippet =
+      relation === 'owned' && topFeatured.ownerPinnedNote
+        ? topFeatured.ownerPinnedNote
+        : topFeatured.note ?? null;
+    featured = {
+      name: topFeatured.name,
+      relation,
+      verified: relation === 'owned' && topFeatured.ownerVerified === true,
+      snippet: rawSnippet ? truncate(rawSnippet.trim(), 80) : null,
+    };
+  }
+
   return {
     username: owner.username ?? username,
     displayName: owner.displayName ?? null,
@@ -94,7 +141,39 @@ async function loadProfile(env: AuthEnv, username: string): Promise<ProfileForCa
     cups,
     shops,
     streak,
+    featured,
   };
+}
+
+/** Pinned-cafe banner for the OG card. Renders as nothing when there's
+ *  no featured cafe so older profiles still produce the original layout.
+ *  Uses word labels ("VERIFIED OWNER" / "OWNS" / "FAVORITE") instead of
+ *  emoji icons because satori's default bundled font has no glyphs for
+ *  ✓ / 🏠 / ❤ — they'd render as "NO GLYPH" boxes in the share image. */
+function renderFeatured(f: ProfileForCard['featured']): string {
+  if (!f) return '';
+  let label: string;
+  let labelColor: string;
+  if (f.relation === 'owned') {
+    label = f.verified ? 'VERIFIED OWNER' : 'OWNS';
+    labelColor = f.verified ? '#2e8b57' : '#a36b3e';
+  } else {
+    label = 'FAVORITE';
+    labelColor = '#a36b3e';
+  }
+  // 2-line layout when we have a snippet, single line otherwise. Inline
+  // styles only — satori doesn't read external CSS.
+  const snippet = f.snippet
+    ? `<span style="font-size:24px;color:#5a4a3e;margin-top:8px;line-height:1.3;">${escapeSvg(f.snippet)}</span>`
+    : '';
+  return `
+    <div style="display:flex;flex-direction:column;background:#fff4d8;border-radius:14px;padding:18px 24px;margin-top:24px;max-width:1050px;">
+      <div style="display:flex;align-items:baseline;">
+        <span style="font-size:18px;font-weight:700;color:${labelColor};letter-spacing:0.08em;margin-right:14px;">${label}</span>
+        <span style="font-size:30px;font-weight:700;color:#2c1810;letter-spacing:-0.3px;">${escapeSvg(truncate(f.name, 38))}</span>
+      </div>
+      ${snippet}
+    </div>`;
 }
 
 function renderTemplate(profile: ProfileForCard): string {
@@ -132,6 +211,7 @@ function renderTemplate(profile: ProfileForCard): string {
         ? `<div style="display:flex;font-size:32px;color:#3a2a20;margin-top:36px;line-height:1.4;max-width:1050px;"><span>${escapeSvg(bio)}</span></div>`
         : '<div style="height:36px;"></div>'
     }
+    ${renderFeatured(profile.featured)}
     <div style="display:flex;margin-top:auto;gap:18px;">
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:#fff;border:1px solid #e8d8c4;border-radius:18px;padding:24px;">
         <span style="font-size:64px;font-weight:700;color:#2c1810;line-height:1;">${profile.cups}</span>
