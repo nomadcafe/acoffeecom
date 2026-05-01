@@ -45,12 +45,113 @@
 }
 
 .main {
-  max-width: 640px;
+  /* Outer cap. The inner .layout grid then carves out a sticky TOC rail
+     and a centered content column. On narrow viewports the TOC hides
+     entirely and the content collapses back to its previous comfort
+     width. */
+  max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem 1rem calc(1.5rem + var(--bottom-nav-safe));
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+/* Two-column wrapper: sticky TOC on the left, content on the right.
+   At ≥1024px both render; below the breakpoint the grid collapses to a
+   single column and the TOC hides via .toc display:none. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  max-width: 880px;
+  /* Center the content column when the wider 1200px outer cap leaves
+     the right rail unused. Doesn't matter on the grid path because the
+     grid handles placement, but keeps the no-grid (very narrow) flow
+     visually balanced. */
+  margin-inline: auto;
+  width: 100%;
+}
+
+/* Sticky table of contents sidebar. Hidden on tablet/mobile because the
+   TOC is most useful when there's enough horizontal room not to compete
+   with the content for attention. */
+.toc {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .toc {
+    display: block;
+    position: sticky;
+    /* Account for the sticky header (~3.5rem) plus a comfortable gap. */
+    top: 4.5rem;
+    align-self: start;
+    /* Keep the rail itself scrollable if the page ever grows TOC items
+       past viewport height. Doesn't matter at 12 entries today, but
+       costs nothing to harden. */
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+}
+
+.tocList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  /* Subtle left rule so the active-link indicator has something to push
+     against. Pure visual chrome — accessibility is on the link state. */
+  border-left: 1px solid var(--ac-border);
+}
+
+.tocLink {
+  display: block;
+  padding: 0.32rem 0.75rem;
+  margin-left: -1px; /* overlap the rail's border so the active border replaces it cleanly */
+  border-left: 2px solid transparent;
+  font-size: 0.85rem;
+  color: var(--ac-text-muted);
+  text-decoration: none;
+  line-height: 1.35;
+  transition: color 80ms ease, border-color 80ms ease;
+}
+
+.tocLink:hover,
+.tocLink:focus-visible {
+  color: var(--ac-text);
+}
+
+.tocLinkActive {
+  color: var(--ac-text);
+  border-left-color: var(--ac-accent, #6f4e37);
+  font-weight: 600;
+}
+
+/* Sticky-anchor offset: when the user clicks a TOC item we smooth-scroll
+   the section to the top, but the sticky header would clip the title.
+   `scroll-margin-top` adds a phantom buffer above each anchor so the
+   title lands below the header instead of beneath it. */
+.card {
+  scroll-margin-top: 4.5rem;
 }
 
 .hero {
@@ -1143,20 +1244,36 @@
   min-width: 0;
 }
 
+/* Featured cafés grid container. Single column on narrow viewports;
+   2 columns once the surrounding content area is wide enough that two
+   ~420px cards fit comfortably side by side. The internal card layout
+   (relation pills, link rows, note textarea) flows fine at 420px,
+   though link rows are denser. */
+.featuredCafeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .featuredCafeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Wraps a single editable featured cafe (name, relation, note, links).
    Visually separates each card in the multi-card list — a 1px border +
    tiny padding is enough to chunk them without competing with the
-   surrounding form layout. */
+   surrounding form layout. The grid handles spacing between cards now,
+   so the card itself doesn't carry margins. */
 .featuredCafeCard {
   border: 1px solid var(--ac-border, #e3dccf);
   border-radius: 12px;
   padding: 0.85rem 0.95rem;
-  margin-top: 0.75rem;
   background: var(--ac-surface-soft, transparent);
-}
-
-.featuredCafeCard:first-of-type {
-  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ✓ badge next to a verified owned cafe's name. Subtle green accent so

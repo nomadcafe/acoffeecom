@@ -465,7 +465,11 @@ function SignedInAccountPage({
           <p className={styles.lead}>{t('account.lead')}</p>
         </div>
 
-        <section className={styles.card} aria-label={t('account.identityTitle')}>
+        <div className={styles.layout}>
+          <AccountToc />
+          <div className={styles.content}>
+
+        <section id="account-identity" className={styles.card} aria-label={t('account.identityTitle')}>
           <h2 className={styles.cardTitle}>{t('account.identityTitle')}</h2>
           <div className={styles.identityRow}>
             <span className={styles.identityKey}>{t('account.email')}</span>
@@ -480,7 +484,7 @@ function SignedInAccountPage({
         </section>
 
         {USERNAMES_PUBLIC ? (
-          <section className={styles.card} aria-label={t('account.usernameTitle')}>
+          <section id="account-username" className={styles.card} aria-label={t('account.usernameTitle')}>
             <h2 className={styles.cardTitle}>{t('account.usernameTitle')}</h2>
             <form className={styles.usernameForm} onSubmit={handleSubmit}>
               <div className={styles.usernamePrefix}>
@@ -552,7 +556,7 @@ function SignedInAccountPage({
           </section>
         ) : (
           /* Tease the future Pro feature without exposing the picker. */
-          <section className={styles.card} aria-label={t('account.usernameTitle')}>
+          <section id="account-username" className={styles.card} aria-label={t('account.usernameTitle')}>
             <h2 className={styles.cardTitle}>{t('account.usernameTitle')}</h2>
             <p className={styles.usernameHint} style={{ marginTop: 0 }}>
               {t('account.usernameProSoon')}
@@ -581,11 +585,14 @@ function SignedInAccountPage({
 
         <AvatarCard initialImage={(sessionUser as { image?: string | null }).image ?? null} />
 
-        <ProfileContentCard
+        <BasicProfileCard
           initialDisplayName={
             (sessionUser as { displayName?: string | null }).displayName ?? ''
           }
           initialBio={(sessionUser as { bio?: string | null }).bio ?? ''}
+        />
+
+        <SocialLinksCard
           initialSocialLinks={parseInitialSocialLinks(
             (sessionUser as { socialLinks?: string }).socialLinks,
           )}
@@ -593,6 +600,8 @@ function SignedInAccountPage({
             (sessionUser as { showSocialLinks?: boolean }).showSocialLinks !== false
           }
         />
+
+        <FeaturedCafesCard />
 
         <BookingSetupCard
           initialAddress={
@@ -618,7 +627,7 @@ function SignedInAccountPage({
           }
         />
 
-        <section className={styles.card} aria-label={t('account.statsTitle')}>
+        <section id="account-stats" className={styles.card} aria-label={t('account.statsTitle')}>
           <h2 className={styles.cardTitle}>{t('account.statsTitle')}</h2>
           <div className={styles.statsRow}>
             <a href={passportHref} className={`${styles.statCell} ${styles.statCellLink}`}>
@@ -636,7 +645,7 @@ function SignedInAccountPage({
           </div>
         </section>
 
-        <section className={styles.card} aria-label={t('account.exportTitle')}>
+        <section id="account-export" className={styles.card} aria-label={t('account.exportTitle')}>
           <h2 className={styles.cardTitle}>{t('account.exportTitle')}</h2>
           <p className={styles.dangerHint} style={{ color: 'var(--ac-text-muted)' }}>
             {t('account.exportHint')}
@@ -646,7 +655,7 @@ function SignedInAccountPage({
           </button>
         </section>
 
-        <section className={styles.card} aria-label={t('account.sessionsTitle')}>
+        <section id="account-sessions" className={styles.card} aria-label={t('account.sessionsTitle')}>
           <h2 className={styles.cardTitle}>{t('account.sessionsTitle')}</h2>
           {sessionsState.kind === 'loading' ? (
             <p className={styles.sessionLoading}>{t('account.sessionsLoading')}</p>
@@ -697,6 +706,7 @@ function SignedInAccountPage({
         </section>
 
         <section
+          id="account-danger"
           className={`${styles.card} ${styles.dangerCard}`}
           aria-label={t('account.deleteTitle')}
         >
@@ -710,6 +720,8 @@ function SignedInAccountPage({
             {t('account.deleteButton')}
           </button>
         </section>
+          </div>
+        </div>
       </main>
 
       {deleteOpen ? (
@@ -869,6 +881,101 @@ interface VisibilityProps {
  * yet, so the card mostly renders as a "soon" placeholder — but it'll start
  * working the moment the picker opens, no extra deploy needed.
  */
+
+/**
+ * Sidebar TOC for AccountPage on desktop (≥1024px). Lists every settings
+ * section in render order; a click smooth-scrolls to the section, and an
+ * IntersectionObserver-backed scroll spy highlights whichever section is
+ * currently in view. Hidden via CSS below the breakpoint — mobile users
+ * just scroll the page like they do today.
+ *
+ * The id list lives here (not in some shared module) because the rendering
+ * site is the only consumer; if a card is added, both the JSX `id` and
+ * this list need updating, and keeping them adjacent makes that obvious.
+ */
+const TOC_SECTIONS: ReadonlyArray<{ id: string; labelKey: string }> = [
+  { id: 'account-identity', labelKey: 'account.identityTitle' },
+  { id: 'account-username', labelKey: 'account.usernameTitle' },
+  { id: 'account-visibility', labelKey: 'account.profileTitle' },
+  { id: 'account-avatar', labelKey: 'account.avatarTitle' },
+  { id: 'account-basic', labelKey: 'account.basicInfoTitle' },
+  { id: 'account-social', labelKey: 'account.socialLinksTitle' },
+  { id: 'account-cafes', labelKey: 'account.featuredCafeLabel' },
+  { id: 'account-booking', labelKey: 'account.bookingTitle' },
+  { id: 'account-calendar', labelKey: 'account.calendarTitle' },
+  { id: 'account-recap', labelKey: 'account.recapTitle' },
+  { id: 'account-stats', labelKey: 'account.statsTitle' },
+  { id: 'account-export', labelKey: 'account.exportTitle' },
+  { id: 'account-sessions', labelKey: 'account.sessionsTitle' },
+  { id: 'account-danger', labelKey: 'account.deleteTitle' },
+];
+
+/** Watch each section id and report the topmost one currently in view.
+ *  Falls back to the first id if nothing is intersecting (e.g. very long
+ *  sections where no boundary is visible). */
+function useScrollSpy(ids: ReadonlyArray<string>): string {
+  const [activeId, setActiveId] = useState<string>(ids[0] ?? '');
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    // rootMargin pushes the "active" zone down a bit so a section is
+    // marked active once its title is past the sticky header, not when
+    // its top edge first peeks in. Bottom is generous so we don't flicker
+    // off-active while the next section is still mostly off-screen.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length === 0) return;
+        const topmost = visible.reduce((a, b) =>
+          a.boundingClientRect.top < b.boundingClientRect.top ? a : b,
+        );
+        setActiveId(topmost.target.id);
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 },
+    );
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [ids]);
+  return activeId;
+}
+
+function AccountToc() {
+  const { t } = useI18n();
+  const ids = TOC_SECTIONS.map((s) => s.id);
+  const activeId = useScrollSpy(ids);
+  return (
+    <nav className={styles.toc} aria-label={t('account.tocAria')}>
+      <ol className={styles.tocList}>
+        {TOC_SECTIONS.map((s) => (
+          <li key={s.id}>
+            <a
+              className={`${styles.tocLink}${
+                activeId === s.id ? ' ' + styles.tocLinkActive : ''
+              }`}
+              href={`#${s.id}`}
+              onClick={(e) => {
+                // Smooth-scroll without forcing a hash navigation that the
+                // browser would jump-to abruptly. We set the hash via
+                // replaceState so back/forward still hit the right anchor.
+                const el = document.getElementById(s.id);
+                if (el) {
+                  e.preventDefault();
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  history.replaceState(null, '', `#${s.id}`);
+                }
+              }}
+            >
+              {t(s.labelKey)}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
 function ProfileVisibilityCard({ hasUsername, username, initial }: VisibilityProps) {
   const { t } = useI18n();
   const [enabled, setEnabled] = useState(initial);
@@ -904,7 +1011,7 @@ function ProfileVisibilityCard({ hasUsername, username, initial }: VisibilityPro
   }
 
   return (
-    <section className={styles.card} aria-label={t('account.profileTitle')}>
+    <section id="account-visibility" className={styles.card} aria-label={t('account.profileTitle')}>
       <h2 className={styles.cardTitle}>{t('account.profileTitle')}</h2>
       <div className={styles.toggleRow}>
         <label className={styles.toggleLabel} htmlFor="profile-visibility-toggle">
@@ -1003,7 +1110,7 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
   }
 
   return (
-    <section className={styles.card} aria-label={t('account.recapTitle')}>
+    <section id="account-recap" className={styles.card} aria-label={t('account.recapTitle')}>
       <h2 className={styles.cardTitle}>{t('account.recapTitle')}</h2>
       <div className={styles.toggleRow}>
         <label className={styles.toggleLabel} htmlFor="monthly-recap-toggle">
@@ -1120,9 +1227,16 @@ function emptyCafeFromPicked(
   };
 }
 
-interface ProfileContentProps {
+/* The Profile content section is split into three discrete cards
+ * (Basic / Social links / Featured cafés) so each has its own scroll
+ * anchor, save button, and error surface. Server-side /api/account PATCH
+ * accepts each field independently, so the split is purely a client
+ * concern — no API change needed. */
+interface BasicProfileProps {
   initialDisplayName: string;
   initialBio: string;
+}
+interface SocialLinksProps {
   initialSocialLinks: SocialLinkDraft[];
   initialShowSocialLinks: boolean;
 }
@@ -1257,7 +1371,7 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
   }
 
   return (
-    <section className={styles.card} aria-label={t('account.avatarTitle')}>
+    <section id="account-avatar" className={styles.card} aria-label={t('account.avatarTitle')}>
       <h2 className={styles.cardTitle}>{t('account.avatarTitle')}</h2>
       <p className={styles.usernameHint} style={{ marginTop: 0 }}>
         {t('account.avatarHint')}
@@ -1319,23 +1433,253 @@ const LINK_URL_MAX = 200;
  * commit moment instead of save-on-every-blur churn (a half-typed URL
  * shouldn't be persisted as the user navigates between rows).
  */
-function ProfileContentCard({
-  initialDisplayName,
-  initialBio,
-  initialSocialLinks,
-  initialShowSocialLinks,
-}: ProfileContentProps) {
-  const { t, locale } = useI18n();
-  const { visitedShops } = useApp();
+function BasicProfileCard({ initialDisplayName, initialBio }: BasicProfileProps) {
+  const { t } = useI18n();
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [bio, setBio] = useState(initialBio);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+
+  async function handleSave() {
+    if (busy) return;
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          displayName: displayName.trim() ? displayName.trim() : null,
+          bio: bio.trim() ? bio.trim() : null,
+        }),
+      });
+      if (!res.ok) {
+        setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
+        return;
+      }
+      setStatus({ kind: 'ok', message: t('account.profileContentSaved') });
+      track('profile_basic_set', { hasName: !!displayName.trim(), hasBio: !!bio.trim() });
+    } catch {
+      setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section id="account-basic" className={styles.card} aria-label={t('account.basicInfoTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.basicInfoTitle')}</h2>
+      <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+        {t('account.basicInfoHint')}
+      </p>
+
+      <label className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.displayNameLabel')}</span>
+        <input
+          type="text"
+          className={styles.usernameInput}
+          maxLength={DISPLAY_NAME_MAX}
+          placeholder={t('account.displayNamePlaceholder')}
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+        />
+        <span className={styles.charCount}>
+          {displayName.length} / {DISPLAY_NAME_MAX}
+        </span>
+      </label>
+
+      <label className={styles.fieldGroup}>
+        <span className={styles.fieldLabel}>{t('account.bioLabel')}</span>
+        <textarea
+          className={styles.bioTextarea}
+          maxLength={BIO_MAX}
+          rows={3}
+          placeholder={t('account.bioPlaceholder')}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+        />
+        <span className={styles.charCount}>
+          {bio.length} / {BIO_MAX}
+        </span>
+      </label>
+
+      <div className={styles.formRow}>
+        <button
+          type="button"
+          className={styles.saveButton}
+          onClick={() => void handleSave()}
+          disabled={busy}
+        >
+          {busy ? t('account.saving') : t('account.profileContentSave')}
+        </button>
+        {status ? (
+          <p
+            className={status.kind === 'err' ? styles.errorMsg : styles.successMsg}
+            role="status"
+          >
+            {status.message}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialLinksProps) {
+  const { t } = useI18n();
   const [links, setLinks] = useState<SocialLinkDraft[]>(initialSocialLinks);
   const [showLinks, setShowLinks] = useState(initialShowSocialLinks);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+
+  function setLinkField(idx: number, field: 'label' | 'url', value: string) {
+    setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
+  }
+  function addLink() {
+    setLinks((prev) => (prev.length >= LINKS_MAX ? prev : [...prev, { label: '', url: '' }]));
+  }
+  function removeLink(idx: number) {
+    setLinks((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function isLinkValid(l: SocialLinkDraft): boolean {
+    if (!l.label.trim() || !l.url.trim()) return false;
+    if (!/^https?:\/\//i.test(l.url.trim())) return false;
+    return true;
+  }
+  function isLinkPartial(l: SocialLinkDraft): boolean {
+    return (l.label.trim() !== '' || l.url.trim() !== '') && !isLinkValid(l);
+  }
+  const hasInvalidLink = links.some(isLinkPartial);
+
+  async function handleSave() {
+    if (busy || hasInvalidLink) return;
+    setBusy(true);
+    setStatus(null);
+    const cleanLinks = links
+      .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
+      .filter(isLinkValid);
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          socialLinks: cleanLinks,
+          showSocialLinks: showLinks,
+        }),
+      });
+      if (!res.ok) {
+        setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
+        return;
+      }
+      setLinks(cleanLinks);
+      setStatus({ kind: 'ok', message: t('account.profileContentSaved') });
+      track('profile_links_set', { linkCount: cleanLinks.length, showLinks });
+    } catch {
+      setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section id="account-social" className={styles.card} aria-label={t('account.socialLinksTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.socialLinksTitle')}</h2>
+      <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+        {t('account.socialLinksHint')}
+      </p>
+
+      <div className={styles.fieldGroup}>
+        {links.length === 0 ? (
+          <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+            {t('account.socialLinksEmpty')}
+          </p>
+        ) : null}
+        {links.map((l, idx) => (
+          <div className={styles.linkRow} key={idx}>
+            <input
+              type="text"
+              className={styles.linkLabelInput}
+              maxLength={LINK_LABEL_MAX}
+              placeholder={t('account.linkLabelPlaceholder')}
+              value={l.label}
+              onChange={(e) => setLinkField(idx, 'label', e.target.value)}
+            />
+            <input
+              type="url"
+              className={styles.linkUrlInput}
+              maxLength={LINK_URL_MAX}
+              placeholder="https://…"
+              value={l.url}
+              onChange={(e) => setLinkField(idx, 'url', e.target.value)}
+              aria-invalid={isLinkPartial(l) || undefined}
+            />
+            <button
+              type="button"
+              className={styles.linkRemove}
+              onClick={() => removeLink(idx)}
+              aria-label={t('account.linkRemoveAria')}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        {links.length < LINKS_MAX ? (
+          <button type="button" className={styles.linkAdd} onClick={addLink}>
+            + {t('account.linkAdd')}
+          </button>
+        ) : null}
+      </div>
+
+      <div className={styles.toggleRow}>
+        <label className={styles.toggleLabel} htmlFor="show-social-links-toggle">
+          {t('account.showSocialLinksLabel')}
+          <span className={styles.toggleSubLabel}>
+            {showLinks ? t('account.showSocialLinksOnHint') : t('account.showSocialLinksOffHint')}
+          </span>
+        </label>
+        <button
+          type="button"
+          id="show-social-links-toggle"
+          className={`${styles.toggle}${showLinks ? ' ' + styles.toggleOn : ''}`}
+          role="switch"
+          aria-checked={showLinks}
+          aria-label={t('account.showSocialLinksAria')}
+          onClick={() => setShowLinks((v) => !v)}
+        />
+      </div>
+
+      <div className={styles.formRow}>
+        <button
+          type="button"
+          className={styles.saveButton}
+          onClick={() => void handleSave()}
+          disabled={busy || hasInvalidLink}
+        >
+          {busy ? t('account.saving') : t('account.profileContentSave')}
+        </button>
+        {hasInvalidLink ? (
+          <p className={styles.errorMsg} role="alert">{t('account.linkInvalid')}</p>
+        ) : status ? (
+          <p
+            className={status.kind === 'err' ? styles.errorMsg : styles.successMsg}
+            role="status"
+          >
+            {status.message}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function FeaturedCafesCard() {
+  const { t, locale } = useI18n();
+  const { visitedShops } = useApp();
   const [cafes, setCafes] = useState<FeaturedCafeDraft[]>([]);
   const [cafeQuery, setCafeQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
-  // zh-CN is what Google's autocomplete expects; our locale code is `zh`.
   const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
 
   // Hydrate the featured-cafes list from /api/account on mount. Lives in
@@ -1425,36 +1769,10 @@ function ProfileContentCard({
     setCafes((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  function setLinkField(idx: number, field: 'label' | 'url', value: string) {
-    setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
-  }
-  function addLink() {
-    setLinks((prev) => (prev.length >= LINKS_MAX ? prev : [...prev, { label: '', url: '' }]));
-  }
-  function removeLink(idx: number) {
-    setLinks((prev) => prev.filter((_, i) => i !== idx));
-  }
-
-  // A link is committable only when both fields are filled and the URL parses
-  // as http(s). Server enforces the same rule; this just lets us drop blank
-  // rows silently on Save instead of erroring out.
-  function isLinkValid(l: SocialLinkDraft): boolean {
-    if (!l.label.trim() || !l.url.trim()) return false;
-    if (!/^https?:\/\//i.test(l.url.trim())) return false;
-    return true;
-  }
-  function isLinkPartial(l: SocialLinkDraft): boolean {
-    return (l.label.trim() !== '' || l.url.trim() !== '') && !isLinkValid(l);
-  }
-  const hasInvalidLink = links.some(isLinkPartial);
-
   async function handleSave() {
-    if (busy || hasInvalidLink) return;
+    if (busy) return;
     setBusy(true);
     setStatus(null);
-    const cleanLinks = links
-      .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
-      .filter(isLinkValid);
     // Strip blanks from each cafe's optional fields and snapshot the
     // payload before the fetch. Server collapses '' → NULL anyway but
     // doing it here keeps the wire smaller and keeps the user's local
@@ -1478,19 +1796,12 @@ function ProfileContentCard({
       const res = await fetch('/api/account', {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          displayName: displayName.trim() ? displayName.trim() : null,
-          bio: bio.trim() ? bio.trim() : null,
-          socialLinks: cleanLinks,
-          showSocialLinks: showLinks,
-          featuredCafes: cleanCafes,
-        }),
+        body: JSON.stringify({ featuredCafes: cleanCafes }),
       });
       if (!res.ok) {
         setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
         return;
       }
-      setLinks(cleanLinks); // strip any blanks that were filtered out
       // Re-fetch so the verified flag reflects the server's decision
       // after this save. Cheap; one row per cafe and we cap at 5.
       try {
@@ -1527,13 +1838,9 @@ function ProfileContentCard({
         /* non-fatal — local state already has the unverified default */
       }
       setStatus({ kind: 'ok', message: t('account.profileContentSaved') });
-      track('profile_content_set', {
-        hasName: !!displayName.trim(),
-        hasBio: !!bio.trim(),
-        linkCount: cleanLinks.length,
+      track('profile_cafes_set', {
         cafeCount: cleanCafes.length,
         ownedCount: cleanCafes.filter((c) => c.relation === 'owned').length,
-        showLinks,
       });
     } catch {
       setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
@@ -1543,114 +1850,19 @@ function ProfileContentCard({
   }
 
   return (
-    <section className={styles.card} aria-label={t('account.profileContentTitle')}>
-      <h2 className={styles.cardTitle}>{t('account.profileContentTitle')}</h2>
+    <section id="account-cafes" className={styles.card} aria-label={t('account.featuredCafeLabel')}>
+      <h2 className={styles.cardTitle}>{t('account.featuredCafeLabel')}</h2>
       <p className={styles.usernameHint} style={{ marginTop: 0 }}>
-        {t('account.profileContentHint')}
+        {t('account.featuredCafeHint')}
       </p>
-
-      <label className={styles.fieldGroup}>
-        <span className={styles.fieldLabel}>{t('account.displayNameLabel')}</span>
-        <input
-          type="text"
-          className={styles.usernameInput}
-          maxLength={DISPLAY_NAME_MAX}
-          placeholder={t('account.displayNamePlaceholder')}
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-        />
-        <span className={styles.charCount}>
-          {displayName.length} / {DISPLAY_NAME_MAX}
-        </span>
-      </label>
-
-      <label className={styles.fieldGroup}>
-        <span className={styles.fieldLabel}>{t('account.bioLabel')}</span>
-        <textarea
-          className={styles.bioTextarea}
-          maxLength={BIO_MAX}
-          rows={3}
-          placeholder={t('account.bioPlaceholder')}
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-        />
-        <span className={styles.charCount}>
-          {bio.length} / {BIO_MAX}
-        </span>
-      </label>
-
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldLabel}>{t('account.socialLinksLabel')}</span>
-        {links.length === 0 ? (
-          <p className={styles.usernameHint} style={{ marginTop: 0 }}>
-            {t('account.socialLinksEmpty')}
-          </p>
-        ) : null}
-        {links.map((l, idx) => (
-          <div className={styles.linkRow} key={idx}>
-            <input
-              type="text"
-              className={styles.linkLabelInput}
-              maxLength={LINK_LABEL_MAX}
-              placeholder={t('account.linkLabelPlaceholder')}
-              value={l.label}
-              onChange={(e) => setLinkField(idx, 'label', e.target.value)}
-            />
-            <input
-              type="url"
-              className={styles.linkUrlInput}
-              maxLength={LINK_URL_MAX}
-              placeholder="https://…"
-              value={l.url}
-              onChange={(e) => setLinkField(idx, 'url', e.target.value)}
-              aria-invalid={isLinkPartial(l) || undefined}
-            />
-            <button
-              type="button"
-              className={styles.linkRemove}
-              onClick={() => removeLink(idx)}
-              aria-label={t('account.linkRemoveAria')}
-            >
-              ×
-            </button>
-          </div>
-        ))}
-        {links.length < LINKS_MAX ? (
-          <button type="button" className={styles.linkAdd} onClick={addLink}>
-            + {t('account.linkAdd')}
-          </button>
-        ) : null}
-      </div>
-
-      {/* Show-links privacy toggle. Default on, so existing users with
-          links don't silently disappear from their profile. */}
-      <div className={styles.toggleRow}>
-        <label className={styles.toggleLabel} htmlFor="show-social-links-toggle">
-          {t('account.showSocialLinksLabel')}
-          <span className={styles.toggleSubLabel}>
-            {showLinks ? t('account.showSocialLinksOnHint') : t('account.showSocialLinksOffHint')}
-          </span>
-        </label>
-        <button
-          type="button"
-          id="show-social-links-toggle"
-          className={`${styles.toggle}${showLinks ? ' ' + styles.toggleOn : ''}`}
-          role="switch"
-          aria-checked={showLinks}
-          aria-label={t('account.showSocialLinksAria')}
-          onClick={() => setShowLinks((v) => !v)}
-        />
-      </div>
 
       {/* Featured cafés — up to 5 Places, each with its own relation,
           note, links, and (for owned) pinned note. Render order follows
-          the array; remove + re-add to reorder (drag is v2). */}
+          the array; remove + re-add to reorder (drag is v2). On desktop
+          the cards lay out in a 2-column grid so 5 entries fit in 3 rows
+          instead of 5; below the breakpoint they stack as before. */}
       <div className={styles.fieldGroup}>
-        <span className={styles.fieldLabel}>{t('account.featuredCafeLabel')}</span>
-        <p className={styles.usernameHint} style={{ marginTop: 0 }}>
-          {t('account.featuredCafeHint')}
-        </p>
-
+        <div className={styles.featuredCafeGrid}>
         {cafes.map((cafe, idx) => (
           <div key={cafe.placeId} className={styles.featuredCafeCard}>
             <div className={styles.featuredCafeChosen}>
@@ -1809,6 +2021,7 @@ function ProfileContentCard({
             </div>
           </div>
         ))}
+        </div>
 
         {/* Add surface — only visible when we're under the cap. Mirrors
             the v1 single-card empty-state UI: passport quick-pick row +
@@ -1900,15 +2113,11 @@ function ProfileContentCard({
           type="button"
           className={styles.saveButton}
           onClick={() => void handleSave()}
-          disabled={busy || hasInvalidLink}
+          disabled={busy}
         >
           {busy ? t('account.saving') : t('account.profileContentSave')}
         </button>
-        {hasInvalidLink ? (
-          <p className={styles.errorMsg} role="alert">
-            {t('account.linkInvalid')}
-          </p>
-        ) : status ? (
+        {status ? (
           <p
             className={status.kind === 'err' ? styles.errorMsg : styles.successMsg}
             role="status"
@@ -2062,7 +2271,7 @@ function BookingSetupCard({
   }
 
   return (
-    <section className={styles.card} aria-label={t('account.bookingTitle')}>
+    <section id="account-booking" className={styles.card} aria-label={t('account.bookingTitle')}>
       <h2 className={styles.cardTitle}>{t('account.bookingTitle')}</h2>
       <p className={styles.usernameHint} style={{ marginTop: 0 }}>
         {t('account.bookingHint')}
@@ -2252,7 +2461,7 @@ function CalendarSyncCard({
   }
 
   return (
-    <section className={styles.card} aria-label={t('account.calendarTitle')}>
+    <section id="account-calendar" className={styles.card} aria-label={t('account.calendarTitle')}>
       <h2 className={styles.cardTitle}>{t('account.calendarTitle')}</h2>
       <p className={styles.usernameHint} style={{ marginTop: 0 }}>
         {t('account.calendarHint')}
