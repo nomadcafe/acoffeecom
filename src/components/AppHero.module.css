@@ -14,7 +14,12 @@
 }
 
 .inner {
-  max-width: 720px;
+  /* Wide outer cap so the HomeFeatureShowcase carousel (which has its
+   * own 1280px wrap) actually gets to breathe at desktop widths.
+   * Reading-width sections below (tagline, samples, near-me) carry
+   * their own narrower max-widths so 1200px doesn't make a single
+   * tagline span the whole viewport. */
+  max-width: 1280px;
   margin: 0 auto;
   text-align: center;
 }
@@ -23,8 +28,11 @@
   /* Sits between the showcase (above) and the samples/near-me
    * (below). Top margin opens space from the cards; bottom margin is
    * smaller so the tagline reads as the intro to the action zone
-   * rather than a free-floating sentence. */
-  margin: 1.2rem 0 0.7rem 0;
+   * rather than a free-floating sentence. Capped at reading width and
+   * centered so the wider .inner doesn't pull the line all the way
+   * across desktop. */
+  margin: 1.2rem auto 0.7rem;
+  max-width: 640px;
   font-size: 0.92rem;
   color: var(--ac-text);
   line-height: 1.4;
