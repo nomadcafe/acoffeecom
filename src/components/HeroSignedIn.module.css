@@ -1,0 +1,116 @@
+/* Personal-state strip rendered in the hero for signed-in users —
+ * sits in the slot HomeFeatureShowcase fills for anonymous visitors,
+ * so the page doesn't feel half-empty after sign-in. */
+
+.wrap {
+  margin: 0 auto;
+  max-width: 640px;
+  padding: 1.1rem 1.2rem 1.05rem;
+  background:
+    linear-gradient(135deg, rgba(111, 78, 55, 0.05), rgba(94, 122, 82, 0.03)),
+    var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-lg);
+  box-shadow: var(--ac-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.welcome {
+  margin: 0;
+  font-family: var(--ac-font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ac-text);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  font-variation-settings: 'opsz' 60;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  color: var(--ac-text);
+}
+
+.statIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.statValue {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.lastVisit {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--ac-text-muted);
+  line-height: 1.4;
+}
+
+.lastVisitName {
+  color: var(--ac-text);
+  font-weight: 600;
+}
+
+.lastVisitWhen {
+  color: var(--ac-text-muted);
+}
+
+.passportLink {
+  align-self: flex-start;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ac-accent);
+  text-decoration: none;
+  transition: color var(--ac-motion-fast);
+}
+
+.passportLink:hover {
+  color: var(--ac-accent-dark);
+  text-decoration: underline;
+}
+
+.passportLink:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-radius: var(--ac-radius-sm);
+}
+
+@media (min-width: 768px) {
+  .wrap {
+    padding: 1.4rem 1.5rem 1.25rem;
+    gap: 0.7rem;
+  }
+
+  .welcome {
+    font-size: 1.6rem;
+  }
+
+  .stats {
+    gap: 0.4rem 1.1rem;
+  }
+
+  .stat {
+    font-size: 0.98rem;
+  }
+
+  .lastVisit {
+    font-size: 0.95rem;
+  }
+}

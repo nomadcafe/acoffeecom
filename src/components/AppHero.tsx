@@ -1,7 +1,9 @@
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { examplePairsByLocale } from '../i18n/examples';
+import { useSession } from '../utils/authClient';
 import { AppHeroNearMe } from './AppHeroNearMe';
+import { HeroSignedIn } from './HeroSignedIn';
 import { HomeFeatureShowcase } from './HomeFeatureShowcase';
 import styles from './AppHero.module.css';
 
@@ -13,6 +15,7 @@ import styles from './AppHero.module.css';
 export function AppHero() {
   const { t, locale } = useI18n();
   const { midpoint, searchWithAddresses, isLoading, recentSearches } = useApp();
+  const { data: session, isPending: sessionPending } = useSession();
 
   // Hide the hero as soon as any search is in flight, not just on
   // midpoint — otherwise on mobile the hero briefly remains stacked above
@@ -24,15 +27,21 @@ export function AppHero() {
   const showSamples = recentSearches.length === 0;
   const samples = showSamples ? examplePairsByLocale[locale] : [];
 
+  // Wait for session resolution so anonymous visitors don't briefly
+  // see the showcase, then watch it disappear when the session lands.
+  if (sessionPending) return null;
+  const isSignedIn = !!session?.user;
+
   return (
     <section className={styles.hero}>
       <div className={styles.inner}>
-        {/* Anonymous-only feature breadth. Self-hides for signed-in users.
-            Owns the page's H1 ("ACoffee 是什么") for visitors and
-            crawlers — the brand wordmark in the header is the same
-            "ACoffee" string, so we don't need to repeat it as an extra
-            heading here. */}
-        <HomeFeatureShowcase />
+        {/* Anonymous = marketing showcase (carousel + mode chips).
+            Signed-in = personal-state strip (streak, last visit,
+            stats) for users who already know the product and want
+            "where you left off" instead of feature breadth. The H1
+            of the page lives inside HomeFeatureShowcase for crawlers;
+            HeroSignedIn isn't an H1, just a welcome card. */}
+        {isSignedIn ? <HeroSignedIn /> : <HomeFeatureShowcase />}
 
         {/* Tagline as the intro to the action zone — "AI 帮你们找最
             公平的咖啡店" then "or just show me cafés nearby." Reads
