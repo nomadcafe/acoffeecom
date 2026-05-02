@@ -3,6 +3,7 @@ import { GoogleMap, Polyline } from '@react-google-maps/api';
 import type { VisitedShopSnapshot } from '../types';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { useSession } from '../utils/authClient';
 import { sharePassportCard } from '../utils/passportCard';
 import { renderTrajectoryCard } from '../utils/trajectoryCard';
 import { formatAbsoluteDate } from '../utils/relativeTime';
@@ -50,6 +51,11 @@ interface TrajectoryStop {
 export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProps) {
   const { t, locale } = useI18n();
   const { isSdkLoaded: isLoaded, sdkLoadError: loadError } = useApp();
+  const { data: session } = useSession();
+  const sessionUser = (session?.user ?? undefined) as
+    | { username?: string | null }
+    | undefined;
+  const handle = sessionUser?.username?.trim() || undefined;
 
   const stops = useMemo<TrajectoryStop[]>(() => {
     const out: TrajectoryStop[] = [];
@@ -142,6 +148,7 @@ export function TrajectoryMap({ visitedShops, onMarkerClick }: TrajectoryMapProp
           cityCount >= 2 ? t('passport.trajectoryShareCities', { count: cityCount }) : '',
         rangeLabel,
         brand: 'acoffee.com',
+        handle,
         stops: stops.map((s) => ({ lat: s.lat, lng: s.lng })),
       });
       const result = await sharePassportCard(blob, {
