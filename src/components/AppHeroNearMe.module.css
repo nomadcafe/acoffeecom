@@ -7,28 +7,6 @@
   gap: 0.55rem;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  color: var(--ac-text-muted);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--ac-border);
-}
-
-.dividerLabel {
-  padding: 0 0.7rem;
-}
-
 .button {
   padding: 0.55rem 1rem;
   font-size: 0.9rem;

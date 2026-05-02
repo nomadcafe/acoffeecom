@@ -16,29 +16,13 @@
 .inner {
   /* Wide outer cap so the HomeFeatureShowcase carousel (which has its
    * own 1280px wrap) actually gets to breathe at desktop widths.
-   * Reading-width sections below (tagline, samples, near-me) carry
-   * their own narrower max-widths so 1200px doesn't make a single
-   * tagline span the whole viewport. */
+   * Reading-width sections below (samples, near-me) carry their own
+   * narrower max-widths so 1280px doesn't stretch a single line all
+   * the way across desktop. */
   max-width: 1280px;
   margin: 0 auto;
   text-align: center;
 }
-
-.tagline {
-  /* Sits between the showcase (above) and the samples/near-me
-   * (below). Top margin opens space from the cards; bottom margin is
-   * smaller so the tagline reads as the intro to the action zone
-   * rather than a free-floating sentence. Capped at reading width and
-   * centered so the wider .inner doesn't pull the line all the way
-   * across desktop. */
-  margin: 1.2rem auto 0.7rem;
-  max-width: 640px;
-  font-size: 0.92rem;
-  color: var(--ac-text);
-  line-height: 1.4;
-  font-weight: 500;
-}
-
 
 .samples {
   margin: 0.75rem auto 0;
@@ -121,10 +105,5 @@
 @media (min-width: 768px) {
   .hero {
     padding: 1.15rem 1.5rem 1.25rem;
-  }
-
-  .tagline {
-    font-size: 1rem;
-    margin: 1.4rem 0 0.9rem 0;
   }
 }

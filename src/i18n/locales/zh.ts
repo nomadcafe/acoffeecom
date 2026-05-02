@@ -16,7 +16,6 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': 'AI 帮你们找最公平的咖啡店。',
   'heroSignedIn.welcome': '欢迎回来。',
   'heroSignedIn.welcomeNamed': '欢迎回来，{{handle}}。',
   'heroSignedIn.streakOne': '连签 1 天',
@@ -59,8 +58,6 @@ export const messages: MessageDict = {
 
   'hero.samplesTitle': '试一下示例搜索：',
   'hero.samplesLabel': '示例搜索',
-
-  'hero.or': '或',
 
   'list.loadingCoffee': '正在查找咖啡好店…',
   'list.loadingMeetup': '正在查找会面地点…',

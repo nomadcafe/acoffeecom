@@ -43,12 +43,6 @@ export function AppHero() {
             HeroSignedIn isn't an H1, just a welcome card. */}
         {isSignedIn ? <HeroSignedIn /> : <HomeFeatureShowcase />}
 
-        {/* Tagline as the intro to the action zone — "AI 帮你们找最
-            公平的咖啡店" then "or just show me cafés nearby." Reads
-            naturally as the verb-y answer to the showcase's product
-            description above. */}
-        <p className={styles.tagline}>{t('app.tagline')}</p>
-
         {samples.length > 0 ? (
           <div className={styles.samples} aria-label={t('hero.samplesLabel')}>
             <p className={styles.samplesTitle}>{t('hero.samplesTitle')}</p>

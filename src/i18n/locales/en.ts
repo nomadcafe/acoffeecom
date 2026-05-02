@@ -19,7 +19,6 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': 'AI picks the fairest coffee spot for everyone.',
   'heroSignedIn.welcome': 'Welcome back.',
   'heroSignedIn.welcomeNamed': 'Welcome back, {{handle}}.',
   'heroSignedIn.streakOne': '1-day streak',
@@ -62,8 +61,6 @@ export const messages: MessageDict = {
 
   'hero.samplesTitle': 'Try a sample search:',
   'hero.samplesLabel': 'Sample searches',
-
-  'hero.or': 'or',
 
   'list.loadingCoffee': 'Finding great coffee spots…',
   'list.loadingMeetup': 'Finding meetup spots…',

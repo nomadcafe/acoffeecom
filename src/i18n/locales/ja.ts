@@ -19,7 +19,6 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.title': 'ACoffee',
-  'app.tagline': 'AI が全員にいちばん公平なカフェを選びます。',
   'heroSignedIn.welcome': 'おかえりなさい。',
   'heroSignedIn.welcomeNamed': 'おかえりなさい、{{handle}}さん。',
   'heroSignedIn.streakOne': '1 日連続',
@@ -62,8 +61,6 @@ export const messages: MessageDict = {
 
   'hero.samplesTitle': 'サンプル検索を試す：',
   'hero.samplesLabel': 'サンプル検索',
-
-  'hero.or': 'または',
 
   'list.loadingCoffee': 'カフェを探しています…',
   'list.loadingMeetup': '待ち合わせ候補を探しています…',
