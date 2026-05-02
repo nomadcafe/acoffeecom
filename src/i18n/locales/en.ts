@@ -551,6 +551,7 @@ export const messages: MessageDict = {
   'bookingWidget.submitFailed': 'Something went wrong. Please try again.',
   'bookingWidget.slotTaken': 'Sorry, that time was just booked by someone else. Pick another below.',
   'bookingWidget.emailInvalid': "That email looks off — double-check the address and try again.",
+  'bookingWidget.bookingRef': 'Booking ref: {{id}}',
   'bookingWidget.successTitle': 'You\'re on the calendar ☕',
   'bookingWidget.successBody': 'Coffee with {{handle}} is confirmed for {{when}}. We picked a café halfway between you both:',
   'bookingWidget.successFollowUp': 'Both of you will get a calendar invite by email shortly.',

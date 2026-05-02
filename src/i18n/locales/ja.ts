@@ -546,6 +546,7 @@ export const messages: MessageDict = {
   'bookingWidget.submitting': '予約中…',
   'bookingWidget.submitFailed': 'エラーが発生しました。もう一度お試しください。',
   'bookingWidget.emailInvalid': 'メールアドレスの形式を確認してください。',
+  'bookingWidget.bookingRef': '予約番号：{{id}}',
   'bookingWidget.slotTaken': '申し訳ありません、その時間は他の方に予約されました。下から別の時間を選んでください。',
   'bookingWidget.successTitle': '予約が完了しました ☕',
   'bookingWidget.successBody': '{{handle}} とのコーヒーが {{when}} に確定しました。中間地点にあるカフェを選びました：',

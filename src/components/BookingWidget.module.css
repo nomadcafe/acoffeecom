@@ -26,6 +26,100 @@
   font-size: 0.9rem;
 }
 
+/* Visually-hidden but readable by screen readers — used inside the
+ * loading skeleton so AT users hear "Loading available times…" while
+ * sighted users see the chip placeholders. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Loading-skeleton placeholders. Same outer shape as the real chips so
+ * the layout doesn't reflow when data lands. The shimmer keyframe
+ * comes from Apex passport — re-implementing locally to avoid coupling. */
+@keyframes bookingSkeletonShimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeletonDateRow {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.45rem 0 0.95rem;
+  overflow-x: hidden;
+}
+
+.skeletonDateChip {
+  flex: 0 0 3.6rem;
+  height: 3.4rem;
+  border-radius: var(--ac-radius-md);
+  background:
+    linear-gradient(
+      90deg,
+      var(--ac-surface-tinted) 0,
+      var(--ac-page-bg) 60px,
+      var(--ac-surface-tinted) 120px
+    );
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: bookingSkeletonShimmer 1.4s infinite linear;
+}
+
+.skeletonSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: 0.4rem;
+}
+
+.skeletonSlotChip {
+  height: 2.2rem;
+  border-radius: var(--ac-radius-sm);
+  background:
+    linear-gradient(
+      90deg,
+      var(--ac-surface-tinted) 0,
+      var(--ac-page-bg) 60px,
+      var(--ac-surface-tinted) 120px
+    );
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: bookingSkeletonShimmer 1.4s infinite linear;
+}
+
+/* Retry button on the load-error state — light secondary style so it
+ * sits inside the section card without screaming for attention. */
+.errorRetry {
+  display: block;
+  margin: 0.85rem auto 0.4rem;
+  appearance: none;
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  padding: 0.5rem 1.1rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: var(--ac-radius-pill);
+  cursor: pointer;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
+}
+
+.errorRetry:hover {
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-accent);
+}
+
+.errorRetry:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
 .errorRow {
   background: var(--ac-danger-bg);
   border: 1px solid var(--ac-danger-border);
@@ -104,6 +198,18 @@
   line-height: 1.1;
 }
 
+/* Month abbreviation under the day number — only renders for the
+ * first chip and at month boundaries. Small + muted so it reads as
+ * a context tag, not as the primary date info. */
+.dateChipMonth {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  opacity: 0.65;
+  margin-top: 0.1rem;
+}
+
 /* ---------- time slots ---------- */
 .slotLabel {
   font-size: 0.78rem;
@@ -178,7 +284,10 @@
   border: 1px solid var(--ac-border);
   border-radius: 8px;
   font-family: inherit;
-  font-size: 1rem;
+  /* 16px literal — root font-size on the public-profile page can be
+   * smaller, and `1rem` would then trigger iOS's zoom-on-focus. Pin
+   * to 16px to defend against that regardless of root size. */
+  font-size: 16px;
   background: #fff;
   color: var(--ac-text);
 }
@@ -334,6 +443,18 @@
 
 .successMapsLink:hover {
   text-decoration: underline;
+}
+
+/* Booking ref ID under the success message. Mono + muted because it
+ * reads like a confirmation number — visitor can quote it to the host
+ * if the email never arrives. Tabular-nums keeps the digits aligned. */
+.successRef {
+  margin: 0.85rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-align: center;
 }
 
 .tzNote {

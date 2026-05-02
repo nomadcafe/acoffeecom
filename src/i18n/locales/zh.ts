@@ -539,6 +539,7 @@ export const messages: MessageDict = {
   'bookingWidget.submitting': '提交中…',
   'bookingWidget.submitFailed': '出错了，请重试。',
   'bookingWidget.emailInvalid': '邮箱格式不太对，检查一下再提交。',
+  'bookingWidget.bookingRef': '预订编号：{{id}}',
   'bookingWidget.slotTaken': '抱歉，这个时段刚刚被其他人预约了。请在下方重新选择。',
   'bookingWidget.successTitle': '已加入日程 ☕',
   'bookingWidget.successBody': '与 {{handle}} 的咖啡已确认在 {{when}}。我们挑了双方中间的一家：',

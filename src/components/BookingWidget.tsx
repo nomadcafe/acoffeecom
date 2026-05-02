@@ -67,6 +67,10 @@ export function BookingWidget({ username, displayName }: Props) {
 
   const [data, setData] = useState<AvailabilityWire | null>(null);
   const [state, setState] = useState<FlowState>({ kind: 'loading' });
+  // Form scroll target — when a slot is selected on a small phone the
+  // form sits below the fold, and a tap looks like nothing happened.
+  // Scroll the form into view so the visitor sees the next step.
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   // `chosenDayKey` is the user's explicit pick; when null we fall back to the
   // first available day so visitors see slots immediately. Tracking the
@@ -74,6 +78,21 @@ export function BookingWidget({ username, displayName }: Props) {
   // "cascading renders" lint that comes with it).
   const [chosenDayKey, setChosenDayKey] = useState<string | null>(null);
   const [selectedSlotMs, setSelectedSlotMs] = useState<number | null>(null);
+
+  // When a slot is chosen, scroll the form into view. Most visible on
+  // narrow viewports where the form lives below the slot grid; on
+  // desktop the form is visible already and this no-ops if the form is
+  // already in the viewport (smooth scroll is a no-op then).
+  useEffect(() => {
+    if (selectedSlotMs == null) return;
+    const form = formRef.current;
+    if (!form) return;
+    // Wait one frame so the form has rendered before we measure.
+    const id = requestAnimationFrame(() => {
+      form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [selectedSlotMs]);
   const [visitorName, setVisitorName] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
   const [visitorAddress, setVisitorAddress] = useState('');
@@ -265,10 +284,24 @@ export function BookingWidget({ username, displayName }: Props) {
   const handle = displayName?.trim() || `@${username}`;
 
   if (state.kind === 'loading') {
+    // Skeleton matches the post-load shape — title + date-chip row +
+    // a few slot pills — so the layout doesn't reflow when the real
+    // data arrives. A bare loading sentence felt broken on slow
+    // connections; this reads as "something is coming."
     return (
       <section className={styles.section} aria-busy="true">
         <h2 className={styles.title}>{t('bookingWidget.title')}</h2>
-        <p className={styles.placeholder}>{t('bookingWidget.loading')}</p>
+        <span className={styles.srOnly}>{t('bookingWidget.loading')}</span>
+        <div className={styles.skeletonDateRow} aria-hidden>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span key={i} className={styles.skeletonDateChip} />
+          ))}
+        </div>
+        <div className={styles.skeletonSlotGrid} aria-hidden>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <span key={i} className={styles.skeletonSlotChip} />
+          ))}
+        </div>
       </section>
     );
   }
@@ -287,6 +320,18 @@ export function BookingWidget({ username, displayName }: Props) {
       <section className={styles.section}>
         <h2 className={styles.title}>{t('bookingWidget.title')}</h2>
         <p className={styles.placeholder}>{t('bookingWidget.loadFailed')}</p>
+        <button
+          type="button"
+          className={styles.errorRetry}
+          onClick={() => {
+            setState({ kind: 'loading' });
+            void loadAvailability(true).catch(() => {
+              if (mountedRef.current) setState({ kind: 'error' });
+            });
+          }}
+        >
+          {t('errors.retry')}
+        </button>
       </section>
     );
   }
@@ -334,6 +379,11 @@ export function BookingWidget({ username, displayName }: Props) {
               ? t('bookingWidget.checkEmailFollowUp')
               : t('bookingWidget.successFollowUp')}
           </p>
+          {/* Booking ID — small reference the visitor can quote at the
+              host if the confirm email is blocked or never arrives. */}
+          <p className={styles.successRef}>
+            {t('bookingWidget.bookingRef', { id: r.booking.id.slice(0, 8) })}
+          </p>
         </div>
       </section>
     );
@@ -369,8 +419,16 @@ export function BookingWidget({ username, displayName }: Props) {
           setSelectedSlotMs(null);
         })}
       >
-        {dayList.map((day) => {
+        {dayList.map((day, idx) => {
           const isSelected = day.dayKey === selectedDayKey;
+          // Show the month abbreviation when the chip starts a new
+          // month (or is the first chip). Without this, "Mon 3" is
+          // ambiguous when the visible range straddles month boundaries.
+          const prev = idx > 0 ? dayList[idx - 1].date : null;
+          const showMonth =
+            prev == null ||
+            prev.getMonth() !== day.date.getMonth() ||
+            prev.getFullYear() !== day.date.getFullYear();
           return (
             <button
               key={day.dayKey}
@@ -384,9 +442,15 @@ export function BookingWidget({ username, displayName }: Props) {
               aria-checked={isSelected}
               tabIndex={isSelected ? 0 : -1}
               disabled={submitting}
+              aria-label={formatDayAria(day.date, locale)}
             >
               <span className={styles.dateChipWeekday}>{formatWeekday(day.date, locale)}</span>
               <span className={styles.dateChipDay}>{day.date.getDate()}</span>
+              {showMonth ? (
+                <span className={styles.dateChipMonth}>
+                  {formatMonthShort(day.date, locale)}
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -431,7 +495,7 @@ export function BookingWidget({ username, displayName }: Props) {
       ) : null}
 
       {selectedSlotMs ? (
-        <form className={styles.formCard} onSubmit={handleSubmit}>
+        <form ref={formRef} className={styles.formCard} onSubmit={handleSubmit}>
           <p className={styles.formChosen}>
             {t('bookingWidget.chosen', {
               when: formatDateTime(new Date(selectedSlotMs), locale),
@@ -475,6 +539,10 @@ export function BookingWidget({ username, displayName }: Props) {
               onChange={(e) => setVisitorEmail(e.target.value)}
               disabled={submitting}
               autoComplete="email"
+              inputMode="email"
+              spellCheck={false}
+              autoCapitalize="none"
+              autoCorrect="off"
             />
           </label>
           <label className={styles.field}>
@@ -582,6 +650,21 @@ function handleArrowNav(
 
 function formatWeekday(d: Date, locale: string): string {
   return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d);
+}
+
+function formatMonthShort(d: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { month: 'short' }).format(d);
+}
+
+function formatDayAria(d: Date, locale: string): string {
+  // Full date for screen-reader announcement — sighted users see only
+  // weekday + day number + (optional) month abbrev, but SR users get
+  // the unambiguous string.
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(d);
 }
 
 function formatTime(d: Date, locale: string): string {
