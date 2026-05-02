@@ -111,6 +111,12 @@ interface AppContextType extends AppState {
   /** Reset locations / midpoint / results / address inputs back to a fresh
    *  home state. Saved and visited shops and search settings are preserved. */
   clearSearch: () => void;
+  /** Drop a single recent-search entry (the LocationInput dropdown
+   *  shows a × on each row that calls this). */
+  removeRecentSearch: (id: string) => void;
+  /** Wipe the entire recent-searches list. Available as a "Clear all"
+   *  link above the dropdown rows. */
+  clearRecentSearches: () => void;
   /** Reverse-link map: placeId → public profile owner. Populated after
    *  each search. Empty when there's no match (most common case). */
   ownerAttributions: Record<string, OwnerAttribution>;
@@ -1198,6 +1204,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
+  const removeRecentSearch = useCallback((id: string) => {
+    setRecentSearches((prev) => {
+      const next = prev.filter((r) => r.id !== id);
+      try {
+        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage quota / privacy mode errors.
+      }
+      return next;
+    });
+  }, []);
+
+  const clearRecentSearches = useCallback(() => {
+    setRecentSearches([]);
+    try {
+      localStorage.removeItem(RECENT_SEARCHES_KEY);
+    } catch {
+      // Ignore storage quota / privacy mode errors.
+    }
+  }, []);
+
   const value = useMemo<AppContextType>(
     () => ({
       locationA,
@@ -1242,6 +1269,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       canWidenSearch,
       clearError,
       clearSearch,
+      removeRecentSearch,
+      clearRecentSearches,
       findMeetupSpot,
       searchWithAddresses,
       searchAround,
@@ -1297,6 +1326,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       canWidenSearch,
       clearError,
       clearSearch,
+      removeRecentSearch,
+      clearRecentSearches,
       findMeetupSpot,
       searchWithAddresses,
       searchAround,

@@ -340,19 +340,126 @@
   color: #b33a3a;
 }
 
+/* Header row above the recent-search list — title on the left, "Clear
+ * all" affordance on the right. Two-deck rendering avoids stacking the
+ * link below the title and keeps the dropdown compact. */
+.recentHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0 0 0.45rem 0;
+}
+
+.recentHeader .quickTitle {
+  margin: 0;
+}
+
+.recentClearAll {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 0.74rem;
+  color: var(--ac-text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--ac-motion-fast);
+}
+
+.recentClearAll:hover:not(:disabled) {
+  color: var(--ac-danger);
+}
+
+.recentClearAll:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-radius: var(--ac-radius-sm);
+}
+
+.recentClearAll:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .recentList {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
 }
 
+/* Each recent search is now a row containing the use-this-search button
+ * and a separate × delete button — can't nest <button> in <button>, so
+ * they sit side-by-side and the list rule shrinks the main button. */
+.recentRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
 .recentItem {
+  flex: 1;
+  min-width: 0;
   border: 1px solid var(--ac-border);
   border-radius: 8px;
   background: var(--ac-surface);
   padding: 0.45rem 0.55rem;
   text-align: left;
   cursor: pointer;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
+}
+
+.recentItem:hover:not(:disabled) {
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-accent);
+}
+
+.recentItem:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
+}
+
+.recentItem:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.recentRemove {
+  flex-shrink: 0;
+  width: 1.85rem;
+  appearance: none;
+  border: 1px solid var(--ac-border);
+  border-radius: 8px;
+  background: var(--ac-surface);
+  color: var(--ac-text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--ac-motion-fast),
+    border-color var(--ac-motion-fast),
+    color var(--ac-motion-fast);
+}
+
+.recentRemove:hover:not(:disabled) {
+  background: var(--ac-danger-bg);
+  border-color: var(--ac-danger-border);
+  color: var(--ac-danger);
+}
+
+.recentRemove:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
+}
+
+.recentRemove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .recentUse {

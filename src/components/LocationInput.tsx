@@ -21,6 +21,8 @@ export function LocationInput() {
     findMeetupSpot,
     searchWithAddresses,
     recentSearches,
+    removeRecentSearch,
+    clearRecentSearches,
     addressTemplates,
     addAddressTemplate,
     removeAddressTemplate,
@@ -222,23 +224,47 @@ export function LocationInput() {
 
       {recentSearches.length > 0 ? (
         <div className={styles.quickBlock}>
-          <p className={styles.quickTitle}>{t('location.recentTitle')}</p>
+          <div className={styles.recentHeader}>
+            <p className={styles.quickTitle}>{t('location.recentTitle')}</p>
+            <button
+              type="button"
+              className={styles.recentClearAll}
+              onClick={clearRecentSearches}
+              disabled={isLoading}
+            >
+              {t('location.recentClearAll')}
+            </button>
+          </div>
           <div className={styles.recentList}>
             {recentSearches.slice(0, 5).map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                className={styles.recentItem}
-                onClick={() => handleUseRecent(r.addressA, r.addressB, r.addressC)}
-                disabled={isLoading}
-              >
-                <span className={styles.recentUse}>{t('location.useRecent')}</span>
-                <span className={styles.recentLine}>A: {r.addressA}</span>
-                <span className={styles.recentLine}>B: {r.addressB}</span>
-                {r.addressC ? (
-                  <span className={styles.recentLine}>C: {r.addressC}</span>
-                ) : null}
-              </button>
+              <div key={r.id} className={styles.recentRow}>
+                <button
+                  type="button"
+                  className={styles.recentItem}
+                  onClick={() => handleUseRecent(r.addressA, r.addressB, r.addressC)}
+                  disabled={isLoading}
+                >
+                  <span className={styles.recentUse}>{t('location.useRecent')}</span>
+                  <span className={styles.recentLine}>A: {r.addressA}</span>
+                  <span className={styles.recentLine}>B: {r.addressB}</span>
+                  {r.addressC ? (
+                    <span className={styles.recentLine}>C: {r.addressC}</span>
+                  ) : null}
+                </button>
+                <button
+                  type="button"
+                  className={styles.recentRemove}
+                  onClick={() => removeRecentSearch(r.id)}
+                  aria-label={t('location.recentRemoveAria', {
+                    a: r.addressA,
+                    b: r.addressB,
+                  })}
+                  title={t('location.recentRemove')}
+                  disabled={isLoading}
+                >
+                  ×
+                </button>
+              </div>
             ))}
           </div>
         </div>
