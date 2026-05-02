@@ -37,7 +37,7 @@ export const messages: MessageDict = {
 
   'location.title': 'Find Your Coffee Meetup Spot',
   'location.subtitle':
-    'Enter both addresses, then tap <strong>Find Meetup Spot</strong> — that runs the search.',
+    "Enter both addresses — AI finds the best-rated café at the fairest midpoint.",
   'location.yourLocation': 'Your Location',
   'location.friendLocation': "Friend's Location",
   'location.placeholderA': 'e.g., Times Square, NYC',

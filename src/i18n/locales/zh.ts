@@ -34,7 +34,7 @@ export const messages: MessageDict = {
 
   'location.title': '查找你们的咖啡会面点',
   'location.subtitle':
-    '输入双方地址，然后点击<strong>查找会面点</strong>即可开始搜索。',
+    '输入双方地址，AI 会帮你们找到评价最好、距离最公平的咖啡店。',
   'location.yourLocation': '你的位置',
   'location.friendLocation': '朋友的位置',
   'location.placeholderA': '例如：东京站',
