@@ -234,6 +234,7 @@ export const messages: MessageDict = {
   'visited.stampAgain': 'Stamp again (visited {{count}}×)',
   'visited.remove': 'Remove from passport',
   'visited.removeAria': 'Remove {{name}} from passport',
+  'visited.removeConfirm': "Remove {{name}} from your passport? This drops every visit you've stamped there.",
   'visited.menuLabel': 'Passport',
   'visited.title': 'My Coffee Passport',
   'visited.empty':
@@ -288,6 +289,7 @@ export const messages: MessageDict = {
   'passport.visitsHide': 'Hide history',
   'passport.visitRemove': 'Remove this visit',
   'passport.visitRemoveAria': 'Remove visit on {{date}} at {{name}}',
+  'passport.visitRemoveConfirm': 'Remove the {{date}} visit at {{name}}?',
   'passport.visitNotePlaceholder': 'Add a note — what did you order, who were you with…',
   'passport.visitRatingAria': 'Rate your visit to {{name}}',
   'passport.visitRatingDateAria': 'Rate your visit on {{date}}',

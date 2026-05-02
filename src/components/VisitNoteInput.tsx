@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './VisitNoteInput.module.css';
 
 interface VisitNoteInputProps {
@@ -30,6 +30,36 @@ export function VisitNoteInput({ initial, placeholder, onCommit, autoFocus }: Vi
       setDraft(initial);
     }
   }
+
+  // Refs mirror the latest draft / initial / onCommit so the unmount
+  // cleanup below can reach them without stale-closure capture from
+  // an [] deps array.
+  const draftRef = useRef(draft);
+  const initialRef = useRef(initial);
+  const onCommitRef = useRef(onCommit);
+
+  // Sync refs after every commit so unmount cleanup reads the latest
+  // values. (Writing refs during render trips the react-hooks/refs
+  // lint rule — do it in an effect.)
+  useEffect(() => {
+    draftRef.current = draft;
+    initialRef.current = initial;
+    onCommitRef.current = onCommit;
+  });
+
+  // Commit any pending edits on unmount. Save-on-blur alone loses
+  // typed text if the row unmounts before blur fires — happens when
+  // the user taps the × Remove on the row, when the search filter
+  // hides the row, or when they navigate away with focus still in
+  // the textarea. Mirroring the diff check from commit() so we don't
+  // ping the server with a no-op write.
+  useEffect(() => {
+    return () => {
+      if (draftRef.current !== initialRef.current) {
+        onCommitRef.current(draftRef.current);
+      }
+    };
+  }, []);
 
   function commit() {
     if (draft === initial) return;

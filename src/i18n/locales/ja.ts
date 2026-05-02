@@ -230,6 +230,7 @@ export const messages: MessageDict = {
   'visited.stampAgain': 'もう一押し（{{count}}回来店）',
   'visited.remove': 'パスポートから外す',
   'visited.removeAria': '{{name}} をパスポートから外す',
+  'visited.removeConfirm': '{{name}} をパスポートから外しますか？この店舗の来店履歴がすべて消えます。',
   'visited.menuLabel': 'パスポート',
   'visited.title': 'マイ・コーヒーパスポート',
   'visited.empty':
@@ -284,6 +285,7 @@ export const messages: MessageDict = {
   'passport.visitsHide': '履歴を隠す',
   'passport.visitRemove': 'この来店記録を削除',
   'passport.visitRemoveAria': '{{date}} の {{name}} の来店記録を削除',
+  'passport.visitRemoveConfirm': '{{date}} の {{name}} の来店記録を削除しますか？',
   'passport.visitNotePlaceholder': 'メモを追加 — 何を注文した？誰と？気分は？',
   'passport.visitRatingAria': '{{name}} の訪問を評価',
   'passport.visitRatingDateAria': '{{date}} の訪問を評価',

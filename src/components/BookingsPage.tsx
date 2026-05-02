@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
@@ -78,21 +78,35 @@ export function BookingsPage() {
   const [viewMode, setViewMode] = useState<'list' | 'week'>('list');
   const [weekAnchorMs, setWeekAnchorMs] = useState<number>(() => Date.now());
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (signal?: AbortSignal) => {
     setState({ kind: 'loading' });
     try {
-      const r = await fetch('/api/bookings', { credentials: 'include' });
+      const r = await fetch('/api/bookings', {
+        credentials: 'include',
+        signal,
+      });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const json = (await r.json()) as { bookings: BookingWire[] };
+      if (signal?.aborted) return;
       setState({ kind: 'ready', bookings: json.bookings });
-    } catch {
+    } catch (e) {
+      // AbortError from a superseding refresh is not an error worth
+      // surfacing — the new request will repaint state in a moment.
+      if (signal?.aborted || (e instanceof DOMException && e.name === 'AbortError')) {
+        return;
+      }
       setState({ kind: 'error' });
     }
   }, []);
 
   useEffect(() => {
     if (!signedIn) return;
-    void refresh();
+    // Mount fetch is owned by an AbortController so navigating away
+    // mid-flight (or signing out) doesn't resolve into a stale state
+    // setter on a dead component.
+    const ctrl = new AbortController();
+    void refresh(ctrl.signal);
+    return () => ctrl.abort();
   }, [signedIn, refresh]);
 
   // ----- Loading skeleton (auth + initial fetch share this) -----
@@ -235,7 +249,6 @@ export function BookingsPage() {
             onCancelClick={(row) => setActionTarget({ row, intent: 'cancel' })}
             onRescheduleClick={(row) => setActionTarget({ row, intent: 'reschedule' })}
             cancellingId={cancelling ? actionTarget?.row.id ?? null : null}
-            cancelError={cancelError}
             locale={locale}
             timezone={effectiveTz}
             t={t}
@@ -250,6 +263,7 @@ export function BookingsPage() {
           locale={locale}
           timezone={effectiveTz}
           busy={cancelling}
+          error={cancelError}
           onClose={() => {
             if (!cancelling) {
               setActionTarget(null);
@@ -270,6 +284,9 @@ interface ActionModalProps {
   locale: string;
   timezone: string;
   busy: boolean;
+  /** Surfaced inside the dialog so the user sees a failed cancel
+   *  without having to dismiss the modal first. */
+  error: string | null;
   onClose: () => void;
   onConfirm: () => void;
   t: ReturnType<typeof useI18n>['t'];
@@ -281,17 +298,51 @@ function ActionConfirmModal({
   locale,
   timezone,
   busy,
+  error,
   onClose,
   onConfirm,
   t,
 }: ActionModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  // Focus management:
+  // - Move focus to the first interactive control on mount so keyboard
+  //   users land inside the dialog rather than on the page chrome.
+  // - Trap Tab/Shift+Tab inside dialogRef so the modal is actually
+  //   modal — without this, AT users can tab onto the row buttons
+  //   sitting underneath and trigger them while the dialog claims to
+  //   own focus.
+  // - Escape closes (when not busy).
   useEffect(() => {
+    const dialog = dialogRef.current;
+    const firstFocusable = dialog?.querySelector<HTMLElement>(
+      'button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    firstFocusable?.focus();
+
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !busy) {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [onClose, busy]);
 
   const start = new Date(target.scheduledAt);
   const when = new Intl.DateTimeFormat(locale, {
@@ -318,10 +369,13 @@ function ActionConfirmModal({
       aria-modal="true"
       aria-labelledby="action-modal-title"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        // Backdrop click closes only when not mid-cancel — a stray
+        // tap on the dim area shouldn't fire-and-forget the request
+        // the user is watching.
+        if (e.target === e.currentTarget && !busy) onClose();
       }}
     >
-      <div className={styles.modalDialog}>
+      <div ref={dialogRef} className={styles.modalDialog}>
         <h3 id="action-modal-title" className={styles.modalTitle}>
           {t(titleKey)}
         </h3>
@@ -331,6 +385,11 @@ function ActionConfirmModal({
           <br />
           {target.placeName}
         </div>
+        {error ? (
+          <p className={styles.modalError} role="alert">
+            {error}
+          </p>
+        ) : null}
         <div className={styles.modalActions}>
           <button
             type="button"
@@ -561,7 +620,6 @@ interface ListProps {
   onCancelClick: (row: BookingWire) => void;
   onRescheduleClick: (row: BookingWire) => void;
   cancellingId: string | null;
-  cancelError: string | null;
   locale: string;
   timezone: string;
   t: ReturnType<typeof useI18n>['t'];
@@ -572,7 +630,6 @@ function BookingsList({
   onCancelClick,
   onRescheduleClick,
   cancellingId,
-  cancelError,
   locale,
   timezone,
   t,
@@ -603,11 +660,6 @@ function BookingsList({
           {t('bookings.upcomingTitle')}
           {upcoming.length > 0 ? ` (${upcoming.length})` : ''}
         </h2>
-        {cancelError ? (
-          <p className={accountStyles.errorMsg} role="alert">
-            {cancelError}
-          </p>
-        ) : null}
         {upcoming.length === 0 ? (
           <p className={styles.empty}>{t('bookings.noUpcoming')}</p>
         ) : (

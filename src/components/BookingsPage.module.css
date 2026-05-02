@@ -446,6 +446,20 @@
   font-weight: 600;
 }
 
+/* Error banner inside the cancel/reschedule dialog. Lives between the
+ * summary and the action buttons so a failed PATCH is visible without
+ * the user having to dismiss the modal. */
+.modalError {
+  margin: 0.6rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--ac-danger-border);
+  background: var(--ac-danger-bg);
+  border-radius: var(--ac-radius-sm);
+  color: var(--ac-danger);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .modalActions {
   display: flex;
   gap: 0.5rem;

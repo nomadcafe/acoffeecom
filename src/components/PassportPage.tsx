@@ -517,7 +517,23 @@ export function PassportPage() {
                                     <button
                                       type="button"
                                       className={styles.visitRemove}
-                                      onClick={() => removeVisitAt(snap.id, ts)}
+                                      onClick={() => {
+                                        // Per-visit × is reversible only by
+                                        // re-stamping with the exact same
+                                        // timestamp (effectively impossible).
+                                        // Gate before destroying the row.
+                                        const dateLabel = formatAbsoluteDate(ts, locale);
+                                        if (
+                                          window.confirm(
+                                            t('passport.visitRemoveConfirm', {
+                                              date: dateLabel,
+                                              name: snap.name,
+                                            }),
+                                          )
+                                        ) {
+                                          removeVisitAt(snap.id, ts);
+                                        }
+                                      }}
                                       aria-label={t('passport.visitRemoveAria', {
                                         date: formatAbsoluteDate(ts, locale),
                                         name: snap.name,
@@ -557,7 +573,19 @@ export function PassportPage() {
                         <button
                           type="button"
                           className={styles.removeButton}
-                          onClick={() => removeVisited(snap.id)}
+                          onClick={() => {
+                            // Whole-shop removal nukes every visit ever
+                            // stamped at this place — multi-year history
+                            // for active users. A bare × tap is too cheap
+                            // for a payload that big; gate behind confirm.
+                            if (
+                              window.confirm(
+                                t('visited.removeConfirm', { name: snap.name }),
+                              )
+                            ) {
+                              removeVisited(snap.id);
+                            }
+                          }}
                           aria-label={t('visited.removeAria', { name: snap.name })}
                           title={t('visited.remove')}
                         >
