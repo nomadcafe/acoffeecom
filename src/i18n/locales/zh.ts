@@ -568,6 +568,7 @@ export const messages: MessageDict = {
   'account.exportTitle': '导出数据',
   'account.exportHint': '下载账户、到访记录、收藏咖啡店的 JSON 快照。作为备份，或者删除账户前的留底。',
   'account.exportButton': '下载 JSON',
+  'account.exportFailed': '生成下载失败，刷新或者稍后再试。',
   'account.sessionsTitle': '登录的设备',
   'account.sessionsLoading': '正在加载会话…',
   'account.sessionsError': '暂时无法加载会话。',

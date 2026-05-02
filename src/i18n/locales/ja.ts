@@ -575,6 +575,7 @@ export const messages: MessageDict = {
   'account.exportTitle': 'データをエクスポート',
   'account.exportHint': 'アカウント・来店履歴・保存したカフェの JSON スナップショットをダウンロードします。バックアップや削除前にどうぞ。',
   'account.exportButton': 'JSON をダウンロード',
+  'account.exportFailed': 'エクスポートの生成に失敗しました。ページを再読み込みして再試行してください。',
   'account.sessionsTitle': 'サインイン中のデバイス',
   'account.sessionsLoading': 'セッションを読み込んでいます…',
   'account.sessionsError': 'セッションを取得できませんでした。',

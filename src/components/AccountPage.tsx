@@ -23,6 +23,33 @@ const DELETE_CONFIRM_PHRASE = 'DELETE';
  * keeps the most-motivated users out. "Reserve good names for Pro" can
  * be revisited later via a small block-list rather than a feature flag. */
 const USERNAMES_PUBLIC = true;
+/** Default time a green success banner sticks before fading on its own.
+ *  Long enough to read, short enough that it doesn't haunt the screen
+ *  through the next interaction. Used by useAutoDismissOk below. */
+const STATUS_OK_AUTO_DISMISS_MS = 4000;
+
+type StatusBanner = { kind: 'ok' | 'err'; message: string } | null;
+
+/**
+ * Drop a `kind:'ok'` status banner after a short delay. Centralised so
+ * the AccountPage cards (avatar, basic profile, social links, featured
+ * cafés, booking, calendar) all share one auto-dismiss policy instead of
+ * each card leaving its "Saved" message stuck on screen forever.
+ *
+ * Errors do NOT auto-dismiss — those usually need a user retry, so we
+ * keep the banner visible until the user acts.
+ */
+function useAutoDismissOk(
+  status: StatusBanner,
+  setStatus: (s: StatusBanner) => void,
+  ms: number = STATUS_OK_AUTO_DISMISS_MS,
+): void {
+  useEffect(() => {
+    if (status?.kind !== 'ok') return;
+    const id = window.setTimeout(() => setStatus(null), ms);
+    return () => window.clearTimeout(id);
+  }, [status, setStatus, ms]);
+}
 
 type SaveState =
   | { kind: 'idle' }
@@ -66,6 +93,16 @@ export function AccountPage() {
   const [draft, setDraft] = useState<string>(initialUsername);
   const [save, setSave] = useState<SaveState>({ kind: 'idle' });
   const [availability, setAvailability] = useState<AvailabilityState>({ kind: 'idle' });
+  // Username "Saved" toast auto-fades — same policy as the per-card
+  // status banners. Errors stay until the user types again.
+  useEffect(() => {
+    if (save.kind !== 'saved') return;
+    const id = window.setTimeout(
+      () => setSave({ kind: 'idle' }),
+      STATUS_OK_AUTO_DISMISS_MS,
+    );
+    return () => window.clearTimeout(id);
+  }, [save]);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   // ----- Loading skeleton -----
@@ -224,6 +261,7 @@ function SignedInAccountPage({
   const [sessionsState, setSessionsState] = useState<SessionsState>({ kind: 'loading' });
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   // Ref for the slug input so the home-page CTA's `?focus=username`
   // landing can scroll it into view and put the cursor in it on first
   // paint. Mount-time effect below consumes this.
@@ -417,30 +455,43 @@ function SignedInAccountPage({
   }
 
   function handleExportAll() {
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      version: 1,
-      account: {
-        email: sessionUser.email,
-        createdAt: sessionUser.createdAt ?? null,
-        username: sessionUser.username ?? null,
-      },
-      visited: visitedShops,
-      starred: starredShops,
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `acoffee-account-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    track('account_data_exported', {
-      shopCount: visitedShops.length,
-      starredCount: starredShops.length,
-    });
+    setExportError(null);
+    let url: string | null = null;
+    let anchor: HTMLAnchorElement | null = null;
+    try {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        account: {
+          email: sessionUser.email,
+          createdAt: sessionUser.createdAt ?? null,
+          username: sessionUser.username ?? null,
+        },
+        visited: visitedShops,
+        starred: starredShops,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: 'application/json',
+      });
+      url = URL.createObjectURL(blob);
+      anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `acoffee-account-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      track('account_data_exported', {
+        shopCount: visitedShops.length,
+        starredCount: starredShops.length,
+      });
+    } catch {
+      // Browser denied download / blob alloc failed / JSON.stringify
+      // hit a circular shape — anything in this path used to silently
+      // do nothing. Make the failure visible instead.
+      setExportError(t('account.exportFailed'));
+    } finally {
+      if (anchor && anchor.parentNode) anchor.parentNode.removeChild(anchor);
+      if (url) URL.revokeObjectURL(url);
+    }
   }
 
   const createdAtRaw = sessionUser.createdAt;
@@ -670,6 +721,11 @@ function SignedInAccountPage({
           <button type="button" className={styles.saveButton} onClick={handleExportAll}>
             {t('account.exportButton')}
           </button>
+          {exportError ? (
+            <p className={styles.sessionsRevokeError} role="alert">
+              {exportError}
+            </p>
+          ) : null}
         </section>
 
         <section id="account-sessions" className={styles.card} aria-label={t('account.sessionsTitle')}>
@@ -677,7 +733,19 @@ function SignedInAccountPage({
           {sessionsState.kind === 'loading' ? (
             <p className={styles.sessionLoading}>{t('account.sessionsLoading')}</p>
           ) : sessionsState.kind === 'error' ? (
-            <p className={styles.sessionEmpty}>{t('account.sessionsError')}</p>
+            <div className={styles.sessionsErrorBlock} role="alert">
+              <p className={styles.sessionsErrorText}>{t('account.sessionsError')}</p>
+              <button
+                type="button"
+                className={styles.sessionsErrorRetry}
+                onClick={() => {
+                  setSessionsState({ kind: 'loading' });
+                  void refreshSessions();
+                }}
+              >
+                {t('errors.retry')}
+              </button>
+            </div>
           ) : sessionsState.sessions.length === 0 ? (
             <p className={styles.sessionEmpty}>{t('account.sessionsEmpty')}</p>
           ) : (
@@ -1105,6 +1173,12 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
   const [testStatus, setTestStatus] = useState<
     { kind: 'sent' | 'skipped' | 'error'; message: string } | null
   >(null);
+  // Auto-fade non-error outcomes; "error" stays so the user can read it.
+  useEffect(() => {
+    if (!testStatus || testStatus.kind === 'error') return;
+    const id = window.setTimeout(() => setTestStatus(null), STATUS_OK_AUTO_DISMISS_MS);
+    return () => window.clearTimeout(id);
+  }, [testStatus]);
 
   async function handleToggle() {
     if (busy) return;
@@ -1373,7 +1447,8 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
   const { t } = useI18n();
   const [image, setImage] = useState<string | null>(initialImage);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  const [status, setStatus] = useState<StatusBanner>(null);
+  useAutoDismissOk(status, setStatus);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // Abort + unmount guard: avatar uploads are slow on cellular, the
   // user can navigate away mid-flight. Without these, fetch resolves
@@ -1530,7 +1605,8 @@ function BasicProfileCard({ initialDisplayName, initialBio }: BasicProfileProps)
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [bio, setBio] = useState(initialBio);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  const [status, setStatus] = useState<StatusBanner>(null);
+  useAutoDismissOk(status, setStatus);
 
   async function handleSave() {
     if (busy) return;
@@ -1622,7 +1698,8 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
   const [links, setLinks] = useState<SocialLinkDraft[]>(initialSocialLinks);
   const [showLinks, setShowLinks] = useState(initialShowSocialLinks);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  const [status, setStatus] = useState<StatusBanner>(null);
+  useAutoDismissOk(status, setStatus);
 
   function setLinkField(idx: number, field: 'label' | 'url', value: string) {
     setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
@@ -1776,7 +1853,8 @@ function FeaturedCafesCard() {
   const [cafes, setCafes] = useState<FeaturedCafeDraft[]>([]);
   const [cafeQuery, setCafeQuery] = useState('');
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  const [status, setStatus] = useState<StatusBanner>(null);
+  useAutoDismissOk(status, setStatus);
   const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
 
   // Hydrate the featured-cafes list from /api/account on mount. Lives in
@@ -2298,7 +2376,8 @@ function BookingSetupCard({
   const [address, setAddress] = useState(initialAddress);
   const [days, setDays] = useState<Availability>(initialAvailability);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
+  const [status, setStatus] = useState<StatusBanner>(null);
+  useAutoDismissOk(status, setStatus);
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
 
   // Use the current origin so staging / preview deployments link back
@@ -2521,10 +2600,14 @@ function CalendarSyncCard({
   const [lastError, setLastError] = useState<string | null>(initialLastError);
   const [lastErrorAt, setLastErrorAt] = useState<number | null>(initialLastErrorAt);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<
-    { kind: 'ok' | 'err'; message: string } | null
-  >(null);
-  const dirty = url.trim() !== initialUrl.trim();
+  const [status, setStatus] = useState<StatusBanner>(null);
+  useAutoDismissOk(status, setStatus);
+  // Track the last-saved baseline locally so `dirty` resets after a
+  // successful save. Comparing against the prop alone left the Save
+  // button enabled forever once a save landed: the prop is stale until
+  // the parent re-fetches, but the user has nothing new to save.
+  const [savedUrl, setSavedUrl] = useState(initialUrl);
+  const dirty = url.trim() !== savedUrl.trim();
 
   async function send(payload: { busyCalendarIcsUrl: string | null }) {
     setBusy(true);
@@ -2553,6 +2636,8 @@ function CalendarSyncCard({
       // UI doesn't keep nagging until the next visitor view.
       setLastError(null);
       setLastErrorAt(null);
+      // Save baseline → next dirty check will read clean.
+      setSavedUrl(payload.busyCalendarIcsUrl ?? '');
       setStatus({ kind: 'ok', message: t('account.calendarSaved') });
     } catch {
       setStatus({ kind: 'err', message: t('account.calendarSaveFailed') });

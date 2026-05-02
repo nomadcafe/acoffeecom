@@ -579,6 +579,7 @@ export const messages: MessageDict = {
   'account.exportTitle': 'Export your data',
   'account.exportHint': 'Download a JSON snapshot of your account, visited cafés, and saved cafés. Useful as a backup or before deleting.',
   'account.exportButton': 'Download JSON',
+  'account.exportFailed': "Couldn't generate the export. Try again or refresh the page.",
   'account.sessionsTitle': 'Signed-in devices',
   'account.sessionsLoading': 'Loading your sessions…',
   'account.sessionsError': "Couldn't load your sessions right now.",
