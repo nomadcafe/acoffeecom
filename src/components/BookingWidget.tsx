@@ -1,7 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { track } from '../utils/analytics';
 import styles from './BookingWidget.module.css';
+
+// Server requires the slot be ≥1h in the future (anti-stampede + lets
+// the host see new bookings before they happen). Filter the same client-
+// side so a stale tab doesn't surface clickable slots that always 400.
+const MIN_LEAD_MINUTES = 60;
+// Bare-minimum email shape — server is the real validator, but catching
+// "still typing" / typos here saves a pointless POST and a generic
+// error message in their face.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface Props {
   username: string;
@@ -74,16 +83,41 @@ export function BookingWidget({ username, displayName }: Props) {
   const [website, setWebsite] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Abort + unmount guard: visitor can change `username` (parent
+  // re-mounts), navigate, or background the tab during a slow availability
+  // fetch. Without these, the late response calls setState on a stale
+  // instance and clobbers fresh state.
+  const loadAbortRef = useRef<AbortController | null>(null);
+  const submitAbortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      loadAbortRef.current?.abort();
+      submitAbortRef.current?.abort();
+    };
+  }, []);
+
   // Loader is reusable so the 409 handler below can refresh availability
   // when a slot gets snatched between the visitor's load and submit. Adds
   // a `bypassCache` cache-buster so the SW / CDN doesn't keep handing back
   // the stale slot list right after a booking just took it.
   const loadAvailability = useCallback(
     async (bypassCache = false) => {
+      // Supersede any in-flight load — calling this from the 409 path
+      // while the original mount fetch is still pending would otherwise
+      // race the two responses.
+      loadAbortRef.current?.abort();
+      const ctrl = new AbortController();
+      loadAbortRef.current = ctrl;
       const url =
         `/api/profile/${encodeURIComponent(username)}/availability` +
         (bypassCache ? `?_=${Date.now()}` : '');
-      const r = await fetch(url, { cache: bypassCache ? 'no-store' : 'default' });
+      const r = await fetch(url, {
+        cache: bypassCache ? 'no-store' : 'default',
+        signal: ctrl.signal,
+      });
+      if (ctrl.signal.aborted || !mountedRef.current) return;
       if (r.status === 404) {
         setState({ kind: 'unavailable' });
         return;
@@ -93,6 +127,7 @@ export function BookingWidget({ username, displayName }: Props) {
         return;
       }
       const json = (await r.json()) as AvailabilityWire;
+      if (ctrl.signal.aborted || !mountedRef.current) return;
       setData(json);
       if (json.slots.length === 0) {
         setState({ kind: 'unavailable' });
@@ -104,25 +139,28 @@ export function BookingWidget({ username, displayName }: Props) {
   );
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         await loadAvailability();
-      } catch {
-        if (!cancelled) setState({ kind: 'error' });
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        if (mountedRef.current) setState({ kind: 'error' });
       }
     })();
-    return () => {
-      cancelled = true;
-    };
   }, [loadAvailability]);
 
   // Group slots by viewer-local YYYY-MM-DD. Visitors think about their day
   // in their own TZ — "is there anything on Tuesday?" — not the host's.
+  // Also filters out slots that are now within MIN_LEAD_MINUTES — server
+  // would 400 those anyway and the message ("Slot must be at least 1 hour
+  // in the future") doesn't tell the visitor it was a stale-page issue.
   const groupedByDay = useMemo(() => {
     const map = new Map<string, { dayKey: string; date: Date; slots: number[] }>();
     if (!data) return map;
+    // eslint-disable-next-line react-hooks/purity
+    const cutoff = Date.now() + MIN_LEAD_MINUTES * 60_000;
     for (const ms of data.slots) {
+      if (ms < cutoff) continue;
       const d = new Date(ms);
       const key = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
       const existing = map.get(key);
@@ -156,7 +194,19 @@ export function BookingWidget({ username, displayName }: Props) {
   // ---------- handlers ----------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Double-submit guard: <button disabled> stops button-clicks but
+    // pressing Enter inside an input still triggers form onSubmit, so
+    // a fast typist can fire a second POST while the first is in flight.
+    if (state.kind === 'submitting') return;
     if (!selectedSlotMs || !data) return;
+    const trimmedEmail = visitorEmail.trim();
+    if (!EMAIL_PATTERN.test(trimmedEmail)) {
+      setSubmitError(t('bookingWidget.emailInvalid'));
+      return;
+    }
+    submitAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    submitAbortRef.current = ctrl;
     setSubmitError(null);
     setState({ kind: 'submitting' });
     try {
@@ -166,17 +216,20 @@ export function BookingWidget({ username, displayName }: Props) {
         body: JSON.stringify({
           username,
           visitorName: visitorName.trim(),
-          visitorEmail: visitorEmail.trim(),
+          visitorEmail: trimmedEmail,
           visitorAddress: visitorAddress.trim(),
           message: visitorMessage.trim() || undefined,
           scheduledAt: selectedSlotMs,
           durationMinutes: data.durationMinutes,
           website,
         }),
+        signal: ctrl.signal,
       });
+      if (ctrl.signal.aborted || !mountedRef.current) return;
       const json = (await r.json().catch(() => ({}))) as Partial<BookingResponse> & {
         error?: string;
       };
+      if (ctrl.signal.aborted || !mountedRef.current) return;
       if (!r.ok || !json.booking || !json.cafe) {
         // 409 means another visitor grabbed the slot in the gap between this
         // visitor seeing it and pressing submit. Refresh availability so the
@@ -200,7 +253,9 @@ export function BookingWidget({ username, displayName }: Props) {
       }
       track('booking_submitted', { username });
       setState({ kind: 'submitted', result: json as BookingResponse });
-    } catch {
+    } catch (err) {
+      if (ctrl.signal.aborted || !mountedRef.current) return;
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setSubmitError(t('bookingWidget.submitFailed'));
       setState({ kind: 'picking' });
     }
@@ -292,10 +347,28 @@ export function BookingWidget({ username, displayName }: Props) {
       <h2 className={styles.title}>{t('bookingWidget.title')}</h2>
       <p className={styles.lead}>{t('bookingWidget.lead', { handle })}</p>
 
-      {submitError ? <p className={styles.errorRow}>{submitError}</p> : null}
+      {submitError ? (
+        <p
+          id="booking-submit-error"
+          className={styles.errorRow}
+          role="alert"
+        >
+          {submitError}
+        </p>
+      ) : null}
 
       <p className={styles.dateLabel}>{t('bookingWidget.pickDate')}</p>
-      <div className={styles.dateRow} role="listbox" aria-label={t('bookingWidget.pickDate')}>
+      <div
+        className={styles.dateRow}
+        role="radiogroup"
+        aria-label={t('bookingWidget.pickDate')}
+        onKeyDown={(e) => handleArrowNav(e, dayList.length, dayList.findIndex((d) => d.dayKey === selectedDayKey), (i) => {
+          const next = dayList[i];
+          if (!next) return;
+          setChosenDayKey(next.dayKey);
+          setSelectedSlotMs(null);
+        })}
+      >
         {dayList.map((day) => {
           const isSelected = day.dayKey === selectedDayKey;
           return (
@@ -307,8 +380,9 @@ export function BookingWidget({ username, displayName }: Props) {
                 setChosenDayKey(day.dayKey);
                 setSelectedSlotMs(null);
               }}
-              role="option"
-              aria-selected={isSelected}
+              role="radio"
+              aria-checked={isSelected}
+              tabIndex={isSelected ? 0 : -1}
               disabled={submitting}
             >
               <span className={styles.dateChipWeekday}>{formatWeekday(day.date, locale)}</span>
@@ -321,7 +395,15 @@ export function BookingWidget({ username, displayName }: Props) {
       {selectedDayKey ? (
         <>
           <p className={styles.slotLabel}>{t('bookingWidget.pickSlot')}</p>
-          <div className={styles.slotGrid} role="listbox" aria-label={t('bookingWidget.pickSlot')}>
+          <div
+            className={styles.slotGrid}
+            role="radiogroup"
+            aria-label={t('bookingWidget.pickSlot')}
+            onKeyDown={(e) => handleArrowNav(e, slotsForDay.length, slotsForDay.findIndex((ms) => ms === selectedSlotMs), (i) => {
+              const ms = slotsForDay[i];
+              if (ms != null) setSelectedSlotMs(ms);
+            })}
+          >
             {slotsForDay.map((ms) => {
               const isSelected = ms === selectedSlotMs;
               return (
@@ -330,8 +412,9 @@ export function BookingWidget({ username, displayName }: Props) {
                   type="button"
                   className={`${styles.slotChip} ${isSelected ? styles.slotChipSelected : ''}`}
                   onClick={() => setSelectedSlotMs(ms)}
-                  role="option"
-                  aria-selected={isSelected}
+                  role="radio"
+                  aria-checked={isSelected}
+                  tabIndex={isSelected || (selectedSlotMs == null && ms === slotsForDay[0]) ? 0 : -1}
                   disabled={submitting}
                 >
                   {formatTime(new Date(ms), locale)}
@@ -436,6 +519,7 @@ export function BookingWidget({ username, displayName }: Props) {
               type="submit"
               className={styles.submit}
               disabled={submitting || !visitorName.trim() || !visitorEmail.trim() || !visitorAddress.trim()}
+              aria-describedby={submitError ? 'booking-submit-error' : undefined}
             >
               {submitting ? t('bookingWidget.submitting') : t('bookingWidget.submit')}
             </button>
@@ -448,6 +532,52 @@ export function BookingWidget({ username, displayName }: Props) {
 
 function pad(n: number): string {
   return n < 10 ? `0${n}` : String(n);
+}
+
+/**
+ * WAI-ARIA radiogroup keyboard pattern: ←/↑ → previous, →/↓ → next,
+ * Home → first, End → last, with wraparound. The pickers (date row
+ * and slot grid) use this so a keyboard user can move through choices
+ * without Tab having to pass through every option (radiogroup expects
+ * a single tab stop per group, then arrow nav within).
+ */
+function handleArrowNav(
+  e: React.KeyboardEvent<HTMLDivElement>,
+  count: number,
+  current: number,
+  pick: (i: number) => void,
+): void {
+  if (count === 0) return;
+  let next = current;
+  switch (e.key) {
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      next = current <= 0 ? count - 1 : current - 1;
+      break;
+    case 'ArrowRight':
+    case 'ArrowDown':
+      next = current < 0 || current >= count - 1 ? 0 : current + 1;
+      break;
+    case 'Home':
+      next = 0;
+      break;
+    case 'End':
+      next = count - 1;
+      break;
+    default:
+      return;
+  }
+  e.preventDefault();
+  pick(next);
+  // Move focus to the now-checked radio so screen readers announce
+  // it. The button has tabIndex=0 only when checked, so querying for
+  // [tabindex="0"] after the next render finds it.
+  requestAnimationFrame(() => {
+    const target = e.currentTarget?.querySelector<HTMLButtonElement>(
+      'button[tabindex="0"]',
+    );
+    target?.focus();
+  });
 }
 
 function formatWeekday(d: Date, locale: string): string {
