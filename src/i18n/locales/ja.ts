@@ -37,7 +37,7 @@ export const messages: MessageDict = {
 
   'location.title': 'カフェの待ち合わせ場所を探す',
   'location.subtitle':
-    '両方の住所を入力すると、AI が評価が高く距離も公平なカフェを選びます。',
+    '両方の住所を入力すると、AI が評価が高く距離も公平な待ち合わせ場所を選びます。',
   'location.yourLocation': 'あなたの場所',
   'location.friendLocation': '相手の場所',
   'location.placeholderA': '例：東京都渋谷区…',
