@@ -9,6 +9,12 @@ import { SyncIndicator } from './SyncIndicator';
 import accountStyles from './AccountPage.module.css';
 import styles from './BookingsPage.module.css';
 
+/** localStorage keys for the user's TZ + view-mode preferences so the
+ *  toggles aren't re-applied every time they navigate back. Hardcoded
+ *  here rather than threaded — they're never read from anywhere else. */
+const BOOKINGS_TZ_MODE_KEY = 'ACoffee-bookings-tz-mode';
+const BOOKINGS_VIEW_MODE_KEY = 'ACoffee-bookings-view-mode';
+
 interface BookingWire {
   id: string;
   visitorName: string;
@@ -21,7 +27,11 @@ interface BookingWire {
   placeAddress: string;
   placeLat: number;
   placeLng: number;
-  status: 'pending' | 'cancelled';
+  // 'confirmed' is reserved for the future double-opt-in flow where
+  // visitor confirms via email — server may emit it once that ships.
+  // UI handles it in the same upcoming bucket as 'pending' until an
+  // explicit visual differentiation is decided.
+  status: 'pending' | 'confirmed' | 'cancelled';
   visitorMessage: string | null;
   createdAt: number;
 }
@@ -61,7 +71,20 @@ export function BookingsPage() {
     }
   })();
   const tzMatches = homeTz === localTz;
-  const [tzMode, setTzMode] = useState<'home' | 'local'>('home');
+  // tzMode + viewMode persist in localStorage so toggling once doesn't
+  // get re-toggled on every navigation back. Bare reads (no try/catch)
+  // are fine — localStorage absence falls into the typeof check.
+  const [tzMode, setTzMode] = useState<'home' | 'local'>(() => {
+    if (typeof localStorage === 'undefined') return 'home';
+    return localStorage.getItem(BOOKINGS_TZ_MODE_KEY) === 'local' ? 'local' : 'home';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(BOOKINGS_TZ_MODE_KEY, tzMode);
+    } catch {
+      /* ignore quota / privacy mode */
+    }
+  }, [tzMode]);
   const effectiveTz = tzMode === 'home' ? homeTz : localTz;
 
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
@@ -74,8 +97,19 @@ export function BookingsPage() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   // List = the original chronological row layout. Week = a 7-column grid
-  // of the currently-anchored week. Default list to keep prior behavior.
-  const [viewMode, setViewMode] = useState<'list' | 'week'>('list');
+  // of the currently-anchored week. Persisted so the user's preferred
+  // view sticks across navigations / reloads.
+  const [viewMode, setViewMode] = useState<'list' | 'week'>(() => {
+    if (typeof localStorage === 'undefined') return 'list';
+    return localStorage.getItem(BOOKINGS_VIEW_MODE_KEY) === 'week' ? 'week' : 'list';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(BOOKINGS_VIEW_MODE_KEY, viewMode);
+    } catch {
+      /* ignore */
+    }
+  }, [viewMode]);
   const [weekAnchorMs, setWeekAnchorMs] = useState<number>(() => Date.now());
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
@@ -529,6 +563,11 @@ function WeekGridView({
   const end = new Date(days[6]);
   const weekTitle = `${weekTitleFmt.format(start)} – ${weekTitleFmt.format(end)}`;
 
+  // "This week" reset: an anchor in the current week is anything inside
+  // [todayWeekStart, todayWeekStart + 7d). Cheaper than recomputing
+  // tzWeekStart for now — the small drift across the week boundary is
+  // fine for a button-disabled check.
+  const isThisWeek = nowMs >= tzWeekStart && nowMs < tzWeekStart + 7 * MS_DAY;
   return (
     <section className={accountStyles.card}>
       <div className={styles.weekHeader}>
@@ -548,6 +587,14 @@ function WeekGridView({
           aria-label={t('bookings.weekNext')}
         >
           →
+        </button>
+        <button
+          type="button"
+          className={styles.weekTodayButton}
+          onClick={() => onAnchorChange(Date.now())}
+          disabled={isThisWeek}
+        >
+          {t('bookings.weekToday')}
         </button>
       </div>
       <div className={styles.weekGrid}>
@@ -584,11 +631,25 @@ function WeekGridView({
                   timeZone: timezone,
                 }).format(new Date(row.scheduledAt));
                 if (isCancelled) {
+                  // Render as a real disabled <button> so it shows up in
+                  // the keyboard tab order with a clear "unavailable"
+                  // affordance instead of an inert <span> that screen
+                  // readers skip past entirely.
                   return (
-                    <span key={row.id} className={blockCls} aria-disabled>
+                    <button
+                      key={row.id}
+                      type="button"
+                      className={blockCls}
+                      disabled
+                      aria-disabled="true"
+                      aria-label={t('bookings.weekBlockAria', {
+                        name: row.visitorName,
+                        time,
+                      })}
+                    >
                       <span className={styles.dayBlockTime}>{time}</span>
                       <span className={styles.dayBlockName}>{row.visitorName}</span>
-                    </span>
+                    </button>
                   );
                 }
                 return (
@@ -611,6 +672,12 @@ function WeekGridView({
           );
         })}
       </div>
+      {/* Empty state for the visible week — different from the page-level
+          "no bookings yet" because the user may have plenty of bookings,
+          just none in this 7-day window. */}
+      {days.every((dayMs) => (byDay.get(dayKey(dayMs)) ?? []).length === 0) ? (
+        <p className={styles.weekEmpty}>{t('bookings.weekEmpty')}</p>
+      ) : null}
     </section>
   );
 }
@@ -639,7 +706,10 @@ function BookingsList({
   // "Upcoming" until the next data refresh, which is fine for our purposes.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
-  const upcoming = rows.filter((r) => r.status === 'pending' && r.scheduledAt > now);
+  // Upcoming = anything not cancelled and still in the future. Treats
+  // 'pending' and 'confirmed' identically — if and when the visitor
+  // double-opt-in lands, both stay on this page until the slot passes.
+  const upcoming = rows.filter((r) => r.status !== 'cancelled' && r.scheduledAt > now);
   const archived = rows
     .filter((r) => r.status === 'cancelled' || r.scheduledAt <= now)
     // Past + cancelled: most recent first.
@@ -766,7 +836,17 @@ function BookingRow({
       <div>
         <p className={styles.when}>
           {dateLine}
-          {isCancelled ? <span className={styles.statusPill}>{t('bookings.statusCancelled')}</span> : null}
+          {isCancelled ? (
+            <span className={styles.statusPill}>{t('bookings.statusCancelled')}</span>
+          ) : isPast ? (
+            // Neutral pill for past-not-cancelled rows so the user can
+            // tell at a glance which rows already happened — without it
+            // archived rows look identical to upcoming until you read
+            // the full date.
+            <span className={`${styles.statusPill} ${styles.statusPillPast}`}>
+              {t('bookings.statusPast')}
+            </span>
+          ) : null}
         </p>
         <p className={styles.whenSecondary}>{timeLine}</p>
         <div className={styles.body}>
@@ -784,7 +864,7 @@ function BookingRow({
             ) : (
               <strong>{row.placeName}</strong>
             )}
-            <span style={{ color: '#7a6a60', marginLeft: '0.4em' }}>{row.placeAddress}</span>
+            <span className={styles.placeAddress}>{row.placeAddress}</span>
           </span>
           {row.visitorMessage ? (
             <span className={styles.visitorMessage}>

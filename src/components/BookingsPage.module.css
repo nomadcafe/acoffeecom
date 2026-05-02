@@ -105,11 +105,27 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  border-radius: var(--ac-radius-pill);
   margin-left: 0.5rem;
   vertical-align: middle;
   background: var(--ac-danger-bg);
   color: var(--ac-danger);
+}
+
+/* Neutral variant for "this slot already happened" — uses the muted
+ * surface family instead of the rose-red, since past isn't the same
+ * thing as cancelled. Same shape, different palette. */
+.statusPillPast {
+  background: var(--ac-surface-tinted);
+  color: var(--ac-text-muted);
+}
+
+/* Place-address line under the visitor + cafe info — neutral muted
+ * color so it reads as secondary info without competing with the
+ * cafe-link that sits right before it. */
+.placeAddress {
+  color: var(--ac-text-muted);
+  margin-left: 0.4em;
 }
 
 .actions {
@@ -252,8 +268,52 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   margin-bottom: 0.6rem;
   gap: 0.5rem;
+}
+
+/* "This week" reset — small ghost button next to the prev/next arrows.
+ * Disabled state is the dominant visual: lets users see they're on
+ * the current week without having to read the date range. */
+.weekTodayButton {
+  appearance: none;
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  padding: 0.3rem 0.7rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: var(--ac-radius-pill);
+  cursor: pointer;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
+}
+
+.weekTodayButton:hover:not(:disabled) {
+  border-color: var(--ac-accent);
+  background: var(--ac-surface-tinted);
+}
+
+.weekTodayButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
+}
+
+.weekTodayButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.weekEmpty {
+  margin: 0.7rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: var(--ac-surface-tinted);
+  border-radius: var(--ac-radius-sm);
+  color: var(--ac-text-muted);
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 .weekTitle {
@@ -387,10 +447,32 @@
   .weekGrid {
     grid-template-columns: repeat(7, minmax(4.5rem, 1fr));
     overflow-x: auto;
-    padding-bottom: 0.4rem;
+    -webkit-overflow-scrolling: touch;
+    /* Snap each day column to the left edge so swipes settle cleanly
+     * on a column instead of mid-cell. */
+    scroll-snap-type: x mandatory;
+    /* Hint at the off-screen content with a soft fade on each side —
+     * without it, on touch devices the scrollbar is invisible and
+     * users may not realise the grid scrolls past the visible 4 days. */
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 1.4rem,
+      #000 calc(100% - 1.4rem),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 1.4rem,
+      #000 calc(100% - 1.4rem),
+      transparent 100%
+    );
+    padding: 0 0.6rem 0.4rem;
   }
   .dayCol {
     min-width: 4.5rem;
+    scroll-snap-align: start;
   }
 }
 
