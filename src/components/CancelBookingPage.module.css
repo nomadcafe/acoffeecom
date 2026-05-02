@@ -103,15 +103,15 @@
   gap: 0.6rem;
 }
 
-/* Destructive action — cancellation confirm. Red palette is intentional
- * and not in the design tokens (no --ac-danger yet); keep the literals
- * here as the canonical "destructive" red until/unless a token lands. */
+/* Destructive action — cancellation confirm. Filled --ac-danger so it
+ * reads visibly as "this will undo something" rather than another
+ * brown navigation chip. */
 .confirm {
   flex: 1;
   padding: 0.7rem 1rem;
   border-radius: var(--ac-radius-pill);
   border: 0;
-  background: #8b3d28;
+  background: var(--ac-danger);
   color: #fff;
   font-size: 0.95rem;
   font-weight: 600;
@@ -121,12 +121,12 @@
 }
 
 .confirm:hover:not(:disabled) {
-  background: #71301f;
+  background: var(--ac-danger-dark);
 }
 
 .confirm:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(139, 61, 40, 0.3);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.3);
 }
 
 .confirm:disabled {
@@ -165,9 +165,9 @@
 
 /* Inline error pill — same destructive red family as .confirm. */
 .error {
-  background: #fdecec;
-  border: 1px solid #f3c2c2;
-  color: #8b3d28;
+  background: var(--ac-danger-bg);
+  border: 1px solid var(--ac-danger-border);
+  color: var(--ac-danger);
   padding: 0.7rem 0.9rem;
   border-radius: var(--ac-radius-sm);
   font-size: 0.9rem;

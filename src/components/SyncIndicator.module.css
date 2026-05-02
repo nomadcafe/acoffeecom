@@ -22,7 +22,7 @@
 }
 
 .error {
-  color: #c62828;
+  color: var(--ac-danger);
   background: rgba(198, 40, 40, 0.08);
   cursor: help;
 }

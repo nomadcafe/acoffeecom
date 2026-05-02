@@ -107,7 +107,7 @@
 }
 
 .error {
-  color: #c62828;
+  color: var(--ac-danger);
   padding: 1rem;
   text-align: center;
 }

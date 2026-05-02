@@ -5,8 +5,8 @@
   margin: 0.5rem auto;
   padding: 0.7rem 0.9rem;
   max-width: 1400px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--ac-danger-bg);
+  border: 1px solid var(--ac-danger-border);
   border-radius: 10px;
   color: #7f1d1d;
   font-size: 0.85rem;

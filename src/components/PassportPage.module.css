@@ -220,7 +220,7 @@
 }
 
 .shareError {
-  color: #c62828;
+  color: var(--ac-danger);
 }
 
 .heatmapWrap {
@@ -435,9 +435,9 @@
 
 @media (hover: hover) {
   .removeButton:hover {
-    background: #ffebee;
-    color: #c62828;
-    border-color: #f1c1c1;
+    background: var(--ac-danger-bg);
+    color: var(--ac-danger);
+    border-color: var(--ac-danger-border);
   }
 }
 
@@ -655,8 +655,8 @@
 }
 
 .visitRemove:hover {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--ac-danger-bg);
+  color: var(--ac-danger);
 }
 
 .exportButton {

@@ -93,8 +93,8 @@
 }
 
 .error {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--ac-danger-bg);
+  color: var(--ac-danger);
   padding: 1rem;
   border-radius: 8px;
   text-align: center;
@@ -129,9 +129,9 @@
 }
 
 .errorDismiss {
-  border: 1px solid #e0a0a0;
+  border: 1px solid var(--ac-danger-border);
   background: #fff;
-  color: #c62828;
+  color: var(--ac-danger);
 }
 
 .empty {
@@ -214,7 +214,7 @@
 .loadMoreError {
   margin: 0;
   font-size: 0.8rem;
-  color: #c62828;
+  color: var(--ac-danger);
   text-align: center;
   max-width: 320px;
 }

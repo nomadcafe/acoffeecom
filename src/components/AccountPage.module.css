@@ -302,7 +302,7 @@
 
 .errorMsg {
   margin: 0;
-  color: #b91c1c;
+  color: var(--ac-danger);
   font-size: 0.82rem;
 }
 
@@ -349,7 +349,7 @@
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background: #fff;
-  color: #b91c1c;
+  color: var(--ac-danger);
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
@@ -358,7 +358,7 @@
 }
 
 .signOutButton:hover:not(:disabled) {
-  background: #fff5f5;
+  background: var(--ac-danger-bg);
 }
 
 .signOutButton:focus-visible {
@@ -408,7 +408,7 @@
 }
 
 .availabilityFail {
-  color: #b91c1c;
+  color: var(--ac-danger);
 }
 
 .availabilityIcon {
@@ -544,7 +544,7 @@
 }
 
 .linkUrlInput[aria-invalid='true'] {
-  border-color: #fecaca;
+  border-color: var(--ac-danger-border);
   box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1);
 }
 
@@ -562,9 +562,9 @@
 }
 
 .linkRemove:hover {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
+  background: var(--ac-danger-bg);
+  color: var(--ac-danger);
+  border-color: var(--ac-danger-border);
 }
 
 .linkAdd {
@@ -634,7 +634,7 @@
 }
 
 .timeInput[aria-invalid='true'] {
-  border-color: #fecaca;
+  border-color: var(--ac-danger-border);
   box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1);
 }
 
@@ -844,9 +844,9 @@
 }
 
 .sessionRevoke:hover:not(:disabled) {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
+  background: var(--ac-danger-bg);
+  color: var(--ac-danger);
+  border-color: var(--ac-danger-border);
 }
 
 .sessionRevoke:disabled {
@@ -864,12 +864,12 @@
 /* ---------- danger zone (delete account) ---------- */
 
 .dangerCard {
-  border-color: #fecaca;
+  border-color: var(--ac-danger-border);
   background: #fff7f7;
 }
 
 .dangerCard .cardTitle {
-  color: #b91c1c;
+  color: var(--ac-danger);
 }
 
 .dangerHint {
@@ -882,9 +882,9 @@
 .dangerButton {
   align-self: flex-start;
   padding: 0.55rem 1rem;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--ac-danger-border);
   background: #fff;
-  color: #b91c1c;
+  color: var(--ac-danger);
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.88rem;
@@ -893,7 +893,7 @@
 }
 
 .dangerButton:hover:not(:disabled) {
-  background: #fef2f2;
+  background: var(--ac-danger-bg);
 }
 
 .dangerButton:disabled {
@@ -959,7 +959,7 @@
 }
 
 .modalInput:focus {
-  border-color: #b91c1c;
+  border-color: var(--ac-danger);
 }
 
 .modalActions {
@@ -983,7 +983,7 @@
 .modalConfirmDanger {
   padding: 0.55rem 1rem;
   border: 0;
-  background: #b91c1c;
+  background: var(--ac-danger);
   color: #fff;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -999,10 +999,10 @@
 .calendarErrorBanner {
   margin: 0.85rem 0 0;
   padding: 0.7rem 0.85rem;
-  background: #fdecec;
-  border: 1px solid #f3c2c2;
+  background: var(--ac-danger-bg);
+  border: 1px solid var(--ac-danger-border);
   border-radius: 8px;
-  color: #8b3d28;
+  color: var(--ac-danger);
   font-size: 0.85rem;
   line-height: 1.5;
 }

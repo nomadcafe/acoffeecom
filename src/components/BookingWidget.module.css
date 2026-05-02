@@ -27,9 +27,9 @@
 }
 
 .errorRow {
-  background: #fdecec;
-  border: 1px solid #f3c2c2;
-  color: #8b3d28;
+  background: var(--ac-danger-bg);
+  border: 1px solid var(--ac-danger-border);
+  color: var(--ac-danger);
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
   font-size: 0.85rem;

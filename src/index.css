@@ -56,6 +56,16 @@
   --ac-focus-ring: 0 0 0 3px rgba(111, 78, 55, 0.18);
   --ac-focus-ring-2: 0 0 0 3px rgba(94, 122, 82, 0.22);
 
+  /* Danger palette — for cancel/destructive actions, error messages,
+     "remove" buttons. Slightly desaturated rose-red so the color
+     reads as "stop / something's wrong" without screaming next to
+     the warm coffee-brown brand. Keep these limited to genuine
+     destructive/error semantics, not everyday warnings. */
+  --ac-danger: #b91c1c;
+  --ac-danger-dark: #991b1b;
+  --ac-danger-bg: #fef2f2;
+  --ac-danger-border: #fecaca;
+
   /* Display font (serif, loaded from Google Fonts in index.html) for headline
      surfaces: brand wordmark, hero title, page titles. Body/UI stays system sans. */
   --ac-font-display: 'Fraunces', 'Iowan Old Style', 'Georgia', serif;

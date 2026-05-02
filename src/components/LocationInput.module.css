@@ -212,7 +212,7 @@
 }
 
 .thirdRemove:hover:not(:disabled) {
-  color: #8b3d28;
+  color: var(--ac-danger);
 }
 
 .button {
@@ -375,15 +375,15 @@
   margin-top: 0.75rem;
   padding: 0.75rem 0.85rem;
   border-radius: 8px;
-  background: #ffebee;
-  border: 1px solid #ffcdd2;
+  background: var(--ac-danger-bg);
+  border: 1px solid var(--ac-danger-border);
 }
 
 .errorText {
   margin: 0 0 0.55rem 0;
   font-size: 0.84rem;
   line-height: 1.45;
-  color: #b71c1c;
+  color: var(--ac-danger);
 }
 
 .errorActions {
@@ -408,8 +408,8 @@
 }
 
 .errorDismiss {
-  border: 1px solid #e0a0a0;
+  border: 1px solid var(--ac-danger-border);
   background: #fff;
-  color: #c62828;
+  color: var(--ac-danger);
 }
 

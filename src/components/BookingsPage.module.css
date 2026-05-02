@@ -108,8 +108,8 @@
   border-radius: 999px;
   margin-left: 0.5rem;
   vertical-align: middle;
-  background: rgba(150, 80, 60, 0.12);
-  color: #8b3d28;
+  background: var(--ac-danger-bg);
+  color: var(--ac-danger);
 }
 
 .actions {
@@ -121,9 +121,9 @@
 
 .cancelButton {
   background: transparent;
-  border: 1px solid rgba(150, 80, 60, 0.4);
-  color: #8b3d28;
-  border-radius: 8px;
+  border: 1px solid var(--ac-danger-border);
+  color: var(--ac-danger);
+  border-radius: var(--ac-radius-sm);
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
   font-weight: 500;
@@ -150,8 +150,8 @@
 }
 
 .cancelButton:hover:not(:disabled) {
-  background: rgba(150, 80, 60, 0.08);
-  border-color: rgba(150, 80, 60, 0.6);
+  background: var(--ac-danger-bg);
+  border-color: var(--ac-danger);
 }
 
 .cancelButton:disabled {
@@ -360,13 +360,13 @@
 }
 
 .dayBlockCancelled {
-  background: rgba(150, 80, 60, 0.5);
+  background: var(--ac-danger-border);
   text-decoration: line-through;
   cursor: default;
 }
 
 .dayBlockCancelled:hover {
-  background: rgba(150, 80, 60, 0.5);
+  background: var(--ac-danger-border);
 }
 
 .dayBlockTime {
@@ -468,7 +468,7 @@
 .modalConfirm {
   padding: 0.55rem 1rem;
   border: 0;
-  background: #8b3d28;
+  background: var(--ac-danger);
   color: #fff;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -478,7 +478,7 @@
 }
 
 .modalConfirm:hover:not(:disabled) {
-  background: #71301f;
+  background: var(--ac-danger-dark);
 }
 
 .modalConfirm:disabled {

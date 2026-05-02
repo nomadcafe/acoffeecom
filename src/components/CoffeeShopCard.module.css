@@ -229,8 +229,8 @@
 }
 
 .closed {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--ac-danger-bg);
+  color: var(--ac-danger);
 }
 
 .aiSummaryLoading,
