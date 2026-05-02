@@ -74,7 +74,7 @@
 
 .heroCard {
   background: linear-gradient(135deg, #f7f1ea 0%, #ede1d1 100%);
-  border-radius: 16px;
+  border-radius: var(--ac-radius-lg);
   padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -192,7 +192,7 @@
 .statsCard {
   background: var(--ac-surface);
   border: 1px solid var(--ac-border);
-  border-radius: 14px;
+  border-radius: var(--ac-radius-md);
   padding: 1.1rem 0.75rem 1rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -277,7 +277,7 @@
   padding: 0.6rem 0.75rem;
   background: var(--ac-page-bg);
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--ac-radius-sm);
   text-decoration: none;
   color: inherit;
   transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
@@ -453,7 +453,7 @@
 .featuredCafeCard {
   background: var(--ac-surface);
   border: 1px solid var(--ac-border);
-  border-radius: 14px;
+  border-radius: var(--ac-radius-md);
   padding: 0.85rem 1rem;
 }
 

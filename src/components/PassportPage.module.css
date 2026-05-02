@@ -64,18 +64,20 @@
   padding: 1rem 0 0.25rem;
 }
 
+/* Unified page-title scale across standalone pages (Account / Bookings /
+ * Passport / Updates). 1.75rem mobile / 2rem desktop. */
 .pageTitle {
   margin: 0 0 0.5rem 0;
   font-family: var(--ac-font-display);
-  font-size: 2.1rem;
+  font-size: 1.75rem;
   font-weight: 600;
   color: var(--ac-text);
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-variation-settings: 'opsz' 144;
+  font-variation-settings: 'opsz' 96;
 }
 
 .pageTitleGlyph {
@@ -91,7 +93,7 @@
 
 .emptyCard {
   background: var(--ac-surface);
-  border-radius: 14px;
+  border-radius: var(--ac-radius-md);
   box-shadow: var(--ac-shadow-card);
   padding: 2.5rem 1.5rem;
   text-align: center;
@@ -110,7 +112,7 @@
   background: var(--ac-accent);
   color: #fff;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: var(--ac-radius-sm);
   font-weight: 600;
   font-size: 0.95rem;
   transition: background var(--ac-motion-fast);
@@ -128,7 +130,7 @@
 
 .statCard {
   background: var(--ac-surface);
-  border-radius: 14px;
+  border-radius: var(--ac-radius-md);
   box-shadow: var(--ac-shadow-card);
   padding: 1.15rem 1rem;
   text-align: center;
@@ -167,7 +169,7 @@
 .heatmapSection,
 .listSection {
   background: var(--ac-surface);
-  border-radius: 14px;
+  border-radius: var(--ac-radius-md);
   box-shadow: var(--ac-shadow-card);
   padding: 1.25rem;
 }
@@ -363,7 +365,7 @@
   gap: 0.85rem;
   padding: 0.9rem 1rem;
   background: var(--ac-surface-tinted);
-  border-radius: 10px;
+  border-radius: var(--ac-radius-sm);
   border: 1px solid var(--ac-border);
   transition: background 220ms ease-out, border-color 220ms ease-out;
 }
@@ -448,7 +450,7 @@
   }
 
   .pageTitle {
-    font-size: 2.6rem;
+    font-size: 2rem;
   }
 
   .main {
@@ -476,7 +478,7 @@
 
 .citiesSection {
   background: var(--ac-surface);
-  border-radius: 14px;
+  border-radius: var(--ac-radius-md);
   box-shadow: var(--ac-shadow-card);
   padding: 1.25rem;
 }

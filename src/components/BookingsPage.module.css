@@ -304,7 +304,7 @@
   gap: 0.3rem;
   min-height: 6rem;
   padding: 0.4rem 0.35rem;
-  border-radius: 10px;
+  border-radius: var(--ac-radius-sm);
   background: #faf6f1;
   border: 1px solid transparent;
 }
@@ -411,7 +411,7 @@
   width: 100%;
   max-width: 420px;
   background: var(--ac-surface);
-  border-radius: 14px;
+  border-radius: var(--ac-radius-md);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   padding: 1.2rem 1.25rem;
   display: flex;
@@ -435,7 +435,7 @@
 
 .modalSummary {
   background: #faf6f1;
-  border-radius: 10px;
+  border-radius: var(--ac-radius-sm);
   padding: 0.6rem 0.8rem;
   font-size: 0.85rem;
   color: var(--ac-text);
