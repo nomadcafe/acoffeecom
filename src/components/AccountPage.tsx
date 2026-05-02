@@ -5,7 +5,7 @@ import { authClient, useSession } from '../utils/authClient';
 import { usePassportStats } from '../hooks/usePassportStats';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { PASSPORT_PATH } from '../routes';
-import { formatAbsoluteDate } from '../utils/relativeTime';
+import { formatAbsoluteDate, formatAbsoluteDateTime } from '../utils/relativeTime';
 import { track } from '../utils/analytics';
 import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
@@ -762,7 +762,7 @@ function SignedInAccountPage({
                       ) : null}
                     </div>
                     <div className={styles.sessionMeta}>
-                      {formatAbsoluteDate(s.createdAt, locale)}
+                      {formatAbsoluteDateTime(s.createdAt, locale)}
                       {s.ipAddress ? <> · {s.ipAddress}</> : null}
                     </div>
                   </div>
@@ -1552,6 +1552,11 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
           </div>
         )}
         <div className={styles.avatarActions}>
+          {/* Visually-hidden native file input — drives the actual upload.
+              The visible button below is what the user (and screen reader)
+              interacts with. iOS Safari renders the bare input as a tiny
+              "Choose File" tap target obscured behind native chrome; a
+              real <button> is bigger, brand-styled, and labeled. */}
           <input
             ref={fileInputRef}
             type="file"
@@ -1561,7 +1566,18 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
               if (f) void handleFile(f);
             }}
             disabled={busy}
+            className={styles.avatarFileInput}
+            tabIndex={-1}
+            aria-hidden
           />
+          <button
+            type="button"
+            className={styles.avatarChooseButton}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={busy}
+          >
+            {image ? t('account.avatarReplace') : t('account.avatarChoose')}
+          </button>
           {image ? (
             <button
               type="button"
@@ -1651,7 +1667,7 @@ function BasicProfileCard({ initialDisplayName, initialBio }: BasicProfileProps)
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
         />
-        <span className={styles.charCount}>
+        <span className={styles.charCount} aria-live="polite">
           {displayName.length} / {DISPLAY_NAME_MAX}
         </span>
       </label>
@@ -1666,7 +1682,7 @@ function BasicProfileCard({ initialDisplayName, initialBio }: BasicProfileProps)
           value={bio}
           onChange={(e) => setBio(e.target.value)}
         />
-        <span className={styles.charCount}>
+        <span className={styles.charCount} aria-live="polite">
           {bio.length} / {BIO_MAX}
         </span>
       </label>
@@ -1778,6 +1794,7 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
               placeholder={t('account.linkLabelPlaceholder')}
               value={l.label}
               onChange={(e) => setLinkField(idx, 'label', e.target.value)}
+              aria-label={t('account.linkLabelAria')}
             />
             <input
               type="url"
@@ -1787,6 +1804,7 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
               value={l.url}
               onChange={(e) => setLinkField(idx, 'url', e.target.value)}
               aria-invalid={isLinkPartial(l) || undefined}
+              aria-label={t('account.linkUrlAria')}
             />
             <button
               type="button"
@@ -1855,6 +1873,9 @@ function FeaturedCafesCard() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StatusBanner>(null);
   useAutoDismissOk(status, setStatus);
+  // Guards against double-tapping the same suggestion before pick()
+  // resolves — see suggestions onClick below for the failure mode.
+  const pickingRef = useRef(false);
   const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
 
   // Hydrate the featured-cafes list from /api/account on mount. Lives in
@@ -2070,11 +2091,36 @@ function FeaturedCafesCard() {
               className={styles.featuredCafeRelation}
               role="radiogroup"
               aria-label={t('account.featuredCafeRelationLabel')}
+              onKeyDown={(e) => {
+                // WAI-ARIA radiogroup pattern: ←/↑ moves to previous,
+                // →/↓ moves to next, wrap around. Without this, only
+                // Tab works and the user can't switch relations with
+                // the keyboard once a pill has focus.
+                if (
+                  e.key !== 'ArrowLeft' &&
+                  e.key !== 'ArrowRight' &&
+                  e.key !== 'ArrowUp' &&
+                  e.key !== 'ArrowDown'
+                ) {
+                  return;
+                }
+                e.preventDefault();
+                const next: FeaturedCafeRelation =
+                  cafe.relation === 'favorite' ? 'owned' : 'favorite';
+                updateCafe(idx, { relation: next });
+                // Move focus onto the now-checked pill so SR reads the
+                // new selection.
+                const target = e.currentTarget.querySelector<HTMLButtonElement>(
+                  `button[aria-checked="true"]`,
+                );
+                target?.focus();
+              }}
             >
               <button
                 type="button"
                 role="radio"
                 aria-checked={cafe.relation === 'favorite'}
+                tabIndex={cafe.relation === 'favorite' ? 0 : -1}
                 className={`${styles.featuredCafeRelationPill}${
                   cafe.relation === 'favorite'
                     ? ' ' + styles.featuredCafeRelationPillActive
@@ -2094,6 +2140,7 @@ function FeaturedCafesCard() {
                 type="button"
                 role="radio"
                 aria-checked={cafe.relation === 'owned'}
+                tabIndex={cafe.relation === 'owned' ? 0 : -1}
                 className={`${styles.featuredCafeRelationPill}${
                   cafe.relation === 'owned'
                     ? ' ' + styles.featuredCafeRelationPillActive
@@ -2139,7 +2186,7 @@ function FeaturedCafesCard() {
                 value={cafe.note}
                 onChange={(e) => updateCafe(idx, { note: e.target.value })}
               />
-              <span className={styles.charCount}>
+              <span className={styles.charCount} aria-live="polite">
                 {cafe.note.length} / {FEATURED_NOTE_MAX}
               </span>
             </label>
@@ -2160,7 +2207,7 @@ function FeaturedCafesCard() {
                   value={cafe.ownerPinnedNote}
                   onChange={(e) => updateCafe(idx, { ownerPinnedNote: e.target.value })}
                 />
-                <span className={styles.charCount}>
+                <span className={styles.charCount} aria-live="polite">
                   {cafe.ownerPinnedNote.length} / {FEATURED_PINNED_NOTE_MAX}
                 </span>
               </label>
@@ -2190,6 +2237,7 @@ function FeaturedCafesCard() {
                     placeholder="https://…"
                     value={cafe[field] as string}
                     onChange={(e) => updateCafe(idx, { [field]: e.target.value } as Partial<FeaturedCafeDraft>)}
+                    aria-label={label}
                   />
                 </div>
               ))}
@@ -2250,22 +2298,42 @@ function FeaturedCafesCard() {
                 onBlur={() => {
                   window.setTimeout(() => cafeAutocomplete.clear(), 150);
                 }}
+                aria-label={t('account.featuredCafePlaceholder')}
+                aria-autocomplete="list"
+                aria-expanded={cafeAutocomplete.suggestions.length > 0}
               />
               {cafeAutocomplete.suggestions.length > 0 ? (
-                <ul className={styles.featuredCafeSuggestions} role="listbox">
+                <ul
+                  className={styles.featuredCafeSuggestions}
+                  role="listbox"
+                  aria-label={t('account.featuredCafePlaceholder')}
+                >
                   {cafeAutocomplete.suggestions.map((s, i) => {
                     const text = s.placePrediction?.text.text ?? '';
                     if (!text) return null;
                     return (
-                      <li key={`${i}-${text}`}>
+                      <li key={`${i}-${text}`} role="option" aria-selected={false}>
                         <button
                           type="button"
                           className={styles.featuredCafeSuggestion}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={async () => {
-                            const picked = await cafeAutocomplete.pick(s);
-                            if (picked) addCafe(picked, 'favorite');
+                            // Guard against double-click before the first
+                            // pick() resolves: rapid taps would each fire
+                            // addCafe and end up with the same place ID
+                            // duplicated in `cafes` (the dedupe inside
+                            // addCafe is best-effort against committed
+                            // state, not in-flight work).
+                            if (pickingRef.current) return;
+                            pickingRef.current = true;
+                            try {
+                              const picked = await cafeAutocomplete.pick(s);
+                              if (picked) addCafe(picked, 'favorite');
+                            } finally {
+                              pickingRef.current = false;
+                            }
                           }}
+                          disabled={pickingRef.current}
                         >
                           {text}
                         </button>
@@ -2378,7 +2446,7 @@ function BookingSetupCard({
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StatusBanner>(null);
   useAutoDismissOk(status, setStatus);
-  const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
 
   // Use the current origin so staging / preview deployments link back
   // to themselves instead of pointing the recipient at the prod host
@@ -2392,8 +2460,12 @@ function BookingSetupCard({
       setCopyState('copied');
       window.setTimeout(() => setCopyState('idle'), 2000);
     } catch {
-      // Clipboard blocked (rare on https); silently no-op rather than
-      // surface an error UI for an action the user retries naturally.
+      // Clipboard API can throw in older Safari, in iframes without
+      // the right Permissions-Policy, and when the page is loaded over
+      // http. Don't silently swallow — the user clicked Copy expecting
+      // *something* to happen. Show a brief "couldn't copy" state.
+      setCopyState('failed');
+      window.setTimeout(() => setCopyState('idle'), 2500);
     }
   };
 
@@ -2475,7 +2547,9 @@ function BookingSetupCard({
           >
             {copyState === 'copied'
               ? t('account.bookingLinkCopied')
-              : t('account.bookingLinkCopy')}
+              : copyState === 'failed'
+                ? t('account.bookingLinkCopyFailed')
+                : t('account.bookingLinkCopy')}
           </button>
         </div>
       ) : null}

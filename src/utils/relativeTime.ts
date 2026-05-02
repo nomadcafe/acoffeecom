@@ -36,3 +36,18 @@ export function formatAbsoluteDate(timestamp: number, locale: Locale): string {
     day: 'numeric',
   }).format(new Date(timestamp));
 }
+
+/**
+ * Date + 24h-ish time-of-day, locale-aware. Used for things like the
+ * sessions list where two sessions on the same day need to be visually
+ * distinguishable — the date-only formatter renders both identically.
+ */
+export function formatAbsoluteDateTime(timestamp: number, locale: Locale): string {
+  return new Intl.DateTimeFormat(LOCALE_BCP47[locale], {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(timestamp));
+}

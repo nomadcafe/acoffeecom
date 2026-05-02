@@ -1325,6 +1325,50 @@
   min-width: 0;
 }
 
+/* Visually hide the native file input so the styled button below
+ * drives the upload UX. Kept in the DOM so `fileInputRef.current.click()`
+ * still works; not focusable (tabIndex=-1) and aria-hidden so AT only
+ * sees the button. */
+.avatarFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  pointer-events: none;
+}
+
+.avatarChooseButton {
+  align-self: flex-start;
+  padding: 0.55rem 1rem;
+  background: var(--ac-accent);
+  color: #fff;
+  border: 0;
+  border-radius: var(--ac-radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--ac-motion-fast);
+}
+
+.avatarChooseButton:hover:not(:disabled) {
+  background: var(--ac-accent-dark);
+}
+
+.avatarChooseButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
+.avatarChooseButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* Featured cafés grid container. Single column on narrow viewports;
    2 columns once the surrounding content area is wide enough that two
    ~420px cards fit comfortably side by side. The internal card layout
