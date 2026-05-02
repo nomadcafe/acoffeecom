@@ -480,8 +480,6 @@ interface WeekGridProps {
   t: ReturnType<typeof useI18n>['t'];
 }
 
-const MS_DAY = 86_400_000;
-
 /**
  * Week grid: 7 columns Mon→Sun anchored on `anchorMs`. Each booking on a
  * day shows up as a tappable colored block (sage for active, dimmed for
@@ -501,46 +499,64 @@ function WeekGridView({
   timezone,
   t,
 }: WeekGridProps) {
-  // Compute the Monday at 00:00 in `timezone` for the week containing
-  // `anchorMs`. We project both the anchor and its weekday into the
-  // configured zone via Intl, then subtract back to get an aligned start.
-  const tzWeekStart = (() => {
-    const fmt = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      weekday: 'short',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-    const parts = fmt.formatToParts(new Date(anchorMs));
-    const get = (type: string) =>
-      parts.find((p) => p.type === type)?.value ?? '';
-    const wd = get('weekday'); // Mon, Tue, …
-    const map: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
-    const offsetDays = map[wd] ?? 0;
-    // Floor to the local-day midnight by reformatting at midnight UTC of
-    // that local date and walking back. We only need stable day buckets,
-    // not exact wall-clock — so use the local date string at 12:00 UTC
-    // of `anchorMs - (offsetDays * day)` as a floor.
-    return anchorMs - offsetDays * MS_DAY;
-  })();
+  // ── Date-string arithmetic instead of UTC ms ──
+  // The previous implementation walked back `offsetDays * MS_DAY` from
+  // anchorMs in UTC ms, then projected each `+ i * MS_DAY` into the
+  // target zone. That breaks across DST: in spring-forward weeks the
+  // visible grid would skip Saturday and double-count Sunday.
+  //
+  // The fix: do everything in YYYY-MM-DD strings projected through
+  // Intl.DateTimeFormat. Each operation is calendar arithmetic, not
+  // wall-clock ms arithmetic — DST is invisible.
 
-  const days = Array.from({ length: 7 }, (_, i) => tzWeekStart + i * MS_DAY);
-
-  const dayKey = (ms: number) => {
-    const d = new Intl.DateTimeFormat('en-CA', {
+  // Project a UTC ms into the target zone's calendar date.
+  const formatDayKey = (ms: number) =>
+    new Intl.DateTimeFormat('en-CA', {
       timeZone: timezone,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
     }).format(new Date(ms));
-    return d; // "YYYY-MM-DD"
+
+  // Date at UTC noon for a YYYY-MM-DD — used purely as a vehicle for
+  // calendar formatters (we always pass `timeZone: 'UTC'` when reading
+  // it, so noon is well above any sub-12h zone offset).
+  const keyToUtcNoon = (key: string) => {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
   };
+
+  // Shift a YYYY-MM-DD by N calendar days. UTC noon + `timeZone:'UTC'`
+  // formatter = pure calendar arithmetic, no DST drift possible.
+  const shiftKey = (key: string, deltaDays: number) => {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date(Date.UTC(y, m - 1, d + deltaDays, 12, 0, 0)));
+  };
+
+  // Weekday of anchor in target zone (Mon=0..Sun=6).
+  const anchorWeekdayShort = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    weekday: 'short',
+  }).format(new Date(anchorMs));
+  const weekdayMap: Record<string, number> = {
+    Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6,
+  };
+  const anchorWeekday = weekdayMap[anchorWeekdayShort] ?? 0;
+
+  const anchorKey = formatDayKey(anchorMs);
+  // Floor to Monday in target zone via calendar arithmetic.
+  const weekStartKey = shiftKey(anchorKey, -anchorWeekday);
+  const dayKeys = Array.from({ length: 7 }, (_, i) => shiftKey(weekStartKey, i));
 
   // Bucket bookings by viewer-of-record (organizer) timezone day.
   const byDay = new Map<string, BookingWire[]>();
   for (const r of rows) {
-    const k = dayKey(r.scheduledAt);
+    const k = formatDayKey(r.scheduledAt);
     const list = byDay.get(k) ?? [];
     list.push(r);
     byDay.set(k, list);
@@ -550,31 +566,37 @@ function WeekGridView({
   }
 
   // eslint-disable-next-line react-hooks/purity
-  const todayKey = dayKey(Date.now());
-  // eslint-disable-next-line react-hooks/purity
-  const nowMs = Date.now();
+  const todayKey = formatDayKey(Date.now());
 
+  // Week title — format Mon and Sun calendar dates via UTC-noon Date +
+  // UTC formatter so we render the intended calendar date regardless
+  // of any zone-offset surprise.
   const weekTitleFmt = new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
-    timeZone: timezone,
+    timeZone: 'UTC',
   });
-  const start = new Date(days[0]);
-  const end = new Date(days[6]);
+  const start = keyToUtcNoon(dayKeys[0]);
+  const end = keyToUtcNoon(dayKeys[6]);
   const weekTitle = `${weekTitleFmt.format(start)} – ${weekTitleFmt.format(end)}`;
 
-  // "This week" reset: an anchor in the current week is anything inside
-  // [todayWeekStart, todayWeekStart + 7d). Cheaper than recomputing
-  // tzWeekStart for now — the small drift across the week boundary is
-  // fine for a button-disabled check.
-  const isThisWeek = nowMs >= tzWeekStart && nowMs < tzWeekStart + 7 * MS_DAY;
+  // "This week" = today's calendar date (in target zone) is one of the
+  // seven visible day keys. String compare on YYYY-MM-DD is
+  // chronologically correct and side-steps DST entirely.
+  const isThisWeek = todayKey >= dayKeys[0] && todayKey <= dayKeys[6];
   return (
     <section className={accountStyles.card}>
       <div className={styles.weekHeader}>
         <button
           type="button"
           className={styles.weekNav}
-          onClick={() => onAnchorChange(anchorMs - 7 * MS_DAY)}
+          onClick={() =>
+            // Shift the anchor by 7 calendar days, then return UTC noon
+            // of the new key as the new anchorMs. UTC ms ±7d would drift
+            // by ±1h across DST and (worst case at near-midnight anchors)
+            // not cross the calendar-week boundary at all.
+            onAnchorChange(keyToUtcNoon(shiftKey(anchorKey, -7)).getTime())
+          }
           aria-label={t('bookings.weekPrev')}
         >
           ←
@@ -583,7 +605,9 @@ function WeekGridView({
         <button
           type="button"
           className={styles.weekNav}
-          onClick={() => onAnchorChange(anchorMs + 7 * MS_DAY)}
+          onClick={() =>
+            onAnchorChange(keyToUtcNoon(shiftKey(anchorKey, 7)).getTime())
+          }
           aria-label={t('bookings.weekNext')}
         >
           →
@@ -598,11 +622,12 @@ function WeekGridView({
         </button>
       </div>
       <div className={styles.weekGrid}>
-        {days.map((dayMs) => {
-          const k = dayKey(dayMs);
+        {dayKeys.map((k) => {
           const list = byDay.get(k) ?? [];
           const isToday = k === todayKey;
-          const isPast = dayMs < nowMs - MS_DAY;
+          // YYYY-MM-DD lex-orders chronologically — no UTC ms math
+          // needed for "is this day already past."
+          const isPast = k < todayKey;
           const cls = [
             styles.dayCol,
             isToday && styles.dayColToday,
@@ -610,16 +635,19 @@ function WeekGridView({
           ]
             .filter(Boolean)
             .join(' ');
+          // UTC noon Date + UTC formatter = render the intended calendar
+          // date regardless of any zone offset.
+          const dayDate = keyToUtcNoon(k);
           return (
             <div key={k} className={cls}>
               <div className={styles.dayLabel}>
-                {new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: timezone }).format(
-                  new Date(dayMs),
+                {new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(
+                  dayDate,
                 )}
               </div>
               <div className={styles.dayDate}>
-                {new Intl.DateTimeFormat(locale, { day: 'numeric', timeZone: timezone }).format(
-                  new Date(dayMs),
+                {new Intl.DateTimeFormat(locale, { day: 'numeric', timeZone: 'UTC' }).format(
+                  dayDate,
                 )}
               </div>
               {list.map((row) => {
@@ -675,7 +703,7 @@ function WeekGridView({
       {/* Empty state for the visible week — different from the page-level
           "no bookings yet" because the user may have plenty of bookings,
           just none in this 7-day window. */}
-      {days.every((dayMs) => (byDay.get(dayKey(dayMs)) ?? []).length === 0) ? (
+      {dayKeys.every((k) => (byDay.get(k) ?? []).length === 0) ? (
         <p className={styles.weekEmpty}>{t('bookings.weekEmpty')}</p>
       ) : null}
     </section>
