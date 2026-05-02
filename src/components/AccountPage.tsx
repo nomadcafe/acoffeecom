@@ -223,6 +223,7 @@ function SignedInAccountPage({
   const { visitedShops, starredShops } = useApp();
   const [sessionsState, setSessionsState] = useState<SessionsState>({ kind: 'loading' });
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [revokeError, setRevokeError] = useState<string | null>(null);
   // Ref for the slug input so the home-page CTA's `?focus=username`
   // landing can scroll it into view and put the cursor in it on first
   // paint. Mount-time effect below consumes this.
@@ -377,13 +378,27 @@ function SignedInAccountPage({
 
   async function handleRevokeSession(s: SessionRow) {
     if (revokingId) return;
+    // Revoking the *current* session signs the user out — that's a real
+    // surprise if they tapped Revoke while scanning the device list. Gate
+    // it with a native confirm dialog (sufficient for low-frequency
+    // destructive ops; building a custom modal here just to ask "are you
+    // sure" feels disproportionate). Other-device revokes don't sign the
+    // user out, so they don't need a confirm.
+    if (s.current) {
+      const ok = window.confirm(t('account.sessionsRevokeConfirm'));
+      if (!ok) return;
+    }
+    setRevokeError(null);
     setRevokingId(s.id);
     try {
       const res = await fetch(`/api/account/sessions/${encodeURIComponent(s.id)}`, {
         method: 'DELETE',
       });
       if (!res.ok) {
-        setRevokingId(null);
+        // Failure path used to silently no-op; user clicks Revoke and
+        // nothing happens, no clue why. Surface a banner so they know
+        // to retry instead of staring at an unchanged list.
+        setRevokeError(t('account.sessionsRevokeFailed'));
         return;
       }
       track('session_revoked', { wasCurrent: s.current });
@@ -394,6 +409,8 @@ function SignedInAccountPage({
         return;
       }
       await refreshSessions();
+    } catch {
+      setRevokeError(t('account.sessionsRevokeFailed'));
     } finally {
       setRevokingId(null);
     }
@@ -696,6 +713,11 @@ function SignedInAccountPage({
               ))}
             </ul>
           )}
+          {revokeError ? (
+            <p className={styles.sessionsRevokeError} role="alert">
+              {revokeError}
+            </p>
+          ) : null}
         </section>
 
         <section className={`${styles.card} ${styles.signOutCard}`}>
@@ -782,12 +804,34 @@ function DeleteAccountModal({ onClose, onConfirmed }: DeleteModalProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Focus the input on mount and trap Escape to close.
+  // Focus management: focus the input on mount; cycle Tab inside the
+  // dialog (don't let it escape to underlying page buttons — that
+  // would let the user activate "Delete account again" via the Tab
+  // key while the modal claims to be modal); allow Escape to close.
   useEffect(() => {
     inputRef.current?.focus();
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !busy) onClose();
+      if (e.key === 'Escape' && !busy) {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -821,11 +865,16 @@ function DeleteAccountModal({ onClose, onConfirmed }: DeleteModalProps) {
       aria-modal="true"
       aria-labelledby="delete-modal-title"
       onClick={(e) => {
-        // Click on dim backdrop closes (but click inside dialog doesn't bubble).
-        if (e.target === e.currentTarget && !busy) onClose();
+        // Backdrop click closes only when the user hasn't started arming
+        // the dialog. Once they've typed even a single character of the
+        // confirm phrase, a stray tap on the dim area shouldn't drop the
+        // dialog and lose their typing — they have to use Cancel/Escape.
+        if (e.target === e.currentTarget && !busy && phrase.length === 0) {
+          onClose();
+        }
       }}
     >
-      <div className={styles.modalDialog}>
+      <div ref={dialogRef} className={styles.modalDialog}>
         <h3 id="delete-modal-title" className={styles.modalTitle}>
           {t('account.deleteConfirmTitle')}
         </h3>
@@ -1155,9 +1204,21 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
   );
 }
 
+/**
+ * Held in form state. The `_key` is local — never sent to the server —
+ * and gives React a stable identity per row so removing the first row
+ * doesn't shift inputs from the second row into the first one's slot
+ * (which keying by array index would do, with real data-loss potential
+ * if the user is mid-typing in row 2 when they delete row 1).
+ */
 interface SocialLinkDraft {
+  _key: string;
   label: string;
   url: string;
+}
+
+function freshKey(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function parseInitialSocialLinks(raw: string | undefined): SocialLinkDraft[] {
@@ -1167,10 +1228,11 @@ function parseInitialSocialLinks(raw: string | undefined): SocialLinkDraft[] {
     if (!Array.isArray(parsed)) return [];
     return parsed
       .filter(
-        (l): l is SocialLinkDraft =>
+        (l): l is { label: string; url: string } =>
           l && typeof l === 'object' && typeof l.label === 'string' && typeof l.url === 'string',
       )
-      .slice(0, 5);
+      .slice(0, 5)
+      .map((l) => ({ _key: freshKey(), label: l.label, url: l.url }));
   } catch {
     return [];
   }
@@ -1259,7 +1321,12 @@ const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
  * caller can show a useful error rather than a silent retry.
  */
 async function resizeAvatarToWebp(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  // `imageOrientation: 'from-image'` honors the EXIF orientation tag —
+  // without it, iPhone portraits decode to landscape and silently
+  // upload sideways. Older browsers ignore the option (no harm).
+  const bitmap = await createImageBitmap(file, {
+    imageOrientation: 'from-image',
+  });
   const min = Math.min(bitmap.width, bitmap.height);
   const sx = (bitmap.width - min) / 2;
   const sy = (bitmap.height - min) / 2;
@@ -1308,6 +1375,19 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // Abort + unmount guard: avatar uploads are slow on cellular, the
+  // user can navigate away mid-flight. Without these, fetch resolves
+  // on a dead component and React warns; the upload itself also can't
+  // be cancelled, so we'd be uploading bytes the user no longer cares
+  // about.
+  const abortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
 
   async function handleFile(file: File) {
     if (busy) return;
@@ -1322,9 +1402,13 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
       setStatus({ kind: 'err', message: t('account.avatarTooLarge') });
       return;
     }
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setBusy(true);
     try {
       const webp = await resizeAvatarToWebp(file);
+      if (controller.signal.aborted || !mountedRef.current) return;
       if (webp.size > AVATAR_MAX_BYTES) {
         setStatus({ kind: 'err', message: t('account.avatarTooLarge') });
         return;
@@ -1333,20 +1417,28 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
         method: 'POST',
         headers: { 'content-type': 'image/webp' },
         body: webp,
+        signal: controller.signal,
       });
+      if (controller.signal.aborted || !mountedRef.current) return;
       if (!res.ok) {
         setStatus({ kind: 'err', message: t('account.avatarUploadFailed') });
         return;
       }
       const data = (await res.json()) as { image?: string };
+      if (controller.signal.aborted || !mountedRef.current) return;
       if (data.image) setImage(data.image);
       setStatus({ kind: 'ok', message: t('account.avatarUploaded') });
       track('avatar_uploaded', { sizeKB: Math.round(webp.size / 1024) });
-    } catch {
+    } catch (e) {
+      if (controller.signal.aborted || !mountedRef.current) return;
+      // AbortError raised on user-driven cancel is silent; everything
+      // else (decode failure, network error) becomes a visible error.
+      if (e instanceof DOMException && e.name === 'AbortError') return;
       setStatus({ kind: 'err', message: t('account.avatarDecodeFailed') });
     } finally {
-      setBusy(false);
+      if (mountedRef.current) setBusy(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      if (abortRef.current === controller) abortRef.current = null;
     }
   }
 
@@ -1536,7 +1628,9 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
     setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
   }
   function addLink() {
-    setLinks((prev) => (prev.length >= LINKS_MAX ? prev : [...prev, { label: '', url: '' }]));
+    setLinks((prev) =>
+      prev.length >= LINKS_MAX ? prev : [...prev, { _key: freshKey(), label: '', url: '' }],
+    );
   }
   function removeLink(idx: number) {
     setLinks((prev) => prev.filter((_, i) => i !== idx));
@@ -1556,15 +1650,18 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
     if (busy || hasInvalidLink) return;
     setBusy(true);
     setStatus(null);
+    // Local validity-trimmed copy with stable keys preserved — server gets
+    // a stripped DTO without _key (the `wire` array below).
     const cleanLinks = links
-      .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
-      .filter(isLinkValid);
+      .map((l) => ({ _key: l._key, label: l.label.trim(), url: l.url.trim() }))
+      .filter((l) => isLinkValid(l));
+    const wire = cleanLinks.map(({ label, url }) => ({ label, url }));
     try {
       const res = await fetch('/api/account', {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          socialLinks: cleanLinks,
+          socialLinks: wire,
           showSocialLinks: showLinks,
         }),
       });
@@ -1574,7 +1671,7 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
       }
       setLinks(cleanLinks);
       setStatus({ kind: 'ok', message: t('account.profileContentSaved') });
-      track('profile_links_set', { linkCount: cleanLinks.length, showLinks });
+      track('profile_links_set', { linkCount: wire.length, showLinks });
     } catch {
       setStatus({ kind: 'err', message: t('account.profileContentSaveFailed') });
     } finally {
@@ -1596,7 +1693,7 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
           </p>
         ) : null}
         {links.map((l, idx) => (
-          <div className={styles.linkRow} key={idx}>
+          <div className={styles.linkRow} key={l._key}>
             <input
               type="text"
               className={styles.linkLabelInput}
@@ -2204,7 +2301,11 @@ function BookingSetupCard({
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; message: string } | null>(null);
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
 
-  const bookingLink = username && profilePublic ? `https://acoffee.com/${username}` : null;
+  // Use the current origin so staging / preview deployments link back
+  // to themselves instead of pointing the recipient at the prod host
+  // (where their booking-day setup wouldn't exist yet).
+  const bookingLink =
+    username && profilePublic ? `${window.location.origin}/${username}` : null;
   const handleCopyLink = async () => {
     if (!bookingLink) return;
     try {

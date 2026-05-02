@@ -583,6 +583,8 @@ export const messages: MessageDict = {
   'account.sessionsRevoke': 'サインアウト',
   'account.sessionsRevoking': 'サインアウト中…',
   'account.sessionsRevokeAria': '{{device}} のセッションをサインアウト',
+  'account.sessionsRevokeConfirm': 'このデバイスのセッションをサインアウトしますか？再度サインインが必要になります。',
+  'account.sessionsRevokeFailed': 'セッションのサインアウトに失敗しました。しばらく待ってから再試行してください。',
   'account.deleteTitle': 'アカウントを削除',
   'account.deleteHint': 'アカウント・パスポート・保存したカフェ・サインイン履歴を完全に削除します。元に戻せません。',
   'account.deleteButton': 'アカウントを削除する',

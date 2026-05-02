@@ -587,6 +587,8 @@ export const messages: MessageDict = {
   'account.sessionsRevoke': 'Sign out',
   'account.sessionsRevoking': 'Signing out…',
   'account.sessionsRevokeAria': 'Sign out the {{device}} session',
+  'account.sessionsRevokeConfirm': "Sign out of this device? You'll need to sign in again.",
+  'account.sessionsRevokeFailed': "Couldn't sign that session out. Try again in a moment.",
   'account.deleteTitle': 'Delete account',
   'account.deleteHint': 'Permanently removes your account, your passport, your saved cafés, and your sign-in history. This cannot be undone.',
   'account.deleteButton': 'Delete my account',

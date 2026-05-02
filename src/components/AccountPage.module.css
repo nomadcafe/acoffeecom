@@ -871,6 +871,17 @@
   color: var(--ac-text-muted);
 }
 
+.sessionsRevokeError {
+  margin: 0.7rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--ac-danger-border);
+  background: var(--ac-danger-bg);
+  border-radius: var(--ac-radius-sm);
+  color: var(--ac-danger);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 /* ---------- danger zone (delete account) ---------- */
 
 .dangerCard {
@@ -1226,12 +1237,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
-}
-
-.featuredCafePassportEmpty {
-  margin: 0.25rem 0 0.6rem;
-  font-size: 0.78rem;
-  color: var(--ac-text-muted);
 }
 
 /* Avatar card layout — preview circle on the left, file picker + remove

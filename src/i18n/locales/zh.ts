@@ -576,6 +576,8 @@ export const messages: MessageDict = {
   'account.sessionsRevoke': '退出',
   'account.sessionsRevoking': '正在退出…',
   'account.sessionsRevokeAria': '退出 {{device}} 的会话',
+  'account.sessionsRevokeConfirm': '确认退出当前设备的会话？需要重新登录。',
+  'account.sessionsRevokeFailed': '退出会话失败，请稍后再试。',
   'account.deleteTitle': '删除账户',
   'account.deleteHint': '永久删除你的账户、护照、收藏的咖啡店和登录记录。此操作不可恢复。',
   'account.deleteButton': '删除我的账户',
