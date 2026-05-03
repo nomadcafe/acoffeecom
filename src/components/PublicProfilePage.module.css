@@ -61,6 +61,43 @@
   .logoWordmark {
     font-size: 1.7rem;
   }
+
+  /* Hero card scales up on desktop — avatar gets bigger, name reads
+   * as a real H1, padding gives the card room to breathe instead of
+   * looking like a stretched mobile card. */
+  .heroCard {
+    padding: 2.5rem 1.75rem 2rem;
+    gap: 0.85rem;
+  }
+
+  .avatar,
+  .avatarImage {
+    width: 128px;
+    height: 128px;
+  }
+
+  .avatar {
+    font-size: 3.4rem;
+  }
+
+  .handle {
+    font-size: 2.6rem;
+  }
+
+  .handleSecondary {
+    font-size: 1.05rem;
+  }
+
+  .bio {
+    font-size: 1.05rem;
+  }
+
+  /* Featured cafés in two columns when there's room — single column
+   * at narrow widths leaves a lot of horizontal whitespace on desktop
+   * and forces a tall scroll. */
+  .featuredCafeList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .main {
@@ -73,32 +110,40 @@
 }
 
 .heroCard {
-  background: linear-gradient(135deg, #f7f1ea 0%, #ede1d1 100%);
+  /* Soft warm gradient pinned to the brand surface tones — no raw hex
+   * literals so the surface follows future palette tweaks. The two
+   * stops are very close in luminance so the gradient reads as "warm
+   * card" rather than "loud banner". */
+  background:
+    linear-gradient(135deg, var(--ac-surface-tinted) 0%, var(--ac-page-bg) 100%);
+  border: 1px solid var(--ac-border);
   border-radius: var(--ac-radius-lg);
-  padding: 1.5rem 1.25rem;
+  padding: 1.85rem 1.4rem 1.6rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.7rem;
   text-align: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--ac-shadow-card);
 }
 
 .avatar {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   /* Background is set inline via avatarGradient(username) — leaves a flat
      fallback for the loading skeleton that overrides this rule. */
   background: var(--ac-accent);
   color: #fff;
   font-family: var(--ac-font-display);
-  font-size: 2rem;
+  font-size: 2.6rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variation-settings: 'opsz' 96;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ac-shadow-card);
   /* Subtle drop so the initial stays legible across the lighter half of
      any hue-randomized gradient. */
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
@@ -107,28 +152,31 @@
 /* Real-image variant. Same footprint as the gradient avatar so the rest
    of the hero layout doesn't shift when an image loads or fails. */
 .avatarImage {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  background: #d6cdc1;
+  box-shadow: var(--ac-shadow-card);
+  background: var(--ac-surface-tinted);
 }
 
 .handle {
-  margin: 0;
+  margin: 0.2rem 0 0;
   font-family: var(--ac-font-display);
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.95rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-variation-settings: 'opsz' 96;
   color: var(--ac-text);
-  letter-spacing: -0.01em;
+  line-height: 1.05;
 }
 
 .handleSecondary {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--ac-text-muted);
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 .handleAt {
@@ -136,12 +184,15 @@
   font-weight: 500;
 }
 
+/* Bio reads as a personal blurb — italic + reading-width cap +
+ * slightly muted vs the H1 so the eye lands on the name first. */
 .bio {
-  margin: 0.4rem 0 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  font-style: italic;
   color: var(--ac-text);
-  max-width: 32rem;
+  max-width: 30rem;
 }
 
 .socialLinkList {
@@ -159,9 +210,9 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.85rem 0.35rem 0.7rem;
-  background: rgba(111, 78, 55, 0.08);
-  border: 1px solid rgba(111, 78, 55, 0.18);
-  border-radius: 999px;
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-pill);
   color: var(--ac-text);
   font-size: 0.85rem;
   font-weight: 500;
@@ -170,8 +221,14 @@
 }
 
 .socialLink:hover {
-  background: rgba(111, 78, 55, 0.14);
-  border-color: rgba(111, 78, 55, 0.32);
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-accent);
+}
+
+.socialLink:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
 }
 
 .socialLinkIcon {
@@ -421,9 +478,15 @@
 
 .skeleton {
   height: 1rem;
-  background: linear-gradient(90deg, #ece6dd 0%, #f5efe6 50%, #ece6dd 100%);
+  background:
+    linear-gradient(
+      90deg,
+      var(--ac-surface-tinted) 0%,
+      var(--ac-page-bg) 50%,
+      var(--ac-surface-tinted) 100%
+    );
   background-size: 200% 100%;
-  border-radius: 4px;
+  border-radius: var(--ac-radius-sm);
   animation: ac-profile-shimmer 1.4s linear infinite;
 }
 

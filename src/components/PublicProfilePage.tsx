@@ -208,16 +208,24 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
             {initialChar}
           </div>
         )}
+        {/* Page H1 is always the visitor-readable identifier — the
+            display name when set, otherwise @username — so SEO + AT
+            users get a consistent heading regardless of whether the
+            host filled in a display name. */}
         {profile.displayName ? (
-          <h1 className={styles.handle}>{profile.displayName}</h1>
-        ) : null}
-        <div
-          className={profile.displayName ? styles.handleSecondary : styles.handle}
-          aria-label={profile.displayName ? `@${profile.username}` : undefined}
-        >
-          <span className={styles.handleAt}>@</span>
-          {profile.username}
-        </div>
+          <>
+            <h1 className={styles.handle}>{profile.displayName}</h1>
+            <p className={styles.handleSecondary}>
+              <span className={styles.handleAt}>@</span>
+              {profile.username}
+            </p>
+          </>
+        ) : (
+          <h1 className={styles.handle}>
+            <span className={styles.handleAt}>@</span>
+            {profile.username}
+          </h1>
+        )}
         {profile.bio ? <p className={styles.bio}>{profile.bio}</p> : null}
         {profile.socialLinks.length > 0 ? (
           <ul className={styles.socialLinkList}>
@@ -244,26 +252,10 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
         </p>
       </section>
 
-      {/* Booking widget — sits right under the hero so the conversion
-          path ("book a coffee with this person") is the first action a
-          visitor sees, not buried below stats and cafés. Only rendered
-          when the owner has actually configured booking; otherwise the
-          space stays clean. */}
-      {profile.bookingEnabled ? (
-        <BookingWidget username={profile.username} displayName={profile.displayName} />
-      ) : null}
-
-      {profile.featuredCafes.length > 0 ? (
-        <section className={styles.section} aria-label={t('profile.featuredCafesTitle')}>
-          <h2 className={styles.sectionTitle}>{t('profile.featuredCafesTitle')}</h2>
-          <ul className={styles.featuredCafeList}>
-            {profile.featuredCafes.map((cafe) => (
-              <FeaturedCafeCard key={cafe.placeId} cafe={cafe} />
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
+      {/* Stats sit right under the hero — they're identity, not
+          afterthought data. "47 cups across 12 cafés with a 12-day
+          streak" is what tells a visitor "this is a real coffee
+          person" *before* they evaluate whether to book a meeting. */}
       <section className={styles.statsCard} aria-label={t('account.statsTitle')}>
         <div className={styles.statCell}>
           <div className={styles.statIcon} aria-hidden>☕</div>
@@ -281,6 +273,24 @@ function ProfileBody({ profile }: { profile: PublicProfile }) {
           <div className={styles.statLabel}>{t('passport.statStreak')}</div>
         </div>
       </section>
+
+      {/* Booking widget — primary action surface. Only rendered when
+          the owner has actually configured booking; otherwise the
+          space stays clean. */}
+      {profile.bookingEnabled ? (
+        <BookingWidget username={profile.username} displayName={profile.displayName} />
+      ) : null}
+
+      {profile.featuredCafes.length > 0 ? (
+        <section className={styles.section} aria-label={t('profile.featuredCafesTitle')}>
+          <h2 className={styles.sectionTitle}>{t('profile.featuredCafesTitle')}</h2>
+          <ul className={styles.featuredCafeList}>
+            {profile.featuredCafes.map((cafe) => (
+              <FeaturedCafeCard key={cafe.placeId} cafe={cafe} />
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {profile.topShops.length > 0 ? (
         <section className={styles.section} aria-label={t('profile.topShopsTitle')}>
