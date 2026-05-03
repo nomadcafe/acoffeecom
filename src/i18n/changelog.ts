@@ -19,9 +19,9 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   en: [
     {
       isoDate: '2026-05-03',
-      title: 'Booking is now an invite, not an instant lock',
+      title: 'Coffee booking, refined end-to-end',
       bullets: [
-        'Visitors send a *request* on acoffee.com/yourname — pick a time, leave a quick message, no address required. The host gets notified, picks the café, and replies with a yes (or a polite no).',
+        'The booking flow on acoffee.com/yourname has been polished — closer to how a real coffee invite works. Visitors send a request with just a time and a quick note; the host picks the café and replies with a yes (or a polite no).',
         'The host\'s approve dialog now has a café search + your featured cafés as quick-picks, plus a "suggest a different time" toggle in case the original slot doesn\'t work — server validates the new time against your availability and existing bookings.',
         'Visitors must click an email confirmation before the host hears about it — keeps host inboxes clean from typo\'d or impersonated email addresses.',
         '/yourname got a visual refresh: bigger avatar and name, stats card moved right under the hero so the "real coffee person" signal lands first, featured cafés go two-column on desktop.',
@@ -147,9 +147,9 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   ja: [
     {
       isoDate: '2026-05-03',
-      title: '予約は「招待 → 承認」方式に',
+      title: 'コーヒー予約フローの全面リニューアル',
       bullets: [
-        '訪問者は acoffee.com/yourname で *リクエスト* を送る形式に — 時間を選んで一言添えるだけ、住所は任意。ホストに通知が届き、カフェを選んで「はい」または丁寧な「いいえ」で返信します。',
+        'acoffee.com/yourname の予約フローを磨き直しました — 実際の「コーヒー行こう」のやり取りに近い形に。訪問者は時間と一言メッセージだけでリクエストを送り、ホストがカフェを選んで「はい」または丁寧な「いいえ」で返信します。',
         'ホストの承認ダイアログにカフェ検索 + お気に入りカフェのクイックピックを追加。予定が合わない時は「別の時間を提案」も可能 — サーバーが空き時間と既存の予約と照合して検証します。',
         '訪問者はメール内の確認リンクをクリックしないとホストに通知されません — 入力ミスのメールアドレスや他人になりすました予約からホストの受信箱を守ります。',
         '/yourname の見た目を刷新：アバターと名前を大きく、統計カードをヒーロー直下に移動、お気に入りカフェはデスクトップで 2 列表示。',
@@ -275,9 +275,9 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
   zh: [
     {
       isoDate: '2026-05-03',
-      title: '约咖啡：从直接锁定改成邀请确认',
+      title: '约咖啡见面功能整体优化',
       bullets: [
-        '访客在 acoffee.com/yourname 发的是"请求"而不是直接定单 —— 选时间、留个口信，地址变成可选项。host 收到通知后挑咖啡店再回复同意（或礼貌拒绝）。',
+        'acoffee.com/yourname 的预约流程整体打磨了一遍 —— 更接近真实的"约咖啡"对话节奏。访客发请求只需要选时间、留一句话；host 收到后挑咖啡店再回复同意（或礼貌拒绝）。',
         'host 的同意弹窗里加了咖啡店搜索 + 你的精选咖啡店快捷按钮，再加一个"想换个时间？"开关 —— 改了时间会自动用你的 availability 和其它预约校验冲突。',
         '访客必须先点邮件里的验证链接，host 才会收到通知 —— 防止有人填别人的邮箱给 host 发垃圾请求，也确保后续 host 的回复邮件能真的到访客手上。',
         '/yourname 视觉升级：头像和名字加大，统计卡片上移到 hero 紧下方让"老咖啡人"信号第一时间被看到，精选咖啡店在桌面端两列展示。',
