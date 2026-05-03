@@ -557,11 +557,8 @@ export const messages: MessageDict = {
   'bookingWidget.checkInboxFollowUp': 'クリック前は {{handle}} さんに通知されません — 他人のメールアドレスでなりすますのを防ぐためです。リンクは 24 時間有効です。',
   'bookingWidget.slotTaken': '申し訳ありません、その時間は他の方に予約されました。下から別の時間を選んでください。',
   'bookingWidget.successTitle': '予約が完了しました ☕',
-  'bookingWidget.successBody': '{{handle}} とのコーヒーが {{when}} に確定しました。中間地点にあるカフェを選びました：',
-  'bookingWidget.successFollowUp': 'カレンダー招待がまもなくメールで届きます。',
-  'bookingWidget.checkEmailTitle': 'あと一歩 — メールをご確認ください ☕',
-  'bookingWidget.checkEmailBody': '{{email}} に確認リンクを送りました。クリックすると {{when}} の {{handle}} とのコーヒーが確定します。それまでは枠を保留し、{{handle}} には通知されません。',
-  'bookingWidget.checkEmailFollowUp': '自動選定したカフェは下のとおり — 確認後にカレンダー招待が届きます。',
+  'bookingWidget.successBody': '{{handle}} とのコーヒーが {{when}} に確定しました。',
+  'bookingWidget.successFollowUp': 'カフェ情報を含むカレンダー招待がまもなくメールで届きます。',
   'bookingWidget.openInMaps': 'Google マップで開く',
 
   'cancel.title': 'このコーヒーをキャンセルしますか？',

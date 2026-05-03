@@ -550,11 +550,8 @@ export const messages: MessageDict = {
   'bookingWidget.checkInboxFollowUp': '在你点击之前 {{handle}} 是看不到这条请求的 —— 这样能挡掉冒名使用别人邮箱的骚扰。链接 24 小时内有效。',
   'bookingWidget.slotTaken': '抱歉，这个时段刚刚被其他人预约了。请在下方重新选择。',
   'bookingWidget.successTitle': '已加入日程 ☕',
-  'bookingWidget.successBody': '与 {{handle}} 的咖啡已确认在 {{when}}。我们挑了双方中间的一家：',
-  'bookingWidget.successFollowUp': '日历邀请已发送到双方邮箱，稍候即可收到。',
-  'bookingWidget.checkEmailTitle': '还差一步 — 请查收邮件 ☕',
-  'bookingWidget.checkEmailBody': '我们刚刚把确认链接发到了 {{email}}。点击邮件里的链接，就能锁定 {{when}} 与 {{handle}} 的这杯咖啡。在你点击之前，时段会为你保留，{{handle}} 也不会被打扰。',
-  'bookingWidget.checkEmailFollowUp': '自动挑好的咖啡店在下方 — 你点确认后，日历邀请就会发出。',
+  'bookingWidget.successBody': '与 {{handle}} 的咖啡已确认在 {{when}}。',
+  'bookingWidget.successFollowUp': '日历邀请（含咖啡店地点）会很快发到双方邮箱。',
   'bookingWidget.openInMaps': '在 Google 地图中打开',
 
   'cancel.title': '取消这次咖啡？',
