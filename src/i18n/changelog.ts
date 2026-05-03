@@ -22,9 +22,9 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       title: 'Coffee booking, refined end-to-end',
       bullets: [
         'Polished the booking flow on acoffee.com/yourname — smoother coffee-meetup experience plus a handful of bug fixes.',
-        '/yourname got a visual refresh: bigger avatar and name, stats card moved right under the hero so the "real coffee person" signal lands first, featured cafés go two-column on desktop.',
-        'Signed-in home now greets you by handle with your streak, last café and total cups stamped — replaces the marketing carousel for returning users.',
-        'Long list of small fixes across /account, /passport, /bookings — destructive actions ask for confirmation, slow uploads cancel cleanly, week grid handles DST without skipping Saturday.',
+        'Public profile (/yourname) got a visual refresh — clearer hierarchy in the hero, more breathing room on desktop.',
+        'Signed-in home now shows your own coffee state — streak, last café, total cups stamped — for returning users.',
+        'Small but useful fixes across /account, /passport, /bookings — overall steadier.',
       ],
     },
     {
@@ -148,9 +148,9 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       title: 'コーヒー予約フローの全面リニューアル',
       bullets: [
         'acoffee.com/yourname の予約フローを最適化 — コーヒー予約体験を全体的に改善し、いくつかの不具合も修正しました。',
-        '/yourname の見た目を刷新：アバターと名前を大きく、統計カードをヒーロー直下に移動、お気に入りカフェはデスクトップで 2 列表示。',
-        'サインイン後のホームがハンドル名で迎えるように — 連続日数、最近行ったカフェ、累計杯数を表示。常連向けのマーケティングカルーセルを置き換えます。',
-        '/account・/passport・/bookings の細かな修正多数 — 破壊的操作は確認を求める、低速アップロードはクリーンにキャンセル、週グリッドが DST で土曜を飛ばさなくなりました。',
+        '/yourname のビジュアルを刷新 — ヒーローの階層がクリアになり、デスクトップでも余裕のあるレイアウトに。',
+        'サインイン後のホームに「自分のコーヒー状態」を表示 — 連続日数、最近行ったカフェ、累計杯数を一目で。',
+        '/account・/passport・/bookings の細かい改善も多数 — 全体の安定感がアップしました。',
       ],
     },
     {
@@ -274,9 +274,9 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       title: '约咖啡见面功能整体优化',
       bullets: [
         '优化了 acoffee.com/yourname 的预约流程，改善了约咖啡见面的体验，顺手修复了一些 bug。',
-        '/yourname 视觉升级：头像和名字加大，统计卡片上移到 hero 紧下方让"老咖啡人"信号第一时间被看到，精选咖啡店在桌面端两列展示。',
-        '登录后的首页会用你的 handle 打招呼，显示连签天数、最近去过的店、累计杯数 —— 给老用户看的是"我的状态"而不是 marketing 轮播。',
-        '/account、/passport、/bookings 一堆小修补 —— 销毁性操作都加了确认、慢速上传中途切页面不再泄漏、周视图跨 DST 边界不再"跳过周六"。',
+        '公开主页 /yourname 视觉刷新 —— hero 层级更清晰，桌面端布局也更舒展。',
+        '登录后首页换成"个人状态"卡片 —— 老用户回来一眼看到自己的连签、最近一杯、累计杯数。',
+        '/account、/passport、/bookings 顺手修了一些细节，整体更稳。',
       ],
     },
     {
