@@ -50,6 +50,18 @@ type LoadState =
   | { kind: 'ready'; bookings: BookingWire[] }
   | { kind: 'error' };
 
+/** Subset of FeaturedCafeDraft that the approve modal needs as a
+ *  quick-pick. Matches the place-only shape the approve POST expects;
+ *  we drop relation/notes/links since none of that is needed to lock
+ *  in a booking venue. */
+interface FeaturedCafeQuickPick {
+  placeId: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
+
 /**
  * Organizer-facing list of bookings made on /yourname. Visitors don't see
  * this page — only the host. Upcoming bookings sit at the top with a cancel
@@ -114,6 +126,11 @@ export function BookingsPage() {
   >(null);
   const [requestBusy, setRequestBusy] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
+  // Host's featured cafés — surfaced as quick-pick buttons in the
+  // approve modal so the host doesn't have to re-search Places for
+  // their usual coffee spot. Lazy-fetched on first modal open and
+  // cached for the rest of the session.
+  const [featuredCafes, setFeaturedCafes] = useState<FeaturedCafeQuickPick[] | null>(null);
   // List = the original chronological row layout. Week = a 7-column grid
   // of the currently-anchored week. Persisted so the user's preferred
   // view sticks across navigations / reloads.
@@ -222,17 +239,19 @@ export function BookingsPage() {
   };
 
   /**
-   * POST /api/bookings/:id/approve with the host's café choice.
-   * On success: status flips → 'pending', visitor gets a "X said yes,
-   * meet at Y" email, and the list refreshes so the row moves out of
-   * Pending and into Upcoming.
+   * POST /api/bookings/:id/approve with the host's café choice and
+   * (optional) a new scheduledAt. On success: status flips → 'pending',
+   * visitor gets a "X said yes, meet at Y at <time>" email, and the
+   * list refreshes so the row moves out of Pending and into Upcoming.
    */
-  const approveRequest = async (cafe: {
+  const approveRequest = async (payload: {
     placeId: string;
     placeName: string;
     placeAddress: string;
     placeLat: number;
     placeLng: number;
+    /** Only sent when host actually changed the time in the modal. */
+    scheduledAt?: number;
   }) => {
     if (!requestTarget) return;
     setRequestBusy(true);
@@ -244,7 +263,7 @@ export function BookingsPage() {
           method: 'POST',
           credentials: 'include',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(cafe),
+          body: JSON.stringify(payload),
         },
       );
       if (!r.ok) {
@@ -422,13 +441,48 @@ export function BookingsPage() {
           timezone={effectiveTz}
           busy={requestBusy}
           error={requestError}
+          featuredCafes={featuredCafes}
+          onLoadFeaturedCafes={() => {
+            // Lazy: only hit /api/account when the modal opens for the
+            // first time. Cached for the rest of the session.
+            if (featuredCafes != null) return;
+            void (async () => {
+              try {
+                const r = await fetch('/api/account', { credentials: 'include' });
+                if (!r.ok) {
+                  setFeaturedCafes([]);
+                  return;
+                }
+                const json = (await r.json()) as {
+                  featuredCafes?: Array<{
+                    placeId: string;
+                    name: string;
+                    address: string;
+                    lat: number;
+                    lng: number;
+                  }>;
+                };
+                setFeaturedCafes(
+                  (json.featuredCafes ?? []).map((c) => ({
+                    placeId: c.placeId,
+                    name: c.name,
+                    address: c.address,
+                    lat: c.lat,
+                    lng: c.lng,
+                  })),
+                );
+              } catch {
+                setFeaturedCafes([]);
+              }
+            })();
+          }}
           onClose={() => {
             if (!requestBusy) {
               setRequestTarget(null);
               setRequestError(null);
             }
           }}
-          onApprove={(cafe) => void approveRequest(cafe)}
+          onApprove={(payload) => void approveRequest(payload)}
           t={t}
         />
       ) : null}
@@ -723,13 +777,20 @@ interface ApproveModalProps {
   timezone: string;
   busy: boolean;
   error: string | null;
+  /** Host's featured cafés rendered as quick-pick chips above the
+   *  search box. null = not yet fetched (loading); [] = no featured
+   *  cafés set up. */
+  featuredCafes: FeaturedCafeQuickPick[] | null;
+  onLoadFeaturedCafes: () => void;
   onClose: () => void;
-  onApprove: (cafe: {
+  onApprove: (payload: {
     placeId: string;
     placeName: string;
     placeAddress: string;
     placeLat: number;
     placeLng: number;
+    /** Only sent when host changed the time. */
+    scheduledAt?: number;
   }) => void;
   t: ReturnType<typeof useI18n>['t'];
 }
@@ -740,6 +801,8 @@ function ApproveRequestModal({
   timezone,
   busy,
   error,
+  featuredCafes,
+  onLoadFeaturedCafes,
   onClose,
   onApprove,
   t,
@@ -751,6 +814,7 @@ function ApproveRequestModal({
   // café name immediately.
   useEffect(() => {
     inputRef.current?.focus();
+    onLoadFeaturedCafes();
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape' && !busy) {
         onClose();
@@ -774,6 +838,10 @@ function ApproveRequestModal({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+    // onLoadFeaturedCafes is captured in closure but the parent caches
+    // the fetch — re-running this effect on its identity would still
+    // be cheap, but eslint-disable here keeps the deps minimal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose, busy]);
 
   const acLanguage = locale === 'zh' ? 'zh-CN' : locale;
@@ -781,6 +849,12 @@ function ApproveRequestModal({
   const [query, setQuery] = useState('');
   const [picking, setPicking] = useState(false);
   const [picked, setPicked] = useState<PickedCafe | null>(null);
+
+  // Time-editor state. `editingTime` toggles the section open/closed;
+  // `proposedTimeMs` holds the host's edit (null = same as request).
+  const [editingTime, setEditingTime] = useState(false);
+  const [proposedTimeMs, setProposedTimeMs] = useState<number | null>(null);
+  const effectiveTimeMs = proposedTimeMs ?? target.scheduledAt;
 
   const start = new Date(target.scheduledAt);
   const when = new Intl.DateTimeFormat(locale, {
@@ -791,6 +865,26 @@ function ApproveRequestModal({
     minute: '2-digit',
     timeZone: timezone,
   }).format(start);
+  const proposedWhen =
+    proposedTimeMs != null
+      ? new Intl.DateTimeFormat(locale, {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: timezone,
+        }).format(new Date(proposedTimeMs))
+      : null;
+  // datetime-local input expects "YYYY-MM-DDTHH:mm" in *local* time —
+  // convert from UTC ms via the user's local zone (NOT the row's
+  // organizer timezone, since the input is going through the host's
+  // browser keyboard).
+  const toDatetimeLocalValue = (ms: number) => {
+    const d = new Date(ms);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
   return (
     <div
@@ -810,7 +904,28 @@ function ApproveRequestModal({
         </h3>
         <p className={styles.modalBody}>{t('bookings.approveModalBody')}</p>
         <div className={styles.modalSummary}>
-          <strong>{target.visitorName}</strong> · {when}
+          <strong>{target.visitorName}</strong>{' '}
+          <a
+            className={styles.email}
+            href={`mailto:${target.visitorEmail}`}
+            style={{ color: 'inherit' }}
+          >
+            ({target.visitorEmail})
+          </a>
+          <br />
+          {/* Strike-through original time when host has proposed a new
+              one, so the diff is obvious before they hit Send. */}
+          {proposedWhen ? (
+            <>
+              <span style={{ textDecoration: 'line-through', color: 'var(--ac-text-muted)' }}>
+                {when}
+              </span>
+              {' → '}
+              <strong>{proposedWhen}</strong>
+            </>
+          ) : (
+            when
+          )}
           {target.visitorAddress ? (
             <>
               <br />
@@ -821,10 +936,20 @@ function ApproveRequestModal({
           ) : null}
         </div>
 
-        {/* Café picker — Places autocomplete, restricted to cafe-ish
-            primary types. Once the host clicks a suggestion, we
-            display the chosen café and let them clear/swap before
-            committing. */}
+        {/* Visitor's free-text note — shown inside the modal too so the
+            host doesn't have to dismiss to read it. */}
+        {target.visitorMessage ? (
+          <div className={styles.modalVisitorMessage}>
+            <span className={styles.visitorMessageLabel}>
+              {t('bookings.theirNote')}
+            </span>
+            {target.visitorMessage}
+          </div>
+        ) : null}
+
+        {/* Café picker — Places autocomplete + featured cafés as quick
+            picks. Once the host clicks a suggestion / quick-pick, the
+            chosen café renders as a confirmed card with a swap option. */}
         <div className={styles.cafePicker}>
           {picked ? (
             <div className={styles.cafePickedCard}>
@@ -845,6 +970,35 @@ function ApproveRequestModal({
             </div>
           ) : (
             <>
+              {featuredCafes && featuredCafes.length > 0 ? (
+                <div className={styles.cafeQuickPicks}>
+                  <p className={styles.cafeQuickPicksLabel}>
+                    {t('bookings.cafeQuickPicksLabel')}
+                  </p>
+                  <div className={styles.cafeQuickPicksRow}>
+                    {featuredCafes.map((c) => (
+                      <button
+                        key={c.placeId}
+                        type="button"
+                        className={styles.cafeQuickPick}
+                        onClick={() =>
+                          setPicked({
+                            placeId: c.placeId,
+                            name: c.name,
+                            address: c.address,
+                            lat: c.lat,
+                            lng: c.lng,
+                            websiteUri: null,
+                          })
+                        }
+                        disabled={busy}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <label className={styles.cafePickerLabel}>
                 <span>{t('bookings.cafePickerLabel')}</span>
                 <input
@@ -906,6 +1060,55 @@ function ApproveRequestModal({
           )}
         </div>
 
+        {/* Optional time-change section. Default-collapsed because most
+            approvals keep the visitor's original time; clicking the
+            link reveals a datetime-local input populated with the
+            existing slot. */}
+        <div className={styles.timeEdit}>
+          {!editingTime ? (
+            <button
+              type="button"
+              className={styles.timeEditToggle}
+              onClick={() => setEditingTime(true)}
+              disabled={busy}
+            >
+              {t('bookings.proposeNewTime')}
+            </button>
+          ) : (
+            <div className={styles.timeEditPanel}>
+              <label className={styles.timeEditLabel}>
+                <span>{t('bookings.proposeNewTimeLabel')}</span>
+                <input
+                  type="datetime-local"
+                  className={styles.timeEditInput}
+                  value={toDatetimeLocalValue(effectiveTimeMs)}
+                  onChange={(e) => {
+                    const ms = new Date(e.target.value).getTime();
+                    if (Number.isFinite(ms)) {
+                      // null when matching the original — server
+                      // skips the time-change branch.
+                      setProposedTimeMs(ms === target.scheduledAt ? null : ms);
+                    }
+                  }}
+                  disabled={busy}
+                />
+              </label>
+              <p className={styles.timeEditHint}>{t('bookings.proposeNewTimeHint')}</p>
+              <button
+                type="button"
+                className={styles.timeEditClear}
+                onClick={() => {
+                  setEditingTime(false);
+                  setProposedTimeMs(null);
+                }}
+                disabled={busy}
+              >
+                {t('bookings.proposeNewTimeReset')}
+              </button>
+            </div>
+          )}
+        </div>
+
         {error ? (
           <p className={styles.modalError} role="alert">
             {error}
@@ -931,6 +1134,7 @@ function ApproveRequestModal({
                 placeAddress: picked.address,
                 placeLat: picked.lat,
                 placeLng: picked.lng,
+                ...(proposedTimeMs != null ? { scheduledAt: proposedTimeMs } : {}),
               });
             }}
             disabled={busy || !picked}

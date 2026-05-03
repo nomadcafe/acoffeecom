@@ -829,3 +829,170 @@
   box-shadow: var(--ac-focus-ring);
 }
 
+
+/* ─── Approve modal v2: visitor message, quick picks, time editor ─── */
+
+/* Visitor's free-text note rendered inside the approve modal so the
+ * host can read it without dismissing the modal first. */
+.modalVisitorMessage {
+  margin: 0.85rem 0;
+  padding: 0.7rem 0.85rem;
+  background: var(--ac-surface-tinted);
+  border-left: 2px solid var(--ac-accent);
+  border-radius: var(--ac-radius-sm);
+  font-size: 0.88rem;
+  color: var(--ac-text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.modalVisitorMessage .visitorMessageLabel {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ac-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+/* Featured-café quick picks above the search input. */
+.cafeQuickPicks {
+  margin-bottom: 0.6rem;
+}
+
+.cafeQuickPicksLabel {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ac-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cafeQuickPicksRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.cafeQuickPick {
+  appearance: none;
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--ac-radius-pill);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast);
+}
+
+.cafeQuickPick:hover:not(:disabled) {
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-accent);
+}
+
+.cafeQuickPick:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
+}
+
+.cafeQuickPick:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Time-edit collapsible block. Default state is a small ghost button
+ * ("Propose a different time"); when opened it expands into a panel
+ * with a datetime-local input. */
+.timeEdit {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0;
+  border-top: 1px dashed var(--ac-border);
+}
+
+.timeEditToggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--ac-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.timeEditToggle:hover:not(:disabled) {
+  color: var(--ac-accent-dark);
+}
+
+.timeEditToggle:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-radius: var(--ac-radius-sm);
+}
+
+.timeEditPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.timeEditLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.timeEditLabel > span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ac-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.timeEditInput {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-sm);
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--ac-text);
+  background: var(--ac-surface);
+}
+
+.timeEditInput:focus {
+  outline: none;
+  border-color: var(--ac-accent);
+  box-shadow: var(--ac-focus-ring);
+}
+
+.timeEditHint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  line-height: 1.4;
+}
+
+.timeEditClear {
+  align-self: flex-start;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.timeEditClear:hover:not(:disabled) {
+  color: var(--ac-text);
+}
