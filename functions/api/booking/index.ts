@@ -11,28 +11,33 @@ import {
   parseAvailability,
 } from '../../_lib/booking';
 import {
-  formatTimePair,
-  renderHostRequestReceivedHtml,
-  renderVisitorRequestSentHtml,
+  renderVisitorConfirmRequestHtml,
 } from '../../_lib/bookingEmails';
+import { makeConfirmToken } from '../../_lib/cancelToken';
 
 /**
  * Public booking-request endpoint — visitor submits a slot + name + email
  * + (optional) address + (optional) message. We do NOT pick a café here.
- * Instead the row is inserted with status `requested`, and the host gets
- * an email pointing to /bookings, where they review the request and
- * decide both whether to accept it AND which café.
  *
- * This mirrors how real coffee invitations work — "are you free
- * Thursday?" → "yes, where?" — instead of forcing the visitor to commit
- * to a venue before the host has agreed at all. Cross-continental
- * requests are no longer a footgun: the visitor doesn't need to enter
- * an address, and the host's approve UI handles the location decision.
+ * Two-step gate:
+ *  1. This endpoint inserts the row as `unconfirmed` and emails the
+ *     visitor a magic link. The host is NOT notified yet.
+ *  2. Visitor clicks the link → /api/booking/confirm-public flips the
+ *     row to `requested` and finally emails the host.
+ *
+ * Why the verify step: anyone can type someone else's email here. Without
+ * the verify, the host inbox would be a spam target. Forcing a click
+ * proves the email is reachable AND that the person submitting is the
+ * one who'll receive the host's reply — a free deliverability test
+ * before we put a real human (the host) in the loop.
+ *
+ * It also validates the email shape end-to-end (typo'd domains bounce
+ * at send time and we never bother the host).
  *
  * Anti-spam still applies (honeypot + per-IP rate limit + per-email
- * cooldown + slot-collision check). The host's approve action in
- * /api/bookings/[id]/approve is the gate that flips the row to
- * `pending` and emails the visitor with the chosen café + .ics.
+ * cooldown + slot-collision check). After verify, the host's approve
+ * action in /api/bookings/[id]/approve is the gate that flips the row
+ * to `pending` and emails the visitor with the chosen café + .ics.
  *
  * Steps in order:
  *  1. Honeypot + zod validation.
@@ -40,12 +45,10 @@ import {
  *  3. Look up the organizer; require profile_public + home_base + a
  *     non-empty availability schedule.
  *  4. Slot must be in availability + ≥1h future + not collide with any
- *     existing requested/unconfirmed/pending booking.
- *  5. Per (organizer, email) cooldown — counts requested + unconfirmed +
+ *     existing unconfirmed/requested/pending booking.
+ *  5. Per (organizer, email) cooldown — counts unconfirmed + requested +
  *     pending so an attacker can't squat slots from one mailbox.
- *  6. Insert with status 'requested', no café, no visitor magic link.
- *     Email host with a "review on /bookings" link; email visitor a
- *     simple "your request was sent" confirmation.
+ *  6. Insert with status 'unconfirmed'. Email visitor a magic-link.
  */
 
 const InputSchema = z.object({
@@ -77,8 +80,10 @@ const RATE_LIMIT_PER_HOUR = 5;
 const EMAIL_COOLDOWN_HOURS = 24;
 
 /** Statuses that hold a slot — i.e. a new request can't collide with
- *  any of these. `rejected` and `cancelled` free the slot back up. */
-const ACTIVE_STATUSES = ['requested', 'unconfirmed', 'pending'] as const;
+ *  any of these. `rejected` and `cancelled` free the slot back up.
+ *  `unconfirmed` is included so a single visitor can't claim the same
+ *  slot twice while they sit on the verify email. */
+const ACTIVE_STATUSES = ['unconfirmed', 'requested', 'pending'] as const;
 
 function generateBookingId(): string {
   return crypto.randomUUID();
@@ -209,8 +214,9 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return jsonError('That slot is already booked', 409);
   }
 
-  // Insert as a pending request — café, lat/lng, approved_at all null
-  // until the host approves.
+  // Insert as 'unconfirmed' — the visitor's email click is the gate
+  // that promotes this row to 'requested' and notifies the host. Café
+  // / lat-lng / approved_at all null until the host approves later.
   const id = generateBookingId();
   const now = new Date();
   await db.insert(bookings).values({
@@ -228,46 +234,45 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     placeAddress: null,
     placeLat: null,
     placeLng: null,
-    status: 'requested',
+    status: 'unconfirmed',
     approvedAt: null,
     visitorMessage: input.message?.trim() ? input.message.trim() : null,
     createdAt: now,
   });
 
-  // Two emails: host gets the actionable "you have a new request, click
-  // to review" email; visitor gets a simple "your request is on its way"
-  // confirmation. Neither contains a magic link — host's approve action
-  // happens in /bookings (gated by their auth session).
+  // Email visitor a magic link. The host hears nothing until the
+  // visitor clicks. Same shape as the legacy auto-confirm flow's
+  // confirm-link, just routed to /api/booking/confirm-public which
+  // now flips into 'requested' (not 'pending').
   const handle = organizer.displayName?.trim() || `@${organizer.username ?? 'host'}`;
-  const startStr = formatTimePair(slotMs, { tz, label: 'host' }, null);
-  const reviewUrl = 'https://acoffee.com/bookings';
-
   if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+    const confirmToken = await makeConfirmToken(env.AUTH_SECRET, id);
+    const confirmUrl = `https://acoffee.com/booking/confirm?id=${encodeURIComponent(id)}&t=${encodeURIComponent(confirmToken)}`;
+    const startStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    }).format(new Date(slotMs));
+
     const resend = new Resend(env.RESEND_API_KEY);
     await Promise.allSettled([
       resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
-        to: organizer.email,
-        replyTo: input.visitorEmail,
-        subject: `${input.visitorName} wants to grab a coffee ☕`,
-        html: renderHostRequestReceivedHtml({
-          hostHandle: handle,
-          visitorName: input.visitorName,
-          visitorEmail: input.visitorEmail,
-          startStr,
-          message: input.message?.trim() || null,
-          reviewUrl,
-        }),
-      }),
-      resend.emails.send({
-        from: env.RESEND_FROM_EMAIL,
         to: input.visitorEmail,
+        // Reply-to = host email so a "wait, never mind" reply still
+        // reaches a human, even though the host doesn't know yet that
+        // the request exists.
         replyTo: organizer.email,
-        subject: `Request sent to ${handle} ☕`,
-        html: renderVisitorRequestSentHtml({
+        subject: `Confirm your coffee request to ${handle} ☕`,
+        html: renderVisitorConfirmRequestHtml({
           hostHandle: handle,
           visitorName: input.visitorName,
           startStr,
+          confirmUrl,
         }),
       }),
     ]);
@@ -278,7 +283,10 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       id,
       scheduledAt: slotMs,
       durationMinutes: duration,
-      status: 'requested' as const,
+      status: 'unconfirmed' as const,
     },
+    /** Tells the BookingWidget to render the "check your inbox" state
+     *  rather than "request sent to host". */
+    requiresEmailVerification: true,
   });
 };

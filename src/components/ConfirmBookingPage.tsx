@@ -8,7 +8,6 @@ interface ConfirmResponse {
   alreadyConfirmed?: boolean;
   hostHandle: string;
   startedAt: number;
-  cafeName: string;
 }
 
 type Phase =
@@ -106,7 +105,6 @@ export function ConfirmBookingPage() {
             <p className={styles.body}>
               {t('confirmPage.doneBody', {
                 handle: phase.result.hostHandle,
-                cafe: phase.result.cafeName,
                 when: new Intl.DateTimeFormat(locale, {
                   weekday: 'short',
                   month: 'short',

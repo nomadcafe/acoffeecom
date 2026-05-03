@@ -30,11 +30,17 @@ interface BookingResponse {
     id: string;
     scheduledAt: number;
     durationMinutes: number;
-    /** New flow — visitor request lands as 'requested', host approves
-     *  via /bookings to flip to 'pending'. Older auto-confirm flow
-     *  (`unconfirmed` / `pending`) may still appear on legacy rows. */
-    status?: 'requested' | 'unconfirmed' | 'pending';
+    /** New flow:
+     *   'unconfirmed' → freshly submitted, visitor must click email
+     *                   verify link before host hears about it
+     *   'requested'   → verified, host needs to approve
+     *   'pending'     → host approved, on the calendar */
+    status?: 'unconfirmed' | 'requested' | 'pending';
   };
+  /** True when status is 'unconfirmed' and the visitor needs to click
+   *  the magic link in their email — server says so explicitly so the
+   *  client doesn't have to mirror the state machine. */
+  requiresEmailVerification?: boolean;
 }
 
 type FlowState =
@@ -355,34 +361,50 @@ export function BookingWidget({ username, displayName }: Props) {
   if (state.kind === 'submitted') {
     const r = state.result;
     const startStr = formatDateTime(new Date(r.booking.scheduledAt), locale);
-    // New flow: status='requested' → host must approve before there's
-    // any café. Visitor sees "your request is sent, X will reply by
-    // email" — no café yet, no calendar entry yet. Legacy
-    // unconfirmed/pending paths are kept for old rows that pre-date
-    // the request flow.
+    // Three success branches by booking status:
+    //  - 'unconfirmed' → visitor still needs to click the magic-link in
+    //    their email; host hasn't been notified yet.
+    //  - 'requested'   → already verified (rare path: e.g. instant
+    //    confirm via account session in a future commit). Host knows.
+    //  - 'pending'     → legacy auto-confirm row from before the new
+    //    flow shipped; treat the same as the old "you're booked" state.
+    const needsVerify =
+      r.requiresEmailVerification === true || r.booking.status === 'unconfirmed';
     const isRequested = r.booking.status === 'requested';
     return (
       <section className={styles.section}>
         <div className={styles.success}>
-          <div className={styles.successEmoji} aria-hidden>📨</div>
+          <div className={styles.successEmoji} aria-hidden>
+            {needsVerify ? '📬' : '📨'}
+          </div>
           <h2 className={styles.successTitle}>
-            {isRequested
-              ? t('bookingWidget.requestSentTitle')
-              : t('bookingWidget.successTitle')}
+            {needsVerify
+              ? t('bookingWidget.checkInboxTitle')
+              : isRequested
+                ? t('bookingWidget.requestSentTitle')
+                : t('bookingWidget.successTitle')}
           </h2>
           <p className={styles.successBody}>
-            {isRequested
-              ? t('bookingWidget.requestSentBody', {
+            {needsVerify
+              ? t('bookingWidget.checkInboxBody', {
                   handle,
                   when: startStr,
                   email: visitorEmail,
                 })
-              : t('bookingWidget.successBody', { handle, when: startStr })}
+              : isRequested
+                ? t('bookingWidget.requestSentBody', {
+                    handle,
+                    when: startStr,
+                    email: visitorEmail,
+                  })
+                : t('bookingWidget.successBody', { handle, when: startStr })}
           </p>
           <p className={styles.successBody}>
-            {isRequested
-              ? t('bookingWidget.requestSentFollowUp')
-              : t('bookingWidget.successFollowUp')}
+            {needsVerify
+              ? t('bookingWidget.checkInboxFollowUp', { handle })
+              : isRequested
+                ? t('bookingWidget.requestSentFollowUp')
+                : t('bookingWidget.successFollowUp')}
           </p>
           {/* Booking ID — small reference the visitor can quote at the
               host if any of the confirmation / follow-up emails are

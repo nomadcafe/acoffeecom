@@ -64,42 +64,42 @@ function whereCard(name: string, address: string, mapsUri: string | null): strin
     </div>`;
 }
 
-// ---------- confirmation request (double-opt-in) ----------
+// ---------- email verification (gate before host notification) ----------
 
 export interface ConfirmRequestParams {
   hostHandle: string;
   visitorName: string;
   startStr: string;
-  cafeName: string;
-  cafeAddress: string;
-  cafeMaps: string | null;
   /** Single-use HMAC link the visitor clicks to confirm. */
   confirmUrl: string;
 }
 
 /**
- * First-touch email when a visitor submits the booking form. Until they
- * click the confirm link, the slot is held but the organizer hasn't been
- * notified — so anyone using someone else's email can be ignored without
- * spamming the host.
+ * First-touch email after a visitor submits the booking form. The host
+ * is NOT notified until the visitor clicks this link — that protects
+ * hosts from spam-by-impersonation (someone using another person's
+ * email) and validates the email is reachable before we put a real
+ * person in the loop.
+ *
+ * No café in this email — café picking happens after host approval, not
+ * at submit time. The email's job is only "prove you're at this address."
  */
 export function renderVisitorConfirmRequestHtml(p: ConfirmRequestParams): string {
   return `${SHELL_OPEN}
-    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Confirm your coffee with ${escape(p.hostHandle)} ☕</h1>
+    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Confirm your coffee request ☕</h1>
     <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
-    ${whereCard(p.cafeName, p.cafeAddress, p.cafeMaps)}
-    <p style="margin:0 0 14px;color:#5c4030;font-size:14px;line-height:1.5;">
-      Hi ${escape(p.visitorName)} — we picked this café automatically based on the
-      midpoint between you and ${escape(p.hostHandle)}'s home base. Click below
-      to lock it in. Until then, the slot is held for you and ${escape(p.hostHandle)}
-      hasn't been notified.
+    <p style="margin:24px 0 14px;color:#5c4030;font-size:14px;line-height:1.5;">
+      Hi ${escape(p.visitorName)} — click below to send this request to
+      ${escape(p.hostHandle)}. They won't see it until you confirm. Once you
+      do, ${escape(p.hostHandle)} will reply with a yes (and pick the café)
+      or suggest a different time.
     </p>
     <p style="text-align:center;margin:0 0 18px;">
-      <a href="${escape(p.confirmUrl)}" style="display:inline-block;padding:0.7rem 1.4rem;background:#5e7a52;color:#fff;font-weight:600;border-radius:999px;text-decoration:none;">Confirm this coffee →</a>
+      <a href="${escape(p.confirmUrl)}" style="display:inline-block;padding:0.7rem 1.4rem;background:#5e7a52;color:#fff;font-weight:600;border-radius:999px;text-decoration:none;">Confirm and send request →</a>
     </p>
     <p style="margin:0;color:#7a6a60;font-size:13px;line-height:1.5;">
-      If you didn't request this, just ignore — without a click the booking
-      expires and the slot is released.
+      If you didn't request this, just ignore — without a click the request
+      expires and ${escape(p.hostHandle)} never sees it.
     </p>
 ${SHELL_CLOSE}`;
 }
@@ -282,32 +282,6 @@ export function renderHostRequestReceivedHtml(p: HostRequestReceivedParams): str
 ${SHELL_CLOSE}`;
 }
 
-export interface VisitorRequestSentParams {
-  hostHandle: string;
-  visitorName: string;
-  startStr: string;
-}
-
-/**
- * Sent to the visitor immediately after they submit a request. Mirrors
- * the host's email so the visitor knows the message is on its way and
- * to expect a follow-up with the actual café once the host approves.
- */
-export function renderVisitorRequestSentHtml(p: VisitorRequestSentParams): string {
-  return `${SHELL_OPEN}
-    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Request sent to ${escape(p.hostHandle)} ☕</h1>
-    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
-    <p style="margin:24px 0 14px;color:#5c4030;font-size:14px;line-height:1.5;">
-      Hi ${escape(p.visitorName)} — your request is on its way. ${escape(p.hostHandle)} will
-      reply via email with a yes (and the café) or a polite no. Most
-      hosts respond within a day or two.
-    </p>
-    <p style="margin:0;color:#7a6a60;font-size:13px;line-height:1.5;">
-      Nothing to do for now. If something changes, you can reply to this
-      email and we'll forward the message.
-    </p>
-${SHELL_CLOSE}`;
-}
 
 export function renderOrganizerCancellationHtml(p: CancellationParams): string {
   return `${SHELL_OPEN}
