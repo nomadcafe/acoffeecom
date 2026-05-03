@@ -23,7 +23,7 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       bullets: [
         'Polished the booking flow on acoffee.com/yourname — smoother coffee-meetup experience plus a handful of bug fixes.',
         'Public profile (/yourname) got a visual refresh — clearer hierarchy in the hero, more breathing room on desktop.',
-        'Signed-in home now shows your own coffee state — streak, last café, total cups stamped — for returning users.',
+        'Signed-in home now shows your own coffee state, for returning users.',
         'Small but useful fixes across /account, /passport, /bookings — overall steadier.',
       ],
     },
@@ -149,7 +149,7 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       bullets: [
         'acoffee.com/yourname の予約フローを最適化 — コーヒー予約体験を全体的に改善し、いくつかの不具合も修正しました。',
         '/yourname のビジュアルを刷新 — ヒーローの階層がクリアになり、デスクトップでも余裕のあるレイアウトに。',
-        'サインイン後のホームに「自分のコーヒー状態」を表示 — 連続日数、最近行ったカフェ、累計杯数を一目で。',
+        'サインイン後のホームに「自分のコーヒー状態」を表示するようになりました。',
         '/account・/passport・/bookings の細かい改善も多数 — 全体の安定感がアップしました。',
       ],
     },
@@ -275,7 +275,7 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       bullets: [
         '优化了 acoffee.com/yourname 的预约流程，改善了约咖啡见面的体验，顺手修复了一些 bug。',
         '公开主页 /yourname 视觉刷新 —— hero 层级更清晰，桌面端布局也更舒展。',
-        '登录后首页换成"个人状态"卡片 —— 老用户回来一眼看到自己的连签、最近一杯、累计杯数。',
+        '登录后首页换成"个人状态"卡片。',
         '/account、/passport、/bookings 顺手修了一些细节，整体更稳。',
       ],
     },
