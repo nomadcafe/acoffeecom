@@ -547,6 +547,8 @@ export const messages: MessageDict = {
   'bookingWidget.submitFailed': 'エラーが発生しました。もう一度お試しください。',
   'bookingWidget.emailInvalid': 'メールアドレスの形式を確認してください。',
   'bookingWidget.bookingRef': '予約番号：{{id}}',
+  'bookingWidget.errorTooFar': '2 つの住所は約 {{km}} km 離れていて、対面コーヒーには遠すぎます。お互いに行きやすい場所同士の住所で試してみてください。',
+  'bookingWidget.errorNoCafes': '2 つの住所の中間地点近辺にカフェが見つかりませんでした。出発地を変えるか、もう少し中心部の場所で試してみてください。',
   'bookingWidget.slotTaken': '申し訳ありません、その時間は他の方に予約されました。下から別の時間を選んでください。',
   'bookingWidget.successTitle': '予約が完了しました ☕',
   'bookingWidget.successBody': '{{handle}} とのコーヒーが {{when}} に確定しました。中間地点にあるカフェを選びました：',

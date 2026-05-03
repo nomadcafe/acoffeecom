@@ -97,6 +97,25 @@ export function midpointOf(a: LatLng, b: LatLng): LatLng {
   return { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 };
 }
 
+/**
+ * Great-circle distance between two points in kilometres (haversine).
+ * Used to short-circuit nonsensical bookings where the addresses are
+ * on opposite continents — picking a "midpoint" café between Tokyo and
+ * New York lands you in the middle of the Pacific where no Place
+ * exists, which the old code surfaced to the visitor as a generic 404.
+ */
+export function haversineKm(a: LatLng, b: LatLng): number {
+  const R = 6371; // earth radius in km
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
 export interface NearbyCafe {
   placeId: string;
   name: string;

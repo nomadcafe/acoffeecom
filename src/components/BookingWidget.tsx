@@ -247,6 +247,8 @@ export function BookingWidget({ username, displayName }: Props) {
       if (ctrl.signal.aborted || !mountedRef.current) return;
       const json = (await r.json().catch(() => ({}))) as Partial<BookingResponse> & {
         error?: string;
+        code?: string;
+        distanceKm?: number;
       };
       if (ctrl.signal.aborted || !mountedRef.current) return;
       if (!r.ok || !json.booking || !json.cafe) {
@@ -264,6 +266,24 @@ export function BookingWidget({ username, displayName }: Props) {
             // Refresh failure is fine — the user still sees the error and
             // the existing (slightly stale) list to retry from.
           }
+          return;
+        }
+        // Server-coded errors get a localized message + advice. Only
+        // codes the client recognizes are mapped; everything else falls
+        // back to whatever string the server sent (still better than
+        // the generic "submit failed").
+        if (json.code === 'addresses_too_far') {
+          setSubmitError(
+            t('bookingWidget.errorTooFar', {
+              km: json.distanceKm != null ? json.distanceKm : '',
+            }),
+          );
+          setState({ kind: 'picking' });
+          return;
+        }
+        if (json.code === 'no_cafes_nearby') {
+          setSubmitError(t('bookingWidget.errorNoCafes'));
+          setState({ kind: 'picking' });
           return;
         }
         setSubmitError(json.error ?? t('bookingWidget.submitFailed'));

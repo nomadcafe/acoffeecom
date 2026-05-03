@@ -540,6 +540,8 @@ export const messages: MessageDict = {
   'bookingWidget.submitFailed': '出错了，请重试。',
   'bookingWidget.emailInvalid': '邮箱格式不太对，检查一下再提交。',
   'bookingWidget.bookingRef': '预订编号：{{id}}',
+  'bookingWidget.errorTooFar': '这两个地址距离太远了（约 {{km}} 公里），不太适合见面喝咖啡。换一个离对方近一点的出发地试试 —— 咖啡见面适合双方都能轻松到达的范围。',
+  'bookingWidget.errorNoCafes': '在你们的中间点附近没找到合适的咖啡店。换一个出发地址试试，或者选靠近市中心的地点。',
   'bookingWidget.slotTaken': '抱歉，这个时段刚刚被其他人预约了。请在下方重新选择。',
   'bookingWidget.successTitle': '已加入日程 ☕',
   'bookingWidget.successBody': '与 {{handle}} 的咖啡已确认在 {{when}}。我们挑了双方中间的一家：',

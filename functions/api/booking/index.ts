@@ -4,14 +4,25 @@ import { Resend } from 'resend';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { bookingAttempts, bookings, user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/passport';
+import { jsonError, jsonErrorCoded } from '../../_lib/passport';
 import {
   GoogleMapsError,
   geocodeAddress,
+  haversineKm,
   midpointOf,
   pickBestCafe,
   searchNearbyCafes,
 } from '../../_lib/googleMaps';
+
+/**
+ * Hard ceiling on the great-circle distance between organizer and
+ * visitor addresses. Beyond this, the "midpoint" stops being a real
+ * meeting place — Tokyo↔NYC midpoint is over the Pacific, no Places
+ * exist, the booking can't resolve. 500km lets the obvious nonsense
+ * (cross-continental, cross-country) get rejected with a clear error
+ * while still allowing same-region edge cases (SF↔LA, Tokyo↔Osaka).
+ */
+const MAX_MEETUP_DISTANCE_KM = 500;
 import {
   hasCollision,
   isSlotInAvailability,
@@ -211,13 +222,25 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return jsonError('That slot is already booked', 409);
   }
 
-  // Geocode + auto-pick. Fail fast on bad addresses.
+  // Geocode + auto-pick. Fail fast on bad addresses, and short-circuit
+  // before the (paid) Places call when the two endpoints are too far
+  // apart for an in-person meetup.
   let visitorLoc, organizerLoc, cafe;
   try {
     [organizerLoc, visitorLoc] = await Promise.all([
       geocodeAddress(env, organizer.homeBaseAddress),
       geocodeAddress(env, input.visitorAddress),
     ]);
+    const distanceKm = haversineKm(organizerLoc, visitorLoc);
+    if (distanceKm > MAX_MEETUP_DISTANCE_KM) {
+      return jsonErrorCoded(
+        // English fallback in case the client doesn't know the code yet.
+        `These addresses are about ${Math.round(distanceKm)} km apart — too far for an in-person coffee meetup.`,
+        'addresses_too_far',
+        422,
+        { distanceKm: Math.round(distanceKm) },
+      );
+    }
     const mid = midpointOf(organizerLoc, visitorLoc);
     let candidates = await searchNearbyCafes(env, mid, 1500, 10);
     if (candidates.length === 0) {
@@ -230,7 +253,13 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     }
     throw e;
   }
-  if (!cafe) return jsonError('No nearby cafés found between you', 404);
+  if (!cafe) {
+    return jsonErrorCoded(
+      'No cafés found near the midpoint between your addresses.',
+      'no_cafes_nearby',
+      422,
+    );
+  }
 
   const id = generateBookingId();
   const now = new Date();

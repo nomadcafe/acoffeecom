@@ -552,6 +552,8 @@ export const messages: MessageDict = {
   'bookingWidget.slotTaken': 'Sorry, that time was just booked by someone else. Pick another below.',
   'bookingWidget.emailInvalid': "That email looks off — double-check the address and try again.",
   'bookingWidget.bookingRef': 'Booking ref: {{id}}',
+  'bookingWidget.errorTooFar': "These addresses are too far apart for an in-person coffee meetup ({{km}} km). Try addresses closer to each other — coffee meetups work best when both sides are within easy reach.",
+  'bookingWidget.errorNoCafes': "We couldn't find a café near the midpoint between your addresses. Try a different starting point — maybe a more central location.",
   'bookingWidget.successTitle': 'You\'re on the calendar ☕',
   'bookingWidget.successBody': 'Coffee with {{handle}} is confirmed for {{when}}. We picked a café halfway between you both:',
   'bookingWidget.successFollowUp': 'Both of you will get a calendar invite by email shortly.',
