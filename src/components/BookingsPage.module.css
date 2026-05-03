@@ -26,6 +26,30 @@
   opacity: 0.85;
 }
 
+/* Pending request rows — sage left-edge accent so the host's eye lands
+ * on them first when /bookings opens. Uses the brand "go-forward"
+ * color (--ac-accent-2) since these are the actionable items. */
+.rowPending {
+  background: var(--ac-surface);
+  border-color: var(--ac-accent-2);
+  border-left-width: 3px;
+}
+
+.pendingLead {
+  margin: 0 0 0.65rem;
+  font-size: 0.85rem;
+  color: var(--ac-text-muted);
+  line-height: 1.4;
+}
+
+/* Status pill variant for "pending host approval" — sage to match
+ * the row accent. Distinct from the rose-red cancelled pill and the
+ * neutral-grey past pill. */
+.statusPillPending {
+  background: rgba(94, 122, 82, 0.12);
+  color: var(--ac-accent-2-dark);
+}
+
 .when {
   font-size: 0.95rem;
   font-weight: 600;
@@ -173,6 +197,68 @@
 .cancelButton:disabled {
   cursor: progress;
   opacity: 0.6;
+}
+
+/* Approve = the primary "go" action on a pending request. Uses the
+ * brand sage so it visually parallels the booking-widget submit on
+ * the visitor side — both are "moments of commit". */
+.approveButton {
+  background: var(--ac-accent-2);
+  border: 0;
+  color: #fff;
+  border-radius: var(--ac-radius-pill);
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--ac-shadow-cta);
+  transition:
+    background var(--ac-motion-fast),
+    transform var(--ac-motion-fast);
+}
+
+.approveButton:hover:not(:disabled) {
+  background: var(--ac-accent-2-dark);
+}
+
+.approveButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.approveButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-shadow-cta), var(--ac-focus-ring-2);
+}
+
+/* Reject = secondary, polite. Outline button instead of solid so
+ * the visual weight tilts toward Approve by default. */
+.rejectButton {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  color: var(--ac-text-muted);
+  border-radius: var(--ac-radius-pill);
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background var(--ac-motion-fast),
+    border-color var(--ac-motion-fast),
+    color var(--ac-motion-fast);
+}
+
+.rejectButton:hover:not(:disabled) {
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-text-muted);
+  color: var(--ac-text);
+}
+
+.rejectButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-color: var(--ac-accent);
 }
 
 .sectionTitle {
@@ -581,3 +667,165 @@
   opacity: 0.6;
   cursor: progress;
 }
+
+
+/* ─── Approve / reject modals ─── */
+
+/* Café picker inside the approve modal — Places autocomplete restricted
+ * to cafe-ish primary types via useCafeAutocomplete. */
+.cafePicker {
+  margin: 0.85rem 0;
+}
+
+.cafePickerLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cafePickerLabel > span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ac-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cafePickerInput {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-sm);
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--ac-text);
+  background: var(--ac-surface);
+}
+
+.cafePickerInput:focus {
+  outline: none;
+  border-color: var(--ac-accent);
+  box-shadow: var(--ac-focus-ring);
+}
+
+.cafeSuggestions {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-sm);
+  background: var(--ac-surface);
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.cafeSuggestions li {
+  border-top: 1px solid var(--ac-border);
+}
+
+.cafeSuggestions li:first-child {
+  border-top: 0;
+}
+
+.cafeSuggestion {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ac-text);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.cafeSuggestion:hover:not(:disabled),
+.cafeSuggestion:focus-visible {
+  background: var(--ac-surface-tinted);
+  outline: none;
+}
+
+.cafeSuggestion:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* After the host picks, show the chosen café as a confirmed card with
+ * a "pick another" link for changing the selection before commit. */
+.cafePickedCard {
+  padding: 0.7rem 0.85rem;
+  background: var(--ac-surface-tinted);
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cafePickedName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.cafePickedAddress {
+  font-size: 0.85rem;
+  color: var(--ac-text-muted);
+  line-height: 1.4;
+}
+
+.cafePickedSwap {
+  align-self: flex-start;
+  margin-top: 0.4rem;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: var(--ac-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cafePickedSwap:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Reject modal reason textarea. */
+.rejectReasonLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.85rem 0;
+}
+
+.rejectReasonLabel > span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ac-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rejectReasonInput {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-sm);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ac-text);
+  background: var(--ac-surface);
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.rejectReasonInput:focus {
+  outline: none;
+  border-color: var(--ac-accent);
+  box-shadow: var(--ac-focus-ring);
+}
+

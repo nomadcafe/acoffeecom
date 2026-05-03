@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
+import { useCafeAutocomplete, type PickedCafe } from '../hooks/useCafeAutocomplete';
 import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -104,6 +105,15 @@ export function BookingsPage() {
   const [actionTarget, setActionTarget] = useState<{ row: BookingWire; intent: Intent } | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  // Approve/reject the visitor's request — separate flow from the
+  // existing cancel/reschedule modal because it operates on a different
+  // status ('requested') and the approve path needs a café picker.
+  type RequestIntent = 'approve' | 'reject';
+  const [requestTarget, setRequestTarget] = useState<
+    { row: BookingWire; intent: RequestIntent } | null
+  >(null);
+  const [requestBusy, setRequestBusy] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
   // List = the original chronological row layout. Week = a 7-column grid
   // of the currently-anchored week. Persisted so the user's preferred
   // view sticks across navigations / reloads.
@@ -211,6 +221,72 @@ export function BookingsPage() {
     }
   };
 
+  /**
+   * POST /api/bookings/:id/approve with the host's café choice.
+   * On success: status flips → 'pending', visitor gets a "X said yes,
+   * meet at Y" email, and the list refreshes so the row moves out of
+   * Pending and into Upcoming.
+   */
+  const approveRequest = async (cafe: {
+    placeId: string;
+    placeName: string;
+    placeAddress: string;
+    placeLat: number;
+    placeLng: number;
+  }) => {
+    if (!requestTarget) return;
+    setRequestBusy(true);
+    setRequestError(null);
+    try {
+      const r = await fetch(
+        `/api/bookings/${encodeURIComponent(requestTarget.row.id)}/approve`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(cafe),
+        },
+      );
+      if (!r.ok) {
+        const j = (await r.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error ?? `HTTP ${r.status}`);
+      }
+      setRequestTarget(null);
+      await refresh();
+    } catch (e) {
+      setRequestError(
+        e instanceof Error && e.message ? e.message : t('bookings.approveFailed'),
+      );
+    } finally {
+      setRequestBusy(false);
+    }
+  };
+
+  /** POST /api/bookings/:id/reject — politely declines the request. */
+  const rejectRequest = async (reason: string | undefined) => {
+    if (!requestTarget) return;
+    setRequestBusy(true);
+    setRequestError(null);
+    try {
+      const r = await fetch(
+        `/api/bookings/${encodeURIComponent(requestTarget.row.id)}/reject`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: reason ? JSON.stringify({ reason }) : '',
+        },
+      );
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      setRequestTarget(null);
+      await refresh();
+    } catch {
+      setRequestError(t('bookings.rejectFailed'));
+    } finally {
+      setRequestBusy(false);
+    }
+  };
+
   return (
     <div className={accountStyles.app}>
       <PageHeader homeHref={homeHref} />
@@ -275,26 +351,48 @@ export function BookingsPage() {
           <section className={accountStyles.card}>
             <p className={styles.empty}>{t('bookings.loadFailed')}</p>
           </section>
-        ) : viewMode === 'week' ? (
-          <WeekGridView
-            rows={state.bookings}
-            anchorMs={weekAnchorMs}
-            onAnchorChange={setWeekAnchorMs}
-            onCancelClick={(row) => setActionTarget({ row, intent: 'cancel' })}
-            locale={locale}
-            timezone={effectiveTz}
-            t={t}
-          />
         ) : (
-          <BookingsList
-            rows={state.bookings}
-            onCancelClick={(row) => setActionTarget({ row, intent: 'cancel' })}
-            onRescheduleClick={(row) => setActionTarget({ row, intent: 'reschedule' })}
-            cancellingId={cancelling ? actionTarget?.row.id ?? null : null}
-            locale={locale}
-            timezone={effectiveTz}
-            t={t}
-          />
+          <>
+            {/* Pending requests sit above both views — they don't have a
+                café yet so they don't fit the week grid, and they need
+                an action (approve/reject) so they need to be visible
+                regardless of view mode. */}
+            <PendingRequestsSection
+              rows={state.bookings.filter((r) => r.status === 'requested')}
+              onApprove={(row) => {
+                setRequestError(null);
+                setRequestTarget({ row, intent: 'approve' });
+              }}
+              onReject={(row) => {
+                setRequestError(null);
+                setRequestTarget({ row, intent: 'reject' });
+              }}
+              locale={locale}
+              timezone={effectiveTz}
+              t={t}
+            />
+            {viewMode === 'week' ? (
+              <WeekGridView
+                rows={state.bookings.filter((r) => r.status !== 'requested')}
+                anchorMs={weekAnchorMs}
+                onAnchorChange={setWeekAnchorMs}
+                onCancelClick={(row) => setActionTarget({ row, intent: 'cancel' })}
+                locale={locale}
+                timezone={effectiveTz}
+                t={t}
+              />
+            ) : (
+              <BookingsList
+                rows={state.bookings.filter((r) => r.status !== 'requested')}
+                onCancelClick={(row) => setActionTarget({ row, intent: 'cancel' })}
+                onRescheduleClick={(row) => setActionTarget({ row, intent: 'reschedule' })}
+                cancellingId={cancelling ? actionTarget?.row.id ?? null : null}
+                locale={locale}
+                timezone={effectiveTz}
+                t={t}
+              />
+            )}
+          </>
         )}
       </main>
 
@@ -313,6 +411,42 @@ export function BookingsPage() {
             }
           }}
           onConfirm={() => void confirmAction()}
+          t={t}
+        />
+      ) : null}
+
+      {requestTarget?.intent === 'approve' ? (
+        <ApproveRequestModal
+          target={requestTarget.row}
+          locale={locale}
+          timezone={effectiveTz}
+          busy={requestBusy}
+          error={requestError}
+          onClose={() => {
+            if (!requestBusy) {
+              setRequestTarget(null);
+              setRequestError(null);
+            }
+          }}
+          onApprove={(cafe) => void approveRequest(cafe)}
+          t={t}
+        />
+      ) : null}
+
+      {requestTarget?.intent === 'reject' ? (
+        <RejectRequestModal
+          target={requestTarget.row}
+          locale={locale}
+          timezone={effectiveTz}
+          busy={requestBusy}
+          error={requestError}
+          onClose={() => {
+            if (!requestBusy) {
+              setRequestTarget(null);
+              setRequestError(null);
+            }
+          }}
+          onReject={(reason) => void rejectRequest(reason)}
           t={t}
         />
       ) : null}
@@ -448,6 +582,482 @@ function ActionConfirmModal({
             disabled={busy}
           >
             {busy ? t(busyKey) : t(confirmKey)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Pending requests section + approve/reject modals
+// ─────────────────────────────────────────────────────────────────────
+
+interface PendingRequestsProps {
+  rows: BookingWire[];
+  onApprove: (row: BookingWire) => void;
+  onReject: (row: BookingWire) => void;
+  locale: string;
+  timezone: string;
+  t: ReturnType<typeof useI18n>['t'];
+}
+
+/**
+ * Section above the regular list that surfaces 'requested' bookings —
+ * visitors who've sent a request but haven't been approved or rejected
+ * yet. Each row gets primary Approve / secondary Reject buttons.
+ * Hides itself when there are no pending requests.
+ */
+function PendingRequestsSection({
+  rows,
+  onApprove,
+  onReject,
+  locale,
+  timezone,
+  t,
+}: PendingRequestsProps) {
+  if (rows.length === 0) return null;
+  // Soonest first so the most-time-sensitive request bubbles up.
+  const sorted = [...rows].sort((a, b) => a.scheduledAt - b.scheduledAt);
+  return (
+    <section className={accountStyles.card} aria-label={t('bookings.pendingTitle')}>
+      <h2 className={styles.sectionTitle}>
+        {t('bookings.pendingTitle')} ({rows.length})
+      </h2>
+      <p className={styles.pendingLead}>{t('bookings.pendingLead')}</p>
+      <ul className={styles.list}>
+        {sorted.map((row) => (
+          <PendingRequestRow
+            key={row.id}
+            row={row}
+            onApprove={() => onApprove(row)}
+            onReject={() => onReject(row)}
+            locale={locale}
+            timezone={timezone}
+            t={t}
+          />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+interface PendingRowProps {
+  row: BookingWire;
+  onApprove: () => void;
+  onReject: () => void;
+  locale: string;
+  timezone: string;
+  t: ReturnType<typeof useI18n>['t'];
+}
+
+function PendingRequestRow({
+  row,
+  onApprove,
+  onReject,
+  locale,
+  timezone,
+  t,
+}: PendingRowProps) {
+  const start = new Date(row.scheduledAt);
+  const dateLine = new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: timezone,
+  }).format(start);
+  return (
+    <li className={`${styles.row} ${styles.rowPending}`}>
+      <div>
+        <p className={styles.when}>
+          {dateLine}
+          <span className={`${styles.statusPill} ${styles.statusPillPending}`}>
+            {t('bookings.statusPendingApproval')}
+          </span>
+        </p>
+        <div className={styles.body}>
+          <span>
+            <strong>{row.visitorName}</strong> ·{' '}
+            <a className={styles.email} href={`mailto:${row.visitorEmail}`}>
+              {row.visitorEmail}
+            </a>
+          </span>
+          {row.visitorAddress ? (
+            <span className={styles.placeAddress}>
+              {t('bookings.visitorAddressLabel')} {row.visitorAddress}
+            </span>
+          ) : null}
+          {row.visitorMessage ? (
+            <span className={styles.visitorMessage}>
+              <span className={styles.visitorMessageLabel}>{t('bookings.theirNote')}</span>
+              {row.visitorMessage}
+            </span>
+          ) : null}
+        </div>
+      </div>
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={styles.approveButton}
+          onClick={onApprove}
+        >
+          {t('bookings.approveCta')}
+        </button>
+        <button
+          type="button"
+          className={styles.rejectButton}
+          onClick={onReject}
+        >
+          {t('bookings.rejectCta')}
+        </button>
+      </div>
+    </li>
+  );
+}
+
+interface ApproveModalProps {
+  target: BookingWire;
+  locale: string;
+  timezone: string;
+  busy: boolean;
+  error: string | null;
+  onClose: () => void;
+  onApprove: (cafe: {
+    placeId: string;
+    placeName: string;
+    placeAddress: string;
+    placeLat: number;
+    placeLng: number;
+  }) => void;
+  t: ReturnType<typeof useI18n>['t'];
+}
+
+function ApproveRequestModal({
+  target,
+  locale,
+  timezone,
+  busy,
+  error,
+  onClose,
+  onApprove,
+  t,
+}: ApproveModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Standard focus-trap pattern (same as ActionConfirmModal). The
+  // search input gets initial focus so the host can start typing the
+  // café name immediately.
+  useEffect(() => {
+    inputRef.current?.focus();
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !busy) {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, busy]);
+
+  const acLanguage = locale === 'zh' ? 'zh-CN' : locale;
+  const cafeAutocomplete = useCafeAutocomplete(acLanguage);
+  const [query, setQuery] = useState('');
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<PickedCafe | null>(null);
+
+  const start = new Date(target.scheduledAt);
+  const when = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: timezone,
+  }).format(start);
+
+  return (
+    <div
+      className={styles.modalOverlay}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="approve-modal-title"
+      onClick={(e) => {
+        // Don't backdrop-dismiss once the host has picked a café — they
+        // probably want to actually approve.
+        if (e.target === e.currentTarget && !busy && !picked) onClose();
+      }}
+    >
+      <div ref={dialogRef} className={styles.modalDialog}>
+        <h3 id="approve-modal-title" className={styles.modalTitle}>
+          {t('bookings.approveModalTitle')}
+        </h3>
+        <p className={styles.modalBody}>{t('bookings.approveModalBody')}</p>
+        <div className={styles.modalSummary}>
+          <strong>{target.visitorName}</strong> · {when}
+          {target.visitorAddress ? (
+            <>
+              <br />
+              <span style={{ color: 'var(--ac-text-muted)' }}>
+                {t('bookings.visitorAddressLabel')} {target.visitorAddress}
+              </span>
+            </>
+          ) : null}
+        </div>
+
+        {/* Café picker — Places autocomplete, restricted to cafe-ish
+            primary types. Once the host clicks a suggestion, we
+            display the chosen café and let them clear/swap before
+            committing. */}
+        <div className={styles.cafePicker}>
+          {picked ? (
+            <div className={styles.cafePickedCard}>
+              <div className={styles.cafePickedName}>{picked.name}</div>
+              <div className={styles.cafePickedAddress}>{picked.address}</div>
+              <button
+                type="button"
+                className={styles.cafePickedSwap}
+                onClick={() => {
+                  setPicked(null);
+                  setQuery('');
+                  inputRef.current?.focus();
+                }}
+                disabled={busy}
+              >
+                {t('bookings.cafePickAnother')}
+              </button>
+            </div>
+          ) : (
+            <>
+              <label className={styles.cafePickerLabel}>
+                <span>{t('bookings.cafePickerLabel')}</span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className={styles.cafePickerInput}
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    cafeAutocomplete.query(e.target.value);
+                  }}
+                  onBlur={() => {
+                    window.setTimeout(() => cafeAutocomplete.clear(), 150);
+                  }}
+                  placeholder={t('bookings.cafePickerPlaceholder')}
+                  disabled={busy}
+                  aria-autocomplete="list"
+                  aria-expanded={cafeAutocomplete.suggestions.length > 0}
+                />
+              </label>
+              {cafeAutocomplete.suggestions.length > 0 ? (
+                <ul
+                  className={styles.cafeSuggestions}
+                  role="listbox"
+                  aria-label={t('bookings.cafePickerLabel')}
+                >
+                  {cafeAutocomplete.suggestions.map((s, i) => {
+                    const text = s.placePrediction?.text.text ?? '';
+                    if (!text) return null;
+                    return (
+                      <li key={`${i}-${text}`} role="option" aria-selected={false}>
+                        <button
+                          type="button"
+                          className={styles.cafeSuggestion}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={async () => {
+                            if (picking) return;
+                            setPicking(true);
+                            try {
+                              const result = await cafeAutocomplete.pick(s);
+                              if (result) {
+                                setPicked(result);
+                                setQuery('');
+                              }
+                            } finally {
+                              setPicking(false);
+                            }
+                          }}
+                          disabled={picking || busy}
+                        >
+                          {text}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </>
+          )}
+        </div>
+
+        {error ? (
+          <p className={styles.modalError} role="alert">
+            {error}
+          </p>
+        ) : null}
+        <div className={styles.modalActions}>
+          <button
+            type="button"
+            className={styles.modalKeep}
+            onClick={onClose}
+            disabled={busy}
+          >
+            {t('bookings.cancelModalKeep')}
+          </button>
+          <button
+            type="button"
+            className={styles.modalConfirm}
+            onClick={() => {
+              if (!picked) return;
+              onApprove({
+                placeId: picked.placeId,
+                placeName: picked.name,
+                placeAddress: picked.address,
+                placeLat: picked.lat,
+                placeLng: picked.lng,
+              });
+            }}
+            disabled={busy || !picked}
+          >
+            {busy ? t('bookings.approving') : t('bookings.approveModalConfirm')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface RejectModalProps {
+  target: BookingWire;
+  locale: string;
+  timezone: string;
+  busy: boolean;
+  error: string | null;
+  onClose: () => void;
+  onReject: (reason: string | undefined) => void;
+  t: ReturnType<typeof useI18n>['t'];
+}
+
+function RejectRequestModal({
+  target,
+  locale,
+  timezone,
+  busy,
+  error,
+  onClose,
+  onReject,
+  t,
+}: RejectModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    textareaRef.current?.focus();
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !busy) {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, busy]);
+
+  const [reason, setReason] = useState('');
+  const start = new Date(target.scheduledAt);
+  const when = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: timezone,
+  }).format(start);
+
+  return (
+    <div
+      className={styles.modalOverlay}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="reject-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !busy && reason.trim().length === 0) {
+          onClose();
+        }
+      }}
+    >
+      <div ref={dialogRef} className={styles.modalDialog}>
+        <h3 id="reject-modal-title" className={styles.modalTitle}>
+          {t('bookings.rejectModalTitle')}
+        </h3>
+        <p className={styles.modalBody}>{t('bookings.rejectModalBody')}</p>
+        <div className={styles.modalSummary}>
+          <strong>{target.visitorName}</strong> · {when}
+        </div>
+        <label className={styles.rejectReasonLabel}>
+          <span>{t('bookings.rejectReasonLabel')}</span>
+          <textarea
+            ref={textareaRef}
+            className={styles.rejectReasonInput}
+            rows={3}
+            maxLength={300}
+            placeholder={t('bookings.rejectReasonPlaceholder')}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            disabled={busy}
+          />
+        </label>
+        {error ? (
+          <p className={styles.modalError} role="alert">
+            {error}
+          </p>
+        ) : null}
+        <div className={styles.modalActions}>
+          <button
+            type="button"
+            className={styles.modalKeep}
+            onClick={onClose}
+            disabled={busy}
+          >
+            {t('bookings.cancelModalKeep')}
+          </button>
+          <button
+            type="button"
+            className={styles.modalConfirm}
+            onClick={() => onReject(reason.trim() || undefined)}
+            disabled={busy}
+          >
+            {busy ? t('bookings.rejecting') : t('bookings.rejectModalConfirm')}
           </button>
         </div>
       </div>
