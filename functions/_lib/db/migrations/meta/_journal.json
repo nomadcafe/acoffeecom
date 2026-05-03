@@ -141,6 +141,13 @@
       "when": 1777535292098,
       "tag": "0019_closed_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1777792896914,
+      "tag": "0020_boring_deathbird",
+      "breakpoints": true
     }
   ]
 }

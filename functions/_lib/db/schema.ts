@@ -176,20 +176,36 @@ export const bookings = sqliteTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     visitorEmail: text('visitor_email').notNull(),
     visitorName: text('visitor_name').notNull(),
-    visitorAddress: text('visitor_address').notNull(),
-    visitorLat: real('visitor_lat').notNull(),
-    visitorLng: real('visitor_lng').notNull(),
+    /** Optional in the request → approve flow — visitor only provides
+     *  their address if they want the host's approval modal to show
+     *  an AI midpoint suggestion. Host can also pick freely without it. */
+    visitorAddress: text('visitor_address'),
+    visitorLat: real('visitor_lat'),
+    visitorLng: real('visitor_lng'),
     /** Scheduled start as ms-since-epoch (UTC). Frontend renders in viewer-local TZ. */
     scheduledAt: integer('scheduled_at', { mode: 'timestamp_ms' }).notNull(),
     durationMinutes: integer('duration_minutes').notNull().default(60),
-    placeId: text('place_id').notNull(),
-    placeName: text('place_name').notNull(),
-    placeAddress: text('place_address').notNull(),
-    placeLat: real('place_lat').notNull(),
-    placeLng: real('place_lng').notNull(),
-    /** 'unconfirmed' (visitor hasn't clicked the email link yet) |
-     *  'pending' (confirmed, on the calendar) | 'cancelled'. */
-    status: text('status').notNull().default('pending'),
+    /** Café fields are nullable while a booking is in `requested` state —
+     *  the host hasn't picked a venue yet. Filled when the host
+     *  approves; required for any non-`requested`/`rejected` booking. */
+    placeId: text('place_id'),
+    placeName: text('place_name'),
+    placeAddress: text('place_address'),
+    placeLat: real('place_lat'),
+    placeLng: real('place_lng'),
+    /** Booking lifecycle:
+     *   - 'requested'   — visitor submitted, waiting for host's approval
+     *   - 'unconfirmed' — legacy auto-confirm flow (visitor email-link
+     *                     pending). Pre-existing rows; not produced
+     *                     by the new flow.
+     *   - 'pending'     — host approved (or visitor email-confirmed in
+     *                     legacy flow); on the calendar.
+     *   - 'rejected'    — host declined the request.
+     *   - 'cancelled'   — either side called it off after approval. */
+    status: text('status').notNull().default('requested'),
+    /** When the host clicked Approve. Null until that happens. Used by
+     *  email templates + the visitor-side "approved at X" timestamp. */
+    approvedAt: integer('approved_at', { mode: 'timestamp_ms' }),
     /** Optional free-text message the visitor wrote in the booking form
      *  (e.g. "I'll bring a laptop, mind if we sit by the window?"). Goes
      *  to the organizer email and shows up on /bookings rows so the host

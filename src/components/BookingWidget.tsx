@@ -30,15 +30,11 @@ interface BookingResponse {
     id: string;
     scheduledAt: number;
     durationMinutes: number;
-    status?: 'unconfirmed' | 'pending';
+    /** New flow — visitor request lands as 'requested', host approves
+     *  via /bookings to flip to 'pending'. Older auto-confirm flow
+     *  (`unconfirmed` / `pending`) may still appear on legacy rows. */
+    status?: 'requested' | 'unconfirmed' | 'pending';
   };
-  cafe: {
-    placeId: string;
-    name: string;
-    address: string;
-    googleMapsUri?: string | null;
-  };
-  pendingEmailConfirmation?: boolean;
 }
 
 type FlowState =
@@ -236,7 +232,7 @@ export function BookingWidget({ username, displayName }: Props) {
           username,
           visitorName: visitorName.trim(),
           visitorEmail: trimmedEmail,
-          visitorAddress: visitorAddress.trim(),
+          visitorAddress: visitorAddress.trim() || undefined,
           message: visitorMessage.trim() || undefined,
           scheduledAt: selectedSlotMs,
           durationMinutes: data.durationMinutes,
@@ -251,7 +247,7 @@ export function BookingWidget({ username, displayName }: Props) {
         distanceKm?: number;
       };
       if (ctrl.signal.aborted || !mountedRef.current) return;
-      if (!r.ok || !json.booking || !json.cafe) {
+      if (!r.ok || !json.booking) {
         // 409 means another visitor grabbed the slot in the gap between this
         // visitor seeing it and pressing submit. Refresh availability so the
         // taken slot disappears, drop the now-invalid selection, and surface
@@ -359,48 +355,38 @@ export function BookingWidget({ username, displayName }: Props) {
   if (state.kind === 'submitted') {
     const r = state.result;
     const startStr = formatDateTime(new Date(r.booking.scheduledAt), locale);
-    const mapsHref = r.cafe.googleMapsUri
-      ? r.cafe.googleMapsUri
-      : `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(r.cafe.placeId)}`;
-    // Until the visitor clicks the email confirm link, the booking is
-    // unconfirmed and the host hasn't been told. The success state
-    // should reflect this — show the auto-picked café (the moat) but
-    // nudge the visitor to check their email instead of saying
-    // "you're on the calendar".
-    const pendingConfirm = r.pendingEmailConfirmation || r.booking.status === 'unconfirmed';
+    // New flow: status='requested' → host must approve before there's
+    // any café. Visitor sees "your request is sent, X will reply by
+    // email" — no café yet, no calendar entry yet. Legacy
+    // unconfirmed/pending paths are kept for old rows that pre-date
+    // the request flow.
+    const isRequested = r.booking.status === 'requested';
     return (
       <section className={styles.section}>
         <div className={styles.success}>
-          <div className={styles.successEmoji} aria-hidden>☕</div>
+          <div className={styles.successEmoji} aria-hidden>📨</div>
           <h2 className={styles.successTitle}>
-            {pendingConfirm
-              ? t('bookingWidget.checkEmailTitle')
+            {isRequested
+              ? t('bookingWidget.requestSentTitle')
               : t('bookingWidget.successTitle')}
           </h2>
           <p className={styles.successBody}>
-            {pendingConfirm
-              ? t('bookingWidget.checkEmailBody', { handle, when: startStr, email: visitorEmail })
+            {isRequested
+              ? t('bookingWidget.requestSentBody', {
+                  handle,
+                  when: startStr,
+                  email: visitorEmail,
+                })
               : t('bookingWidget.successBody', { handle, when: startStr })}
           </p>
-          <div className={styles.successCafe}>
-            <p className={styles.successCafeName}>{r.cafe.name}</p>
-            <p className={styles.successCafeAddress}>{r.cafe.address}</p>
-            <a
-              className={styles.successMapsLink}
-              href={mapsHref}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {t('bookingWidget.openInMaps')} →
-            </a>
-          </div>
           <p className={styles.successBody}>
-            {pendingConfirm
-              ? t('bookingWidget.checkEmailFollowUp')
+            {isRequested
+              ? t('bookingWidget.requestSentFollowUp')
               : t('bookingWidget.successFollowUp')}
           </p>
           {/* Booking ID — small reference the visitor can quote at the
-              host if the confirm email is blocked or never arrives. */}
+              host if any of the confirmation / follow-up emails are
+              blocked or never arrive. */}
           <p className={styles.successRef}>
             {t('bookingWidget.bookingRef', { id: r.booking.id.slice(0, 8) })}
           </p>
@@ -566,11 +552,13 @@ export function BookingWidget({ username, displayName }: Props) {
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>{t('bookingWidget.fieldAddress')}</span>
+            <span className={styles.fieldLabel}>
+              {t('bookingWidget.fieldAddress')}{' '}
+              <span className={styles.fieldOptional}>{t('bookingWidget.fieldOptional')}</span>
+            </span>
             <input
               className={styles.input}
               type="text"
-              required
               maxLength={200}
               placeholder={t('bookingWidget.addressPlaceholder')}
               value={visitorAddress}
@@ -606,7 +594,7 @@ export function BookingWidget({ username, displayName }: Props) {
             <button
               type="submit"
               className={styles.submit}
-              disabled={submitting || !visitorName.trim() || !visitorEmail.trim() || !visitorAddress.trim()}
+              disabled={submitting || !visitorName.trim() || !visitorEmail.trim()}
               aria-describedby={submitError ? 'booking-submit-error' : undefined}
             >
               {submitting ? t('bookingWidget.submitting') : t('bookingWidget.submit')}

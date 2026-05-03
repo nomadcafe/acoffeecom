@@ -19,19 +19,27 @@ interface BookingWire {
   id: string;
   visitorName: string;
   visitorEmail: string;
-  visitorAddress: string;
+  visitorAddress: string | null;
   scheduledAt: number;
   durationMinutes: number;
-  placeId: string;
-  placeName: string;
-  placeAddress: string;
-  placeLat: number;
-  placeLng: number;
+  // place_* are null for `requested` rows (host hasn't picked yet).
+  placeId: string | null;
+  placeName: string | null;
+  placeAddress: string | null;
+  placeLat: number | null;
+  placeLng: number | null;
+  approvedAt: number | null;
   // 'confirmed' is reserved for the future double-opt-in flow where
   // visitor confirms via email — server may emit it once that ships.
   // UI handles it in the same upcoming bucket as 'pending' until an
   // explicit visual differentiation is decided.
-  status: 'pending' | 'confirmed' | 'cancelled';
+  // 'requested' = visitor's request awaiting host approval (no place_*).
+  // 'pending'   = approved (or legacy double-opt-in confirmed). Has place_*.
+  // 'rejected'  = host declined; informational only.
+  // 'cancelled' = either side cancelled an approved booking.
+  // 'confirmed' is reserved for a future double-opt-in flow on top of
+  // 'requested'; UI treats it the same as 'pending' for now.
+  status: 'requested' | 'pending' | 'confirmed' | 'rejected' | 'cancelled';
   visitorMessage: string | null;
   createdAt: number;
 }

@@ -233,6 +233,82 @@ export function renderVisitorRescheduleRequestHtml(p: RescheduleRequestParams): 
 ${SHELL_CLOSE}`;
 }
 
+// ---------- request → approve flow ----------
+
+export interface HostRequestReceivedParams {
+  hostHandle: string;
+  visitorName: string;
+  visitorEmail: string;
+  startStr: string;
+  message: string | null;
+  /** Where the host clicks to review/approve/reject. Currently /bookings. */
+  reviewUrl: string;
+}
+
+/**
+ * Sent to the organizer when a visitor submits a booking request. Until
+ * the host opens /bookings and approves, the row sits in `requested`
+ * status with no café picked. The host's session-authed action there
+ * is the gate — no magic link.
+ */
+export function renderHostRequestReceivedHtml(p: HostRequestReceivedParams): string {
+  const messageBlock = p.message?.trim()
+    ? `<div style="margin:0 0 18px;padding:14px 16px;background:#fdf8f1;border-left:3px solid #a36b3e;border-radius:6px;">
+        <div style="font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Their note</div>
+        <div style="font-size:14px;color:#2c1810;line-height:1.5;white-space:pre-wrap;">${escape(p.message)}</div>
+      </div>`
+    : '';
+  return `${SHELL_OPEN}
+    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">${escape(p.visitorName)} wants to grab coffee ☕</h1>
+    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
+    <div style="margin:24px 0 18px;padding:14px 16px;background:#faf6f1;border-radius:10px;">
+      <div style="font-size:14px;color:#2c1810;line-height:1.5;">
+        <strong>${escape(p.visitorName)}</strong> ·
+        <a href="mailto:${escape(p.visitorEmail)}" style="color:#6f4e37;text-decoration:none;">${escape(p.visitorEmail)}</a>
+      </div>
+    </div>
+    ${messageBlock}
+    <p style="margin:0 0 14px;color:#5c4030;font-size:14px;line-height:1.5;">
+      Open /bookings to approve and pick the café — they'll get an email
+      with the meeting place once you do. You can also decline politely
+      if the time doesn't work.
+    </p>
+    <p style="text-align:center;margin:0 0 18px;">
+      <a href="${escape(p.reviewUrl)}" style="display:inline-block;padding:0.7rem 1.4rem;background:#5e7a52;color:#fff;font-weight:600;border-radius:999px;text-decoration:none;">Review this request →</a>
+    </p>
+    <p style="margin:0;color:#7a6a60;font-size:13px;line-height:1.5;">
+      Reply directly to this email to chat with ${escape(p.visitorName)} first.
+    </p>
+${SHELL_CLOSE}`;
+}
+
+export interface VisitorRequestSentParams {
+  hostHandle: string;
+  visitorName: string;
+  startStr: string;
+}
+
+/**
+ * Sent to the visitor immediately after they submit a request. Mirrors
+ * the host's email so the visitor knows the message is on its way and
+ * to expect a follow-up with the actual café once the host approves.
+ */
+export function renderVisitorRequestSentHtml(p: VisitorRequestSentParams): string {
+  return `${SHELL_OPEN}
+    <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Request sent to ${escape(p.hostHandle)} ☕</h1>
+    <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
+    <p style="margin:24px 0 14px;color:#5c4030;font-size:14px;line-height:1.5;">
+      Hi ${escape(p.visitorName)} — your request is on its way. ${escape(p.hostHandle)} will
+      reply via email with a yes (and the café) or a polite no. Most
+      hosts respond within a day or two.
+    </p>
+    <p style="margin:0;color:#7a6a60;font-size:13px;line-height:1.5;">
+      Nothing to do for now. If something changes, you can reply to this
+      email and we'll forward the message.
+    </p>
+${SHELL_CLOSE}`;
+}
+
 export function renderOrganizerCancellationHtml(p: CancellationParams): string {
   return `${SHELL_OPEN}
     <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">${escape(p.visitorName)} cancelled their coffee</h1>

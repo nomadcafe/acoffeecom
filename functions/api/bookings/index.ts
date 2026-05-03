@@ -16,9 +16,9 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
 
   const db = getDb(env);
   // Hide unconfirmed bookings from the organizer — those are between the
-  // visitor and the system until they click their confirmation link.
-  // Showing them would surface "ghost" bookings that may never confirm
-  // and add noise to the inbox.
+  // visitor and the system until they click their confirmation link
+  // (legacy auto-confirm flow). The new request flow surfaces 'requested'
+  // rows so the host can approve / reject them from /bookings.
   const rows = await db
     .select()
     .from(bookings)
@@ -43,7 +43,13 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
       placeAddress: r.placeAddress,
       placeLat: r.placeLat,
       placeLng: r.placeLng,
-      status: r.status as 'pending' | 'cancelled',
+      status: r.status as 'requested' | 'pending' | 'rejected' | 'cancelled',
+      approvedAt:
+        r.approvedAt instanceof Date
+          ? r.approvedAt.getTime()
+          : r.approvedAt != null
+            ? Number(r.approvedAt)
+            : null,
       visitorMessage: r.visitorMessage,
       createdAt:
         r.createdAt instanceof Date ? r.createdAt.getTime() : Number(r.createdAt),
