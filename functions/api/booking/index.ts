@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { and, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { Resend } from 'resend';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
@@ -198,7 +198,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
         eq(bookings.organizerUserId, organizer.id),
         inArray(bookings.status, [...ACTIVE_STATUSES]),
         gte(bookings.scheduledAt, new Date(slotMs - windowMs * 4)),
-        sql`${bookings.scheduledAt} <= ${new Date(slotMs + windowMs * 4)}`,
+        lte(bookings.scheduledAt, new Date(slotMs + windowMs * 4)),
       ),
     );
   const existingMs = existing.map((b) => ({

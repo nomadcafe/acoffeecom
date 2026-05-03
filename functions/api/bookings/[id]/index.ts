@@ -1,14 +1,14 @@
 import { and, eq } from 'drizzle-orm';
 import { Resend } from 'resend';
-import type { AuthEnv } from '../../_lib/auth';
-import { getDb } from '../../_lib/db';
-import { bookings, user } from '../../_lib/db/schema';
-import { getSessionContext, jsonError } from '../../_lib/passport';
+import type { AuthEnv } from '../../../_lib/auth';
+import { getDb } from '../../../_lib/db';
+import { bookings, user } from '../../../_lib/db/schema';
+import { getSessionContext, jsonError } from '../../../_lib/passport';
 import {
   formatTimePair,
   renderVisitorCancellationHtml,
   renderVisitorRescheduleRequestHtml,
-} from '../../_lib/bookingEmails';
+} from '../../../_lib/bookingEmails';
 
 /**
  * Cancels a booking. Only the organizer can cancel. The same endpoint
