@@ -21,9 +21,7 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       isoDate: '2026-05-03',
       title: 'Coffee booking, refined end-to-end',
       bullets: [
-        'The booking flow on acoffee.com/yourname has been polished — closer to how a real coffee invite works. Visitors send a request with just a time and a quick note; the host picks the café and replies with a yes (or a polite no).',
-        'The host\'s approve dialog now has a café search + your featured cafés as quick-picks, plus a "suggest a different time" toggle in case the original slot doesn\'t work — server validates the new time against your availability and existing bookings.',
-        'Visitors must click an email confirmation before the host hears about it — keeps host inboxes clean from typo\'d or impersonated email addresses.',
+        'The booking flow on acoffee.com/yourname has been polished end-to-end — visitors send a request (just a time and a quick note); the host picks a café in the approve dialog (search Places or quick-pick from their featured cafés) with an optional "suggest a different time" toggle that validates against their availability, then replies with a yes or a polite no. Visitors have to click an email verification link before the host hears about the request — keeps host inboxes clean from typo\'d or impersonated emails.',
         '/yourname got a visual refresh: bigger avatar and name, stats card moved right under the hero so the "real coffee person" signal lands first, featured cafés go two-column on desktop.',
         'Signed-in home now greets you by handle with your streak, last café and total cups stamped — replaces the marketing carousel for returning users.',
         'Long list of small fixes across /account, /passport, /bookings — destructive actions ask for confirmation, slow uploads cancel cleanly, week grid handles DST without skipping Saturday.',
@@ -149,9 +147,7 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       isoDate: '2026-05-03',
       title: 'コーヒー予約フローの全面リニューアル',
       bullets: [
-        'acoffee.com/yourname の予約フローを磨き直しました — 実際の「コーヒー行こう」のやり取りに近い形に。訪問者は時間と一言メッセージだけでリクエストを送り、ホストがカフェを選んで「はい」または丁寧な「いいえ」で返信します。',
-        'ホストの承認ダイアログにカフェ検索 + お気に入りカフェのクイックピックを追加。予定が合わない時は「別の時間を提案」も可能 — サーバーが空き時間と既存の予約と照合して検証します。',
-        '訪問者はメール内の確認リンクをクリックしないとホストに通知されません — 入力ミスのメールアドレスや他人になりすました予約からホストの受信箱を守ります。',
+        'acoffee.com/yourname の予約フローを全面的に磨き直しました — 訪問者は時間と一言メッセージでリクエストを送信、ホストは承認ダイアログでカフェを検索またはお気に入りカフェからクイック選択（必要に応じて「別の時間を提案」も可能、空き時間と既存の予約と照合します）、承認または丁寧な辞退で返信。訪問者がメール内の確認リンクをクリックするまでホストには通知されないので、なりすましや入力ミスの予約から受信箱を守ります。',
         '/yourname の見た目を刷新：アバターと名前を大きく、統計カードをヒーロー直下に移動、お気に入りカフェはデスクトップで 2 列表示。',
         'サインイン後のホームがハンドル名で迎えるように — 連続日数、最近行ったカフェ、累計杯数を表示。常連向けのマーケティングカルーセルを置き換えます。',
         '/account・/passport・/bookings の細かな修正多数 — 破壊的操作は確認を求める、低速アップロードはクリーンにキャンセル、週グリッドが DST で土曜を飛ばさなくなりました。',
@@ -277,9 +273,7 @@ export const changelogByLocale: Record<Locale, ChangelogEntry[]> = {
       isoDate: '2026-05-03',
       title: '约咖啡见面功能整体优化',
       bullets: [
-        'acoffee.com/yourname 的预约流程整体打磨了一遍 —— 更接近真实的"约咖啡"对话节奏。访客发请求只需要选时间、留一句话；host 收到后挑咖啡店再回复同意（或礼貌拒绝）。',
-        'host 的同意弹窗里加了咖啡店搜索 + 你的精选咖啡店快捷按钮，再加一个"想换个时间？"开关 —— 改了时间会自动用你的 availability 和其它预约校验冲突。',
-        '访客必须先点邮件里的验证链接，host 才会收到通知 —— 防止有人填别人的邮箱给 host 发垃圾请求，也确保后续 host 的回复邮件能真的到访客手上。',
+        'acoffee.com/yourname 的预约流程整体打磨了一遍 —— 访客发请求（选时间 + 留一句话），host 在同意弹窗里搜咖啡店或从精选里快速挑（需要的话还能"换个时间"，会自动用你的 availability 和其它预约校验冲突），再回复同意或礼貌拒绝。访客必须先点邮件验证链接 host 才会收到通知，防止冒名 / 拼错邮箱的垃圾请求。',
         '/yourname 视觉升级：头像和名字加大，统计卡片上移到 hero 紧下方让"老咖啡人"信号第一时间被看到，精选咖啡店在桌面端两列展示。',
         '登录后的首页会用你的 handle 打招呼，显示连签天数、最近去过的店、累计杯数 —— 给老用户看的是"我的状态"而不是 marketing 轮播。',
         '/account、/passport、/bookings 一堆小修补 —— 销毁性操作都加了确认、慢速上传中途切页面不再泄漏、周视图跨 DST 边界不再"跳过周六"。',
