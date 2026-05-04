@@ -572,6 +572,7 @@ export const messages: MessageDict = {
   'cancel.doneTitle': '已取消',
   'cancel.alreadyCancelledTitle': '已经取消过了',
   'cancel.doneBody': '与 {{handle}} 在 {{when}} 于 {{cafe}} 的咖啡已取消。',
+  'cancel.doneBodyNoCafe': '与 {{handle}} 在 {{when}} 的咖啡约见已取消。',
   'cancel.linkInvalidTitle': '链接无效',
   'cancel.linkInvalidBody': '这个取消链接缺失或格式不对，请直接从确认邮件里打开。',
   'cancel.goHome': '返回 ACoffee',

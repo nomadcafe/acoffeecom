@@ -583,6 +583,7 @@ export const messages: MessageDict = {
   'cancel.doneTitle': 'Cancelled',
   'cancel.alreadyCancelledTitle': 'Already cancelled',
   'cancel.doneBody': 'Coffee with {{handle}} at {{cafe}} on {{when}} is cancelled.',
+  'cancel.doneBodyNoCafe': 'Coffee with {{handle}} on {{when}} is cancelled.',
   'cancel.linkInvalidTitle': 'Link not recognised',
   'cancel.linkInvalidBody': 'This cancellation link is missing or malformed. Open the link from your confirmation email directly.',
   'cancel.goHome': 'Back to ACoffee',

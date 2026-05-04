@@ -33,7 +33,10 @@ interface CancelResponse {
   /** Echoed for the success page so the visitor sees what they cancelled. */
   hostHandle: string;
   startedAt: number;
-  cafeName: string;
+  /** Null while the booking is in unconfirmed/requested — no café picked
+   *  yet (host approval is what materialises the café choice). Frontend
+   *  must guard for null instead of rendering "null" literally. */
+  cafeName: string | null;
 }
 
 export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) => {
@@ -76,6 +79,17 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       cafeName: row.placeName,
     };
     return Response.json(resp);
+  }
+
+  // State guard. Visitor cancellation is only meaningful while the booking
+  // is in flight — once the host has actively rejected it, the visitor
+  // re-clicking the cancel link must NOT silently flip the row to
+  // cancelled (and trigger an organizer email saying "X cancelled" when
+  // the host was the one who closed it). 'rejected' is terminal from the
+  // visitor's side; surface it instead of overwriting.
+  const cancellable: ReadonlyArray<typeof row.status> = ['unconfirmed', 'requested', 'pending'];
+  if (!cancellable.includes(row.status)) {
+    return jsonError(`This booking can no longer be cancelled (status: ${row.status})`, 409);
   }
 
   // Cancelling an unconfirmed (visitor never clicked confirm) doesn't

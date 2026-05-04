@@ -8,7 +8,9 @@ interface CancelResponse {
   alreadyCancelled?: boolean;
   hostHandle: string;
   startedAt: number;
-  cafeName: string;
+  /** Null while the booking was still in unconfirmed/requested state —
+   *  the host hadn't picked a café yet, so there's no name to show. */
+  cafeName: string | null;
 }
 
 type Phase =
@@ -88,17 +90,20 @@ export function CancelBookingPage() {
                 : t('cancel.doneTitle')}
             </h1>
             <p className={styles.body}>
-              {t('cancel.doneBody', {
-                handle: phase.result.hostHandle,
-                cafe: phase.result.cafeName,
-                when: new Intl.DateTimeFormat(locale, {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                }).format(new Date(phase.result.startedAt)),
-              })}
+              {t(
+                phase.result.cafeName ? 'cancel.doneBody' : 'cancel.doneBodyNoCafe',
+                {
+                  handle: phase.result.hostHandle,
+                  cafe: phase.result.cafeName ?? '',
+                  when: new Intl.DateTimeFormat(locale, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  }).format(new Date(phase.result.startedAt)),
+                },
+              )}
             </p>
             <a className={styles.successCta} href={homeHref}>
               {t('cancel.goHome')}

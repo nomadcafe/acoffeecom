@@ -579,6 +579,7 @@ export const messages: MessageDict = {
   'cancel.doneTitle': 'キャンセルしました',
   'cancel.alreadyCancelledTitle': 'すでにキャンセル済みです',
   'cancel.doneBody': '{{when}}・{{cafe}} での {{handle}} とのコーヒーをキャンセルしました。',
+  'cancel.doneBodyNoCafe': '{{when}} の {{handle}} とのコーヒー予約をキャンセルしました。',
   'cancel.linkInvalidTitle': '無効なリンクです',
   'cancel.linkInvalidBody': 'キャンセル用リンクが正しくありません。確認メールに記載のリンクを直接開いてください。',
   'cancel.goHome': 'ACoffee に戻る',

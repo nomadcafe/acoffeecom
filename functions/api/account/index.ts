@@ -288,19 +288,29 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
     }
   }
 
+  /* Collect all writes into a D1 batch so the user-row update and the
+   * featured_cafes delete+re-insert commit atomically. Without this, a
+   * mid-batch failure would leave half the patch applied — themePreset
+   * changed but featured cafes wiped, or display name saved but the new
+   * cafe rows missing. The ≤5-row cap on featuredCafes keeps the batch
+   * size trivial. */
+  type BatchStmt = Parameters<typeof db.batch>[0][number];
+  const statements: BatchStmt[] = [];
+
   if (Object.keys(patch).length > 1) {
-    await db
-      .update(user)
-      .set(patch)
-      .where(eq(user.id, sessionUser.id));
+    statements.push(
+      db.update(user).set(patch).where(eq(user.id, sessionUser.id)) as BatchStmt,
+    );
   }
 
   // featured_cafes lives in its own table — wipe + re-insert when the
   // client sends the array. (Omitting the key leaves rows alone.) The
-  // ≤5-row cap keeps this O(small) and the user-only WHERE keeps blast
-  // radius tight; we don't bother with diff-and-merge logic.
+  // user-only WHERE keeps blast radius tight; we don't bother with
+  // diff-and-merge logic.
   if (input.featuredCafes !== undefined) {
-    await db.delete(featuredCafes).where(eq(featuredCafes.userId, sessionUser.id));
+    statements.push(
+      db.delete(featuredCafes).where(eq(featuredCafes.userId, sessionUser.id)) as BatchStmt,
+    );
     if (input.featuredCafes.length > 0) {
       const now = new Date();
       const rows = input.featuredCafes.map((c, idx) => {
@@ -333,8 +343,12 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
           updatedAt: now,
         };
       });
-      await db.insert(featuredCafes).values(rows);
+      statements.push(db.insert(featuredCafes).values(rows) as BatchStmt);
     }
+  }
+
+  if (statements.length > 0) {
+    await db.batch(statements as [BatchStmt, ...BatchStmt[]]);
   }
 
   return Response.json({ ok: true });
