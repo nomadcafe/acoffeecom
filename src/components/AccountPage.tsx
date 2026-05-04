@@ -2063,8 +2063,12 @@ function FeaturedCafesCard() {
   const [status, setStatus] = useState<StatusBanner>(null);
   useAutoDismissOk(status, setStatus);
   // Guards against double-tapping the same suggestion before pick()
-  // resolves — see suggestions onClick below for the failure mode.
+  // resolves — see suggestions onClick below for the failure mode. The
+  // ref handles the race; the state mirror drives the visual disabled
+  // state on the button (refs alone don't trigger a re-render, so the
+  // button never visually responded — UX felt broken on slow taps).
   const pickingRef = useRef(false);
+  const [isPicking, setIsPicking] = useState(false);
   const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
   /* Mount guard for fetches that don't go through the mount-effect's
    * cancelled flag — specifically the post-save refresh in handleSave.
@@ -2527,14 +2531,16 @@ function FeaturedCafesCard() {
                             // state, not in-flight work).
                             if (pickingRef.current) return;
                             pickingRef.current = true;
+                            setIsPicking(true);
                             try {
                               const picked = await cafeAutocomplete.pick(s);
                               if (picked) addCafe(picked, 'favorite');
                             } finally {
                               pickingRef.current = false;
+                              setIsPicking(false);
                             }
                           }}
-                          disabled={pickingRef.current}
+                          disabled={isPicking}
                         >
                           {text}
                         </button>

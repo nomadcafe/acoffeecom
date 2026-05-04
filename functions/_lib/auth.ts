@@ -74,6 +74,25 @@ export function createAuth(env: AuthEnv) {
     secret: env.AUTH_SECRET,
     baseURL: env.AUTH_BASE_URL,
     socialProviders,
+    /* Explicit allowlist for redirect targets (magic-link callbackURL,
+     * OAuth post-auth redirect). Better Auth derives the base origin from
+     * `baseURL` automatically; we additionally accept the apex/www hosts
+     * so users typing `acoffee.com/...` vs `www.acoffee.com/...` both
+     * land back on themselves. Without this, a future framework upgrade
+     * could silently change open-redirect protection scope. */
+    trustedOrigins: ['https://acoffee.com', 'https://www.acoffee.com'],
+    /* Pin cookie attributes so the security posture doesn't drift on
+     * a Better Auth upgrade. Defaults today are roughly the same, but
+     * making them explicit is cheap insurance. */
+    advanced: {
+      useSecureCookies: true,
+      defaultCookieAttributes: {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        path: '/',
+      },
+    },
     // Same email across providers → same account. The verified-email
     // assumption holds for Google (always returns email_verified=true)
     // and for our magic-link path (the link itself proves email
@@ -128,6 +147,10 @@ export function createAuth(env: AuthEnv) {
           await resend.emails.send({
             from: env.RESEND_FROM_EMAIL,
             to: email,
+            // Reply-To = same as From so a "I didn't request this" reply
+            // lands somewhere a human reads, rather than bouncing off a
+            // noreply alias the From address may resolve to.
+            replyTo: env.RESEND_FROM_EMAIL,
             subject: 'Sign in to ACoffee',
             html: magicLinkEmailHtml(url),
           });

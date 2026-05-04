@@ -4,6 +4,7 @@ import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { featuredCafes, user, visitedShops } from '../../_lib/db/schema';
 import { jsonError } from '../../_lib/passport';
+import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 
 /**
  * Per-profile share-card PNG for og:image. Renders a 1200×630 image with
@@ -233,7 +234,19 @@ function renderTemplate(profile: ProfileForCard): string {
 </div>`;
 }
 
-export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
+export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params, request, waitUntil }) => {
+  /* Per-IP rate limit. Each request runs two D1 SELECTs (profile +
+   * featured cafe) and re-renders a 1200×630 PNG via workers-og when
+   * the edge cache misses. A scraper enumerating usernames could burn
+   * D1 + Workers CPU at zero cost. 60 requests per 10 minutes covers
+   * any genuine link-preview bot burst (they cache the result anyway). */
+  const result = await rateLimit(
+    request,
+    { waitUntil },
+    { bucket: 'og-username', limit: 60, windowSec: 600 },
+  );
+  if (!result.ok) return rateLimitResponse(result);
+
   const raw = typeof params.username === 'string' ? params.username : null;
   if (!raw) return jsonError('Not found', 404);
   const username = raw.toLowerCase();

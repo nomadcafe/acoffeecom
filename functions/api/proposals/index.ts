@@ -52,7 +52,17 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   // on the proposal page would just silently mutate the DB and the
   // sender would never know. UI gates the button on auth state, so a
   // 401 here means the user bypassed that gate.
-  const sessionUser = await getSessionUser(env, request).catch(() => null);
+  /* Don't silently swallow getSessionUser errors — a thrown promise
+   * here can mean DB down, AUTH_SECRET rotated, Better Auth broken, or
+   * just an unauthenticated request. Logging surfaces the diagnostic
+   * cases without changing the user-facing 401 (we still want clients
+   * to retry sign-in rather than see a noisy 500). */
+  const sessionUser = await getSessionUser(env, request).catch((err) => {
+    console.error('[proposals] getSessionUser failed', {
+      err: err instanceof Error ? err.message : String(err),
+    });
+    return null;
+  });
   if (!sessionUser) {
     return jsonError('Sign in to create a proposal', 401);
   }

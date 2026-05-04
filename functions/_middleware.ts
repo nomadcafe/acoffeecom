@@ -3,6 +3,7 @@ import type { AuthEnv } from './_lib/auth';
 import { getDb } from './_lib/db';
 import { user, visitedShops } from './_lib/db/schema';
 import { RESERVED_USERNAMES } from './_lib/username';
+import { rateLimit } from './_lib/rateLimit';
 
 /**
  * Root middleware that rewrites the SPA's static index.html for two
@@ -263,6 +264,20 @@ export const onRequest: PagesFunction<AuthEnv> = async (context) => {
   if (!match) return next();
   const username = match[2];
   if (RESERVED_USERNAMES.has(username)) return next();
+
+  /* Per-IP throttle on the D1 enrichment lookup. Without it, a scraper
+   * hitting /aaa /aab /aac... (any 3-30 char path that isn't reserved)
+   * triggers a D1 user SELECT + visited_shops scan per request — 17k+
+   * queries to walk the username space. We cap at 60 enrichment lookups
+   * per IP per 10 minutes; over the limit, we just serve the static SPA
+   * page without injected OG tags (real users with their own profile
+   * never approach this rate even with multiple reloads). */
+  const rl = await rateLimit(
+    request,
+    { waitUntil: context.waitUntil.bind(context) },
+    { bucket: 'mw-og-lookup', limit: 60, windowSec: 600 },
+  );
+  if (!rl.ok) return next();
 
   let profile: ProfileForOg | null = null;
   try {

@@ -1,7 +1,7 @@
 import { and, eq, lt } from 'drizzle-orm';
 import type { AuthEnv } from './auth';
 import { getDb } from './db';
-import { bookingAttempts, bookings, proposals } from './db/schema';
+import { bookingAttempts, bookings, proposals, verification } from './db/schema';
 
 /**
  * Periodic cleanup. Two tables grow without bound otherwise:
@@ -32,6 +32,7 @@ export async function runBookingGc(env: AuthEnv): Promise<{
   unconfirmedDeleted: number;
   attemptLogDeleted: number;
   expiredProposalsDeleted: number;
+  verificationDeleted: number;
 }> {
   const db = getDb(env);
   const now = Date.now();
@@ -58,9 +59,23 @@ export async function runBookingGc(env: AuthEnv): Promise<{
     .where(lt(proposals.expiresAt, new Date(now)))
     .returning({ id: proposals.id });
 
+  /* Better Auth's `verification` table backs magic-link sign-in: each
+   * sendMagicLink writes a row with a 15-min expiry. Better Auth checks
+   * `expiresAt` on use, but doesn't garbage-collect spent rows — so a
+   * busy mailbox or an attacker pre-rate-limit (now closed, see
+   * /api/auth/[[route]] limiter) leaves the table to grow without
+   * bound. Anything past expiry is a no-op token; deleting keeps the
+   * table small AND closes a defense-in-depth gap (a future bug that
+   * fails to check expiresAt would otherwise resurrect them). */
+  const verificationRes = await db
+    .delete(verification)
+    .where(lt(verification.expiresAt, new Date(now)))
+    .returning({ id: verification.id });
+
   return {
     unconfirmedDeleted: unconfirmedRes.length,
     attemptLogDeleted: attemptsRes.length,
     expiredProposalsDeleted: proposalsRes.length,
+    verificationDeleted: verificationRes.length,
   };
 }
