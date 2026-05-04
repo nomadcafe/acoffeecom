@@ -1408,3 +1408,51 @@
   font-weight: 700;
   margin-left: 0.15rem;
 }
+
+/* Theme preset picker — a row of color swatches the user clicks to set the
+ * accent color on their public profile. Each swatch is a circular button
+ * with the preset's accent color as a fill; the active one wears a ring +
+ * check mark. Inline color comes from THEME_SWATCH_COLORS in the component
+ * so we don't have to keep two color tables in sync. */
+.themeSwatchRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ac-space-3);
+  margin-top: var(--ac-space-2);
+}
+.themeSwatch {
+  --swatch-size: 44px;
+  width: var(--swatch-size);
+  height: var(--swatch-size);
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--swatch-color, var(--ac-accent));
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: transform var(--ac-motion-fast), box-shadow var(--ac-motion-fast);
+}
+.themeSwatch:hover {
+  transform: scale(1.06);
+  box-shadow: var(--ac-shadow-card);
+}
+.themeSwatch:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+.themeSwatchActive {
+  border-color: var(--ac-text);
+  box-shadow: 0 0 0 2px var(--ac-page-bg) inset;
+}
+.themeSwatchActive::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}

@@ -57,6 +57,7 @@ interface PublicProfile {
   image: string | null;
   bio: string | null;
   socialLinks: SocialLink[];
+  themePreset: string;
   featuredCafes: PublicFeaturedCafe[];
   memberSince: number;
   cups: number;
@@ -144,7 +145,10 @@ export function PublicProfilePage({ username }: Props) {
         </div>
       </header>
 
-      <main className={styles.main}>
+      <main
+        className={styles.main}
+        data-theme={state.kind === 'ready' ? state.profile.themePreset : undefined}
+      >
         {state.kind === 'loading' ? (
           <ProfileSkeleton />
         ) : state.kind === 'ready' ? (

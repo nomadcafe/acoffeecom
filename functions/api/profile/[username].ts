@@ -63,6 +63,9 @@ export interface PublicProfile {
   image: string | null;
   bio: string | null;
   socialLinks: SocialLink[];
+  /** One of 'default' | 'sage' | 'sunset' | 'midnight' | 'rose' | 'mono'.
+   *  Maps to a [data-theme="<value>"] CSS rule on the profile page. */
+  themePreset: string;
   featuredCafes: PublicFeaturedCafe[];
   memberSince: number;
   cups: number;
@@ -264,6 +267,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ env, params }) => {
      * public response simply ships an empty array — same shape, no
      * special-casing needed in the renderer. */
     socialLinks: owner.showSocialLinks === false ? [] : parseSocialLinks(owner.socialLinks),
+    themePreset: owner.themePreset ?? 'default',
     featuredCafes: featuredCafesPublic,
     memberSince,
     cups: allTimestamps.length,

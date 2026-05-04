@@ -30,6 +30,11 @@ export const user = sqliteTable('user', {
    * true so existing users who already filled the field keep them visible
    * after the migration — opt-in privacy would silently hide their links. */
   showSocialLinks: integer('show_social_links', { mode: 'boolean' }).notNull().default(true),
+  /* Public-profile theme preset. Maps to a [data-theme="<value>"] CSS rule
+   * that overrides --ac-accent / --ac-accent-dark / --ac-surface-tinted on
+   * /yourname only. Curated set keeps contrast guarantees vs the rest of
+   * the design system; see src/index.css for the palette definitions. */
+  themePreset: text('theme_preset').notNull().default('default'),
   /* Booking config — anchor address used as one endpoint of the midpoint
    * search when a visitor books a coffee, plus a JSON map of weekday →
    * { enabled, start, end } describing weekly recurring availability.

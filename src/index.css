@@ -71,6 +71,39 @@
   --ac-font-display: 'Fraunces', 'Iowan Old Style', 'Georgia', serif;
 }
 
+/* Public-profile theme presets. Applied via data-theme on PublicProfilePage's
+ * root container. We override only the three tokens that carry the personality
+ * of the page: the primary accent, its hover/dark state, and the soft surface
+ * tint that drives the hero gradient. Shadow rgbs intentionally stay warm
+ * across all themes — the cards still read as "coffee app", the accent just
+ * picks up the user's chosen flavor. Each preset's accent has been picked to
+ * keep ≥4.5:1 contrast vs white so primary CTAs stay AA-compliant. */
+[data-theme='sage'] {
+  --ac-accent: #5e7a52;
+  --ac-accent-dark: #4c6342;
+  --ac-surface-tinted: #eff3ea;
+}
+[data-theme='sunset'] {
+  --ac-accent: #b25e30;
+  --ac-accent-dark: #8e4a25;
+  --ac-surface-tinted: #fbf0e6;
+}
+[data-theme='midnight'] {
+  --ac-accent: #4a5b8c;
+  --ac-accent-dark: #38456b;
+  --ac-surface-tinted: #eef0f5;
+}
+[data-theme='rose'] {
+  --ac-accent: #a05060;
+  --ac-accent-dark: #7e3d4a;
+  --ac-surface-tinted: #f7eceb;
+}
+[data-theme='mono'] {
+  --ac-accent: #4a4742;
+  --ac-accent-dark: #2f2c28;
+  --ac-surface-tinted: #f0ede9;
+}
+
 * {
   box-sizing: border-box;
 }

@@ -669,6 +669,16 @@ function SignedInAccountPage({
           }
         />
 
+        <ThemeCard
+          initialPreset={
+            (THEME_PRESETS.some(
+              (p) => p.value === (sessionUser as { themePreset?: string }).themePreset,
+            )
+              ? (sessionUser as { themePreset?: ThemePreset }).themePreset
+              : 'default') ?? 'default'
+          }
+        />
+
         <FeaturedCafesCard />
 
         <BookingSetupCard
@@ -1017,6 +1027,7 @@ const TOC_SECTIONS: ReadonlyArray<{ id: string; labelKey: string }> = [
   { id: 'account-avatar', labelKey: 'account.avatarTitle' },
   { id: 'account-basic', labelKey: 'account.basicInfoTitle' },
   { id: 'account-social', labelKey: 'account.socialLinksTitle' },
+  { id: 'account-theme', labelKey: 'account.themeTitle' },
   { id: 'account-cafes', labelKey: 'account.featuredCafeLabel' },
   { id: 'account-booking', labelKey: 'account.bookingTitle' },
   { id: 'account-calendar', labelKey: 'account.calendarTitle' },
@@ -1861,6 +1872,93 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
           </p>
         ) : null}
       </div>
+    </section>
+  );
+}
+
+/* List of {value, color} pairs for the theme picker. `value` matches the
+ * server-side enum + the [data-theme] attribute on PublicProfilePage; `color`
+ * is the accent shown on the swatch (NOT applied via CSS vars — we want the
+ * picker to show all options regardless of which theme is active, so each
+ * swatch carries its own inline color). Keep in sync with the [data-theme]
+ * rules in src/index.css. */
+const THEME_PRESETS = [
+  { value: 'default', color: '#6f4e37' },
+  { value: 'sage', color: '#5e7a52' },
+  { value: 'sunset', color: '#b25e30' },
+  { value: 'midnight', color: '#4a5b8c' },
+  { value: 'rose', color: '#a05060' },
+  { value: 'mono', color: '#4a4742' },
+] as const;
+type ThemePreset = (typeof THEME_PRESETS)[number]['value'];
+
+function ThemeCard({ initialPreset }: { initialPreset: ThemePreset }) {
+  const { t } = useI18n();
+  const [preset, setPreset] = useState<ThemePreset>(initialPreset);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<StatusBanner>(null);
+  useAutoDismissOk(status, setStatus);
+
+  async function handlePick(next: ThemePreset) {
+    if (busy || next === preset) return;
+    const prev = preset;
+    setPreset(next);
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await fetch('/api/account', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ themePreset: next }),
+      });
+      if (!res.ok) {
+        setPreset(prev);
+        setStatus({ kind: 'err', message: t('account.themeSaveFailed') });
+        return;
+      }
+      setStatus({ kind: 'ok', message: t('account.themeSaved') });
+      track('profile_theme_set', { preset: next });
+    } catch {
+      setPreset(prev);
+      setStatus({ kind: 'err', message: t('account.themeSaveFailed') });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section id="account-theme" className={styles.card} aria-label={t('account.themeTitle')}>
+      <h2 className={styles.cardTitle}>{t('account.themeTitle')}</h2>
+      <p className={styles.usernameHint} style={{ marginTop: 0 }}>
+        {t('account.themeHint')}
+      </p>
+      <div className={styles.themeSwatchRow} role="radiogroup" aria-label={t('account.themeTitle')}>
+        {THEME_PRESETS.map((p) => {
+          const active = p.value === preset;
+          return (
+            <button
+              key={p.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              aria-label={t(`account.themePreset.${p.value}` as never)}
+              className={`${styles.themeSwatch}${active ? ' ' + styles.themeSwatchActive : ''}`}
+              style={{ ['--swatch-color' as string]: p.color }}
+              onClick={() => void handlePick(p.value)}
+              disabled={busy}
+            />
+          );
+        })}
+      </div>
+      {status ? (
+        <p
+          className={status.kind === 'ok' ? styles.successMsg : styles.errorMsg}
+          role="status"
+          style={{ marginTop: 'var(--ac-space-3)' }}
+        >
+          {status.message}
+        </p>
+      ) : null}
     </section>
   );
 }

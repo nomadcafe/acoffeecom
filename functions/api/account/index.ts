@@ -165,6 +165,10 @@ const PatchSchema = z.object({
   bio: z.string().trim().max(160).nullable().optional(),
   socialLinks: z.array(SocialLinkSchema).max(5).optional(),
   showSocialLinks: z.boolean().optional(),
+  /* Public-profile theme preset. Closed enum so we can guarantee the
+   * matching CSS rule exists; unknown values would render as default
+   * silently which is worse than rejecting at the API. */
+  themePreset: z.enum(['default', 'sage', 'sunset', 'midnight', 'rose', 'mono']).optional(),
   /* Full replacement of the user's featured-cafes list. Up to 5 entries.
    * Empty array clears all. Omitting the key leaves the existing rows
    * untouched. The server wipes + re-inserts on every save (atomic enough
@@ -229,6 +233,7 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
     patch.socialLinks = JSON.stringify(input.socialLinks);
   }
   if (input.showSocialLinks !== undefined) patch.showSocialLinks = input.showSocialLinks;
+  if (input.themePreset !== undefined) patch.themePreset = input.themePreset;
   // featuredCafes: handled separately from the user-table patch because
   // it lives in its own table. We skip the user-table touch unless the
   // top-level patch object also has user-row fields to set.

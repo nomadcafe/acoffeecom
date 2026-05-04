@@ -95,6 +95,7 @@ export function createAuth(env: AuthEnv) {
         bio: { type: 'string', required: false },
         socialLinks: { type: 'string', required: false, defaultValue: '[]' },
         showSocialLinks: { type: 'boolean', required: false, defaultValue: true },
+        themePreset: { type: 'string', required: false, defaultValue: 'default' },
         // Featured cafés moved to their own `featured_cafes` table — see
         // /api/account GET. The legacy single-cafe columns (ownerCafe*)
         // were dropped in migration 0019.
