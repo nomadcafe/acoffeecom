@@ -5,6 +5,7 @@ import { LOCATION_SYNC_EVENT } from './i18n/locationSync';
 import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
 import { SkipToContent } from './components/SkipToContent';
+import { UpdateToast } from './components/UpdateToast';
 import { AgentModeChips } from './components/AgentModeChips';
 import { SearchFilters } from './components/SearchFilters';
 import { CoffeeShopList } from './components/CoffeeShopList';
@@ -282,7 +283,15 @@ function AppRoute() {
 
   // AppProvider wraps every route so PassportPage / UpdateLogPage can share
   // visitedShops + (when auth flag is on) the cloud-sync layer with AppShell.
-  return <AppProvider>{body}</AppProvider>;
+  // UpdateToast is rendered as a sibling so the "new version" pill shows
+  // on whatever route the user happens to be looking at when the SW
+  // detects an update (rather than only on home).
+  return (
+    <AppProvider>
+      {body}
+      <UpdateToast />
+    </AppProvider>
+  );
 }
 
 export default function App() {

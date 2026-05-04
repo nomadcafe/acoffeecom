@@ -19,6 +19,9 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.skipToContent': 'Skip to content',
+  'updateToast.message': 'New version available',
+  'updateToast.refresh': 'Refresh',
+  'updateToast.dismissAria': 'Dismiss update notice',
   'app.title': 'ACoffee',
   'heroSignedIn.morning': 'Good morning.',
   'heroSignedIn.afternoon': 'Good afternoon.',

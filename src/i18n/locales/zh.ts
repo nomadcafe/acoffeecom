@@ -16,6 +16,9 @@ export const messages: MessageDict = {
 
   'app.logoAlt': 'A Coffee',
   'app.skipToContent': '跳到主要内容',
+  'updateToast.message': '新版本已就绪',
+  'updateToast.refresh': '刷新',
+  'updateToast.dismissAria': '关闭更新提示',
   'app.title': 'ACoffee',
   'heroSignedIn.morning': '早上好。',
   'heroSignedIn.afternoon': '下午好。',
