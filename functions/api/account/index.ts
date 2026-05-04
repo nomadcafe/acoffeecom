@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { asc, eq } from 'drizzle-orm';
-import { type AuthEnv } from '../../_lib/auth';
+import { createAuth, type AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { user, featuredCafes } from '../../_lib/db/schema';
 import { getSessionUser, jsonError } from '../../_lib/passport';
@@ -54,17 +54,48 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
  *   user.id ← visited_shops.user_id        (onDelete: cascade)
  *   user.id ← starred_shops.user_id        (onDelete: cascade)
  *
- * Caller must sign out client-side; the session row is gone but Better Auth's
- * cookie is still in the browser until cleared.
+ * Server-side signOut runs first so Better Auth emits Set-Cookie headers
+ * that expire the session cookie; we forward them in our 204 response so
+ * the browser can't keep a cookie that references a now-deleted user.id.
+ * Without this, a tab that closed before client-side signOut could
+ * resurface a stale cookie pointing at an orphaned (or future-recreated)
+ * user record.
  */
 export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env }) => {
   const sessionUser = await getSessionUser(env, request);
   if (!sessionUser) return jsonError('Unauthorized', 401);
 
+  const auth = createAuth(env);
+  let cookieHeaders: string[] = [];
+  try {
+    const signOutResp = await auth.api.signOut({
+      headers: request.headers,
+      asResponse: true,
+    });
+    // Workers' Headers exposes getSetCookie() in recent runtimes; fall
+    // back to undefined-safe access for older deployments.
+    cookieHeaders = signOutResp.headers.getSetCookie?.() ?? [];
+  } catch {
+    /* signOut can fail if the session row is already gone — proceed.
+     * The fallback Set-Cookie below still expires the cookie. */
+  }
+
   const db = getDb(env);
   await db.delete(user).where(eq(user.id, sessionUser.id));
 
-  return new Response(null, { status: 204 });
+  const headers = new Headers();
+  if (cookieHeaders.length > 0) {
+    for (const c of cookieHeaders) headers.append('Set-Cookie', c);
+  } else {
+    /* Belt-and-braces: if signOut didn't return Set-Cookie (older
+     * Better Auth, or signOut threw), explicitly expire the default
+     * session cookie. */
+    headers.append(
+      'Set-Cookie',
+      'better-auth.session_token=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=lax',
+    );
+  }
+  return new Response(null, { status: 204, headers });
 };
 
 /* http(s) only on social link URLs — the public profile page renders these

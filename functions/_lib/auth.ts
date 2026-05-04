@@ -88,24 +88,33 @@ export function createAuth(env: AuthEnv) {
     },
     user: {
       additionalFields: {
-        username: { type: 'string', required: false },
-        profilePublic: { type: 'boolean', required: false, defaultValue: false },
-        monthlyRecapEmail: { type: 'boolean', required: false, defaultValue: true },
-        displayName: { type: 'string', required: false },
-        bio: { type: 'string', required: false },
-        socialLinks: { type: 'string', required: false, defaultValue: '[]' },
-        showSocialLinks: { type: 'boolean', required: false, defaultValue: true },
-        themePreset: { type: 'string', required: false, defaultValue: 'default' },
+        /* `input: false` on all of these blocks Better Auth's built-in
+         * /api/auth/update-user from accepting client writes. Without it,
+         * any signed-in attacker could POST {profilePublic: true} (or any
+         * other field) and bypass the validation in /api/account PATCH:
+         * the username gate, the http(s)-only social-link sanitiser, the
+         * themePreset enum, the iCal probe-fetch, the address geocode +
+         * timezone derivation. /api/account is the only legitimate writer
+         * for these — Better Auth still reads them into the session bag
+         * for client convenience. */
+        username: { type: 'string', required: false, input: false },
+        profilePublic: { type: 'boolean', required: false, defaultValue: false, input: false },
+        monthlyRecapEmail: { type: 'boolean', required: false, defaultValue: true, input: false },
+        displayName: { type: 'string', required: false, input: false },
+        bio: { type: 'string', required: false, input: false },
+        socialLinks: { type: 'string', required: false, defaultValue: '[]', input: false },
+        showSocialLinks: { type: 'boolean', required: false, defaultValue: true, input: false },
+        themePreset: { type: 'string', required: false, defaultValue: 'default', input: false },
         // Featured cafés moved to their own `featured_cafes` table — see
         // /api/account GET. The legacy single-cafe columns (ownerCafe*)
         // were dropped in migration 0019.
-        homeBaseAddress: { type: 'string', required: false },
-        availabilitySlots: { type: 'string', required: false, defaultValue: '{}' },
-        timezone: { type: 'string', required: false, defaultValue: 'UTC' },
-        busyCalendarIcsUrl: { type: 'string', required: false },
-        busyCalendarSyncedAt: { type: 'date', required: false },
-        busyCalendarLastError: { type: 'string', required: false },
-        busyCalendarLastErrorAt: { type: 'date', required: false },
+        homeBaseAddress: { type: 'string', required: false, input: false },
+        availabilitySlots: { type: 'string', required: false, defaultValue: '{}', input: false },
+        timezone: { type: 'string', required: false, defaultValue: 'UTC', input: false },
+        busyCalendarIcsUrl: { type: 'string', required: false, input: false },
+        busyCalendarSyncedAt: { type: 'date', required: false, input: false },
+        busyCalendarLastError: { type: 'string', required: false, input: false },
+        busyCalendarLastErrorAt: { type: 'date', required: false, input: false },
       },
     },
     session: {

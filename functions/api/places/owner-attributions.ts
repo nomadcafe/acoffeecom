@@ -4,6 +4,7 @@ import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { featuredCafes, user } from '../../_lib/db/schema';
 import { jsonError } from '../../_lib/passport';
+import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 
 /**
  * Reverse-link lookup for the agent results: given a list of Google Place
@@ -47,7 +48,18 @@ const CACHE_TTL_S = 300;
 const CACHE_PREFIX = 'owner:';
 const NEGATIVE_MARKER = '__none__';
 
-export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, waitUntil }) => {
+  /* Per-IP rate limit. Each request fans out to up to 20 D1 SELECTs (the
+   * KV negative cache absorbs popular cafes but a fresh-id flood would
+   * still hammer D1). 60 requests per 10 minutes covers genuine search
+   * use; beyond that is scraping / abuse. */
+  const result = await rateLimit(
+    request,
+    { waitUntil },
+    { bucket: 'places-owner-attr', limit: 60, windowSec: 600 },
+  );
+  if (!result.ok) return rateLimitResponse(result);
+
   let input: z.infer<typeof InputSchema>;
   try {
     input = InputSchema.parse(await request.json());

@@ -18,17 +18,26 @@ interface Result {
 export async function rateLimit(
   request: Request,
   ctx: { waitUntil: (p: Promise<unknown>) => void },
-  opts: { bucket: string; limit: number; windowSec: number },
+  opts: {
+    bucket: string;
+    limit: number;
+    windowSec: number;
+    /** Override the default IP-based key. Used for per-user / per-email
+     *  rate limits (magic-link sign-in, recap-test) where IP-only would
+     *  let the same email be mailbombed from rotating IPs. */
+    keyOverride?: string;
+  },
 ): Promise<Result> {
-  const ip =
-    request.headers.get('cf-connecting-ip') ||
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    'unknown';
+  const key =
+    opts.keyOverride ??
+    (request.headers.get('cf-connecting-ip') ||
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      'unknown');
 
   const nowSec = Math.floor(Date.now() / 1000);
   const windowStart = Math.floor(nowSec / opts.windowSec) * opts.windowSec;
   const cacheKey = new Request(
-    `https://rl.internal/${opts.bucket}/${windowStart}/${encodeURIComponent(ip)}`,
+    `https://rl.internal/${opts.bucket}/${windowStart}/${encodeURIComponent(key)}`,
     { method: 'GET' },
   );
 

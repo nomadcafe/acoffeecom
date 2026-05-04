@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { AuthEnv } from '../../_lib/auth';
 import { jsonError } from '../../_lib/passport';
+import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 import {
   GoogleMapsError,
   computeRouteMatrix,
@@ -35,7 +36,18 @@ const InputSchema = z.object({
   mode: z.enum(['TRANSIT', 'WALK', 'DRIVE']).optional(),
 });
 
-export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, waitUntil }) => {
+  /* Per-IP rate limit. Each request fans out to Routes API at up to 40
+   * elements / ~$0.20 (the schema caps origins×destinations to 5×8). A
+   * scripted attacker without a cap could burn real money fast. 30
+   * requests per 10 minutes is plenty for genuine search use. */
+  const result = await rateLimit(
+    request,
+    { waitUntil },
+    { bucket: 'places-eta', limit: 30, windowSec: 600 },
+  );
+  if (!result.ok) return rateLimitResponse(result);
+
   let input: z.infer<typeof InputSchema>;
   try {
     input = InputSchema.parse(await request.json());

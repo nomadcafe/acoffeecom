@@ -58,17 +58,20 @@ const InputSchema = z.object({
         try {
           const u = new URL(v);
           if (u.protocol !== 'https:') return false;
-          // google.com, www.google.com, maps.google.com, maps.app.goo.gl,
-          // goo.gl, plus regional google.<cc> hosts. Subdomains of
-          // google.<tld> are accepted by the trailing-dot check.
           const h = u.hostname.toLowerCase();
-          return (
-            h === 'maps.app.goo.gl' ||
-            h === 'goo.gl' ||
-            h === 'google.com' ||
-            h.endsWith('.google.com') ||
-            /^([a-z0-9-]+\.)*google\.[a-z.]{2,}$/.test(h)
-          );
+          // Exact match or any subdomain of google.com (covers
+          // www.google.com, maps.google.com, etc).
+          if (h === 'google.com' || h.endsWith('.google.com')) return true;
+          // Goo.gl shortlink variants.
+          if (h === 'goo.gl' || h === 'maps.app.goo.gl') return true;
+          // Regional google ccTLDs: google.<2-3>(.<2-3>)? — e.g. google.fr,
+          // google.co.uk, google.com.au. Anchored on both ends so a host
+          // like `google.attacker.com` cannot match (the previous
+          // `[a-z.]{2,}` allowed interior dots, which let any host whose
+          // labels contain `google` followed by anything-with-dots
+          // through). No leading subdomains permitted on the ccTLD case
+          // — `subdomain.google.fr` is rare enough we don't bother.
+          return /^google\.[a-z]{2,3}(\.[a-z]{2,3})?$/.test(h);
         } catch {
           return false;
         }

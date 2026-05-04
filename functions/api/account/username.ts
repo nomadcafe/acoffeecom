@@ -45,10 +45,29 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
         { status },
       );
     }
-    await db
-      .update(user)
-      .set({ username: value, updatedAt: new Date() })
-      .where(eq(user.id, sessionUser.id));
+    /* TOCTOU window: the availability check above and this UPDATE are
+     * separate statements, so two concurrent requests for the same name
+     * can both pass `checkUsernameAvailability` and race to UPDATE. The
+     * DB unique index on user.username (schema.ts) is the actual
+     * arbiter — the second UPDATE will fail with a constraint
+     * violation. We translate that to a 409 with the same shape as the
+     * application-level "taken" response so the AccountPage picker UI
+     * shows the right error instead of an opaque 500. */
+    try {
+      await db
+        .update(user)
+        .set({ username: value, updatedAt: new Date() })
+        .where(eq(user.id, sessionUser.id));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/UNIQUE constraint failed.*user\.username/i.test(msg)) {
+        return Response.json(
+          { error: 'Username taken', reason: 'taken' as const },
+          { status: 409 },
+        );
+      }
+      throw e;
+    }
   } else {
     await db
       .update(user)

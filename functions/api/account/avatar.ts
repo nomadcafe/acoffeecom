@@ -75,6 +75,44 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return jsonError('Empty body', 400);
   }
 
+  /* Magic-byte sniff. The Content-Type header is attacker-controlled, so
+   * trusting it alone means an attacker can upload arbitrary bytes
+   * (HTML, SVG with script, etc.) labelled `image/webp` and R2 will
+   * happily serve them under a public URL embedded in shared profiles
+   * — a stored-XSS vector. We force `Content-Type: image/webp` on the
+   * R2 object regardless, so modern browsers won't sniff, but pinning
+   * the actual bytes to a known image format is the right defence in
+   * depth. Magic numbers per the formats we accept above. */
+  const head = new Uint8Array(buffer.slice(0, 12));
+  const sniff: 'webp' | 'png' | 'jpeg' | null =
+    // WebP: bytes 0-3 = 'RIFF' (52 49 46 46), 8-11 = 'WEBP'
+    head.length >= 12 &&
+    head[0] === 0x52 && head[1] === 0x49 && head[2] === 0x46 && head[3] === 0x46 &&
+    head[8] === 0x57 && head[9] === 0x45 && head[10] === 0x42 && head[11] === 0x50
+      ? 'webp'
+      // PNG: 89 50 4E 47 0D 0A 1A 0A
+      : head.length >= 8 &&
+        head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47 &&
+        head[4] === 0x0d && head[5] === 0x0a && head[6] === 0x1a && head[7] === 0x0a
+        ? 'png'
+        // JPEG: FF D8 FF
+        : head.length >= 3 &&
+          head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff
+          ? 'jpeg'
+          : null;
+  if (sniff === null) {
+    return jsonError('Image bytes do not match a supported format', 415);
+  }
+  // Header should match what the bytes actually are — disagreement is
+  // either a bug or an attempted spoof. Hard-reject either way.
+  const expectedType = `image/${sniff}`;
+  if (contentType !== expectedType) {
+    return jsonError(
+      `Content-Type ${contentType} does not match the actual image format (${expectedType})`,
+      415,
+    );
+  }
+
   const key = avatarKey(sessionUser.id);
   await env.AVATARS.put(key, buffer, {
     httpMetadata: {
