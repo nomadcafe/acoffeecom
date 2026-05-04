@@ -246,7 +246,12 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   // now flips into 'requested' (not 'pending').
   const handle = organizer.displayName?.trim() || `@${organizer.username ?? 'host'}`;
   if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
-    const confirmToken = await makeConfirmToken(env.AUTH_SECRET, id);
+    /* Confirm link expires 7 days after issuance, OR at the slot itself
+     * if that's sooner — past-slot clicks are already 410'd in
+     * confirm-public, but rejecting at token level too means the limit
+     * applies even if the state machine ever changes. */
+    const confirmExpiresAt = Math.min(now.getTime() + 7 * 24 * 60 * 60_000, slotMs);
+    const confirmToken = await makeConfirmToken(env.AUTH_SECRET, id, confirmExpiresAt);
     const confirmUrl = `https://acoffee.com/booking/confirm?id=${encodeURIComponent(id)}&t=${encodeURIComponent(confirmToken)}`;
     const startStr = new Intl.DateTimeFormat('en-US', {
       timeZone: tz,

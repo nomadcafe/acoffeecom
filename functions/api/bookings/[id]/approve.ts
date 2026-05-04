@@ -14,6 +14,7 @@ import {
   formatTimePair,
   renderVisitorConfirmationHtml,
 } from '../../../_lib/bookingEmails';
+import { makeCancelToken } from '../../../_lib/cancelToken';
 
 /**
  * Host approves a `requested` booking. Body contains the café the host
@@ -44,8 +45,37 @@ const InputSchema = z.object({
   placeLat: z.number(),
   placeLng: z.number(),
   /** Optional Google Maps deep link from the picker — surfaces the
-   *  "Open in Maps" CTA in the visitor's confirmation email. */
-  googleMapsUri: z.string().url().max(500).optional(),
+   *  "Open in Maps" CTA in the visitor's confirmation email. zod's
+   *  `.url()` accepts `javascript:` and `data:` schemes, which would
+   *  end up as the href of an anchor in mail; an account-compromise
+   *  vector. Restrict to https + a Google Maps host. */
+  googleMapsUri: z
+    .string()
+    .url()
+    .max(500)
+    .refine(
+      (v) => {
+        try {
+          const u = new URL(v);
+          if (u.protocol !== 'https:') return false;
+          // google.com, www.google.com, maps.google.com, maps.app.goo.gl,
+          // goo.gl, plus regional google.<cc> hosts. Subdomains of
+          // google.<tld> are accepted by the trailing-dot check.
+          const h = u.hostname.toLowerCase();
+          return (
+            h === 'maps.app.goo.gl' ||
+            h === 'goo.gl' ||
+            h === 'google.com' ||
+            h.endsWith('.google.com') ||
+            /^([a-z0-9-]+\.)*google\.[a-z.]{2,}$/.test(h)
+          );
+        } catch {
+          return false;
+        }
+      },
+      'googleMapsUri must be an https Google Maps URL',
+    )
+    .optional(),
   /** Optional new time for the booking (UTC ms). When provided and
    *  different from the current row, server validates against the
    *  host's availability schedule + slot collision before accepting. */
@@ -177,6 +207,13 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
         finalMs !== originalMs
           ? `${handle} said yes — at ${input.placeName} (new time) ☕`
           : `${handle} said yes — coffee at ${input.placeName} ☕`;
+      /* Cancel-link TTL: keep the link working for 24h past the meetup
+       * so a no-show visitor can still send the courtesy cancellation
+       * email after the fact. The state-machine guard on cancel-public
+       * is a separate, independent check. */
+      const cancelExpiresAt = finalMs + 24 * 60 * 60_000;
+      const cancelToken = await makeCancelToken(env.AUTH_SECRET, id, cancelExpiresAt);
+      const cancelUrl = `https://acoffee.com/booking/cancel?id=${encodeURIComponent(id)}&t=${encodeURIComponent(cancelToken)}`;
       const resend = new Resend(env.RESEND_API_KEY);
       await Promise.allSettled([
         resend.emails.send({
@@ -195,6 +232,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
             hostHandle: handle,
             hostHomeBase: organizer.homeBaseAddress ?? '',
             visitorMessage: row.visitorMessage ?? null,
+            cancelUrl,
           }),
         }),
       ]);

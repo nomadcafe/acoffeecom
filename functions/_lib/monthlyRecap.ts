@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { getDb } from './db';
 import { user, visitedShops } from './db/schema';
 import type { AuthEnv } from './auth';
+import { makeUnsubToken } from './unsubToken';
 
 interface UserRecapStats {
   cups: number;
@@ -177,7 +178,7 @@ function recapHtml(opts: {
     <p style="margin:28px 0 0;font-size:13px;color:#7a6a60;line-height:1.5;">
       <a href="https://acoffee.com/" style="color:#a36b3e;text-decoration:none;font-weight:600;">Open ACoffee</a>
       &nbsp;·&nbsp;
-      <a href="${manageUrl}" style="color:#a36b3e;text-decoration:none;">Manage email preferences</a>
+      <a href="${escapeHtml(manageUrl)}" style="color:#a36b3e;text-decoration:none;">Manage email preferences</a>
     </p>
   </div>
 </body>
@@ -215,12 +216,25 @@ export async function sendRecapForUser(
   if (stats.cups === 0) return 'skipped';
   const resend = new Resend(env.RESEND_API_KEY);
   const manageUrl = `${env.AUTH_BASE_URL}/account`;
+  /* RFC 8058 / Gmail bulk-sender (Feb 2024): bulk mail must include a
+   * List-Unsubscribe header pointing to an HTTPS URL plus the matching
+   * List-Unsubscribe-Post header advertising one-click POST. Without
+   * these headers Gmail aggressively spam-filters the recap. The token
+   * is a plain HMAC of (kind, userId) — no expiry, since RFC requires
+   * unsubscribe links to keep working indefinitely; replay is harmless
+   * (the action is one-way and undoable from /account). */
+  const unsubToken = await makeUnsubToken(env.AUTH_SECRET, 'recap', recipient.id);
+  const unsubUrl = `${env.AUTH_BASE_URL}/api/unsubscribe/recap?u=${encodeURIComponent(recipient.id)}&t=${encodeURIComponent(unsubToken)}`;
   try {
     await resend.emails.send({
       from: env.RESEND_FROM_EMAIL,
       to: recipient.email,
       subject: `Your ${range.label} in coffee ☕ — ${stats.cups} cups, ${stats.shops} cafés`,
       html: recapHtml({ email: recipient.email, monthLabel: range.label, stats, manageUrl }),
+      headers: {
+        'List-Unsubscribe': `<${unsubUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     });
     return 'sent';
   } catch (e) {
