@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
@@ -7,33 +7,19 @@ import { ACCOUNT_PATH } from '../routes';
 import styles from './HomeFeatureShowcase.module.css';
 
 // AuthModal pulls in @better-auth/client + magic-link UI; only anonymous
-// visitors who tap the profile-slide CTA pay the chunk cost.
+// visitors who tap the hero CTA pay the chunk cost.
 const AuthModal = lazy(() => import('./AuthModal').then((m) => ({ default: m.AuthModal })));
 
 /**
- * Hero feature showcase — horizontal carousel. Each slide is one
- * feature shown as text + a stylised mock side-by-side. Auto-advances
- * every 5s, pauses on hover/focus, snaps natively on touch swipe.
- *
- * Why a carousel: 6 vertical "story rows" took ~3,000px of scroll —
- * informative but over-budget for a hero. The carousel keeps the
- * "show, don't tell" principle but folds it back into a single hero
- * panel that's roughly 500-600px tall total.
+ * Hero feature showcase — one bold marquee block (the AI agent picking a
+ * café) plus a static grid of secondary features. Used to be a 6-slide
+ * auto-advancing carousel; the carousel was the dominant "looks dated"
+ * signal on the homepage so we replaced it with this single-frame layout
+ * inspired by modern landing pages.
  *
  * Hidden for signed-in users (their return visit is tool-first), and
  * naturally hidden during search since AppHero self-hides then.
  */
-
-interface Feature {
-  id: string;
-  eyebrowKey: string;
-  titleKey: string;
-  bodyKey: string;
-  mock: () => ReactNode;
-  /** Optional inline CTA rendered below the slide body (e.g. "claim your
-   * handle" on the profile slide). Self-contained — owns its own state. */
-  cta?: () => ReactNode;
-}
 
 const MODE_CHIPS = [
   { emoji: '🤝', labelKey: 'agentMode.fair.label' },
@@ -44,156 +30,79 @@ const MODE_CHIPS = [
   { emoji: '🕐', labelKey: 'agentMode.now.label' },
 ];
 
-const AUTO_ADVANCE_MS = 5_000;
+interface SecondaryFeature {
+  id: string;
+  eyebrowKey: string;
+  titleKey: string;
+  bodyKey: string;
+  mock: ReactNode;
+}
 
 export function HomeFeatureShowcase() {
   const { t } = useI18n();
   const { data: session, isPending } = useSession();
 
-  /* Features array kept inside the component so the mock factories
-   * close over `useI18n()`'s `t` for child labels (passport mock title,
-   * etc.). */
-  const FEATURES: Feature[] = [
-    { id: 'agent', eyebrowKey: 'showcase.featuredEyebrow', titleKey: 'showcase.row1Title', bodyKey: 'showcase.row1Body', mock: () => <MockAgent /> },
-    { id: 'passport', eyebrowKey: 'showcase.passportEyebrow', titleKey: 'showcase.row2Title', bodyKey: 'showcase.row2Body', mock: () => <MockPassport /> },
-    { id: 'profile', eyebrowKey: 'showcase.profileEyebrow', titleKey: 'showcase.row3Title', bodyKey: 'showcase.row3Body', mock: () => <MockProfile />, cta: () => <ProfileClaimCta /> },
-    { id: 'booking', eyebrowKey: 'showcase.bookingEyebrow', titleKey: 'showcase.row4Title', bodyKey: 'showcase.row4Body', mock: () => <MockBooking /> },
-    { id: 'proposal', eyebrowKey: 'showcase.proposalEyebrow', titleKey: 'showcase.row5Title', bodyKey: 'showcase.row5Body', mock: () => <MockProposal /> },
-    { id: 'owner', eyebrowKey: 'showcase.featuredCafeEyebrow', titleKey: 'showcase.row6Title', bodyKey: 'showcase.row6Body', mock: () => <MockOwnerCafe /> },
-  ];
-
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const scrollSyncRef = useRef<number | null>(null);
-
-  /* Auto-advance. Restarting on every activeIdx change gives consistent
-   * timing whether the user manually advanced or the timer did. */
-  useEffect(() => {
-    if (paused) return;
-    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
-    const id = window.setTimeout(() => {
-      setActiveIdx((i) => (i + 1) % FEATURES.length);
-    }, AUTO_ADVANCE_MS);
-    return () => window.clearTimeout(id);
-  }, [activeIdx, paused, FEATURES.length]);
-
-  /* Programmatic scroll when activeIdx changes (from auto-advance OR
-   * dot click). Native smooth scroll handles the animation. */
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const slide = track.children[activeIdx] as HTMLElement | undefined;
-    if (slide) {
-      track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
-    }
-  }, [activeIdx]);
-
-  /* Sync activeIdx from manual scroll (touch swipe / wheel). Debounced
-   * via rAF so we don't fight setState batching while the smooth-scroll
-   * animation is mid-flight. */
-  const onScroll = useCallback(() => {
-    if (scrollSyncRef.current != null) cancelAnimationFrame(scrollSyncRef.current);
-    scrollSyncRef.current = requestAnimationFrame(() => {
-      const track = trackRef.current;
-      if (!track) return;
-      const slideWidth = track.clientWidth;
-      if (slideWidth === 0) return;
-      const idx = Math.round(track.scrollLeft / slideWidth);
-      setActiveIdx((cur) => (idx !== cur && idx >= 0 && idx < FEATURES.length ? idx : cur));
-    });
-  }, [FEATURES.length]);
-
   if (isPending) return null;
   if (session?.user) return null;
 
+  const secondary: SecondaryFeature[] = [
+    { id: 'passport', eyebrowKey: 'showcase.passportEyebrow', titleKey: 'showcase.row2Title', bodyKey: 'showcase.row2Body', mock: <MockPassport /> },
+    { id: 'profile', eyebrowKey: 'showcase.profileEyebrow', titleKey: 'showcase.row3Title', bodyKey: 'showcase.row3Body', mock: <MockProfile /> },
+    { id: 'booking', eyebrowKey: 'showcase.bookingEyebrow', titleKey: 'showcase.row4Title', bodyKey: 'showcase.row4Body', mock: <MockBooking /> },
+    { id: 'proposal', eyebrowKey: 'showcase.proposalEyebrow', titleKey: 'showcase.row5Title', bodyKey: 'showcase.row5Body', mock: <MockProposal /> },
+    { id: 'owner', eyebrowKey: 'showcase.featuredCafeEyebrow', titleKey: 'showcase.row6Title', bodyKey: 'showcase.row6Body', mock: <MockOwnerCafe /> },
+  ];
+
   return (
     <section className={styles.wrap} aria-labelledby="showcase-title">
-      <span className={styles.eyebrow}>{t('showcase.eyebrow')}</span>
-      <h1 id="showcase-title" className={styles.title}>
-        {t('showcase.title')}
-      </h1>
-      <p className={styles.lead}>{t('showcase.lead')}</p>
-
-      <div
-        className={styles.carousel}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onFocus={() => setPaused(true)}
-        onBlur={() => setPaused(false)}
-      >
-        <div
-          ref={trackRef}
-          className={styles.track}
-          onScroll={onScroll}
-          role="region"
-          aria-label={t('showcase.carouselAria')}
-          aria-roledescription="carousel"
-        >
-          {FEATURES.map((f, i) => (
-            <article
-              key={f.id}
-              className={styles.slide}
-              aria-roledescription="slide"
-              aria-label={`${i + 1} / ${FEATURES.length}`}
-              aria-hidden={i !== activeIdx ? true : undefined}
-            >
-              <div className={styles.slideText}>
-                <span className={styles.slideEyebrow}>{t(f.eyebrowKey)}</span>
-                <h2 className={styles.slideTitle}>{t(f.titleKey)}</h2>
-                <p className={styles.slideBody}>{t(f.bodyKey)}</p>
-                {f.cta ? f.cta() : null}
-              </div>
-              <div className={styles.slideVisual}>{f.mock()}</div>
-            </article>
-          ))}
+      <div className={styles.hero}>
+        <div className={styles.heroText}>
+          <span className={styles.eyebrow}>{t('showcase.eyebrow')}</span>
+          <h1 id="showcase-title" className={styles.title}>
+            {t('showcase.title')}
+          </h1>
+          <p className={styles.lead}>{t('showcase.lead')}</p>
+          <ProfileClaimCta />
+          <div className={styles.modeStrip} aria-label={t('agentMode.aria')}>
+            {MODE_CHIPS.map((m) => (
+              <span key={m.labelKey} className={styles.modeChip}>
+                <span aria-hidden>{m.emoji}</span>
+                <span>{t(m.labelKey)}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className={styles.heroVisual}>
+          <MockAgent />
         </div>
       </div>
 
-      {/* Plain navigation buttons, not an ARIA tablist — slides aren't
-          tabpanels (the carousel scrolls a single track of articles, no
-          per-tab `aria-controls`/panel pair). aria-current="true" tells
-          screen readers which slide is active without faking a pattern
-          we don't fulfil. */}
-      <div className={styles.dots} aria-label={t('showcase.dotsAria')}>
-        {FEATURES.map((f, i) => (
-          <button
-            key={f.id}
-            type="button"
-            className={`${styles.dot} ${i === activeIdx ? styles.dotActive : ''}`}
-            aria-current={i === activeIdx ? 'true' : undefined}
-            aria-label={t(f.titleKey)}
-            onClick={() => setActiveIdx(i)}
-          />
+      <ul className={styles.featureGrid} aria-label={t('showcase.featuresGridAria')}>
+        {secondary.map((f) => (
+          <li key={f.id} className={styles.featureCard}>
+            <div className={styles.featureMock}>{f.mock}</div>
+            <span className={styles.featureEyebrow}>{t(f.eyebrowKey)}</span>
+            <h2 className={styles.featureTitle}>{t(f.titleKey)}</h2>
+            <p className={styles.featureBody}>{t(f.bodyKey)}</p>
+          </li>
         ))}
-      </div>
-
-      <div className={styles.modeStrip} aria-label={t('agentMode.aria')}>
-        {MODE_CHIPS.map((m) => (
-          <span key={m.labelKey} className={styles.modeChip}>
-            <span aria-hidden>{m.emoji}</span>
-            <span>{t(m.labelKey)}</span>
-          </span>
-        ))}
-      </div>
+      </ul>
     </section>
   );
 }
 
-/* ────────── Slide CTAs ────────── */
+/* ────────── Hero CTA ────────── */
 
 /**
- * "Claim your acoffee.com/yourname" inline CTA for the profile slide.
- * Opens AuthModal; after sign-in lands on `/account?focus=username` so
- * AccountPage scrolls to and focuses the slug picker (the whole reason
- * the visitor tapped this).
+ * Page-level "Claim acoffee.com/yourname" CTA. Lifted from the old profile
+ * slide to be the homepage's primary action. Opens AuthModal; after
+ * sign-in lands on `/account?focus=username` so AccountPage scrolls to and
+ * focuses the slug picker.
  *
- * Auth gate / signed-in suppression: HomeFeatureShowcase already
- * returns null for signed-in users, so the CTA is auto-hidden for
- * them. We still need the build-flag gate so the modal isn't a
- * dead-end when auth is disabled.
+ * Auth gate / signed-in suppression: HomeFeatureShowcase already returns
+ * null for signed-in users, so the CTA is auto-hidden for them. We still
+ * need the build-flag gate so the modal isn't a dead-end when auth is
+ * disabled.
  */
 function ProfileClaimCta() {
   const { t, locale } = useI18n();
@@ -207,21 +116,21 @@ function ProfileClaimCta() {
     <>
       <button
         type="button"
-        className={styles.slideCta}
+        className={styles.heroCta}
         onClick={() => setModalOpen(true)}
         aria-label={t('homeCta.aria')}
       >
-        <span className={styles.slideCtaIcon} aria-hidden>
+        <span className={styles.heroCtaIcon} aria-hidden>
           ☕
         </span>
-        <span className={styles.slideCtaCopy}>
-          <span className={styles.slideCtaLead}>{t('homeCta.lead')}</span>
-          <span className={styles.slideCtaUrl}>
+        <span className={styles.heroCtaCopy}>
+          <span className={styles.heroCtaLead}>{t('homeCta.lead')}</span>
+          <span className={styles.heroCtaUrl}>
             acoffee.com/
-            <span className={styles.slideCtaSlug}>{t('homeCta.slugPlaceholder')}</span>
+            <span className={styles.heroCtaSlug}>{t('homeCta.slugPlaceholder')}</span>
           </span>
         </span>
-        <span className={styles.slideCtaArrow} aria-hidden>
+        <span className={styles.heroCtaArrow} aria-hidden>
           →
         </span>
       </button>
@@ -238,7 +147,7 @@ function ProfileClaimCta() {
   );
 }
 
-/* ────────── Mocks (unchanged from row-layout version) ────────── */
+/* ────────── Mocks (unchanged from carousel version) ────────── */
 
 function MockAgent() {
   const { t } = useI18n();
@@ -389,10 +298,6 @@ function MockProposal() {
 }
 
 function MockOwnerCafe() {
-  // Mocks a search-result card with the new reverse-link attribution
-  // chip: shows the verified ✓ + "Owned by" wording when the cafe owner
-  // has matched their email domain, plus a one-liner pinned note that
-  // demonstrates the "what's brewing this week" hook in real layout.
   return (
     <div className={styles.mockOwnerCafe}>
       <div className={styles.ownerCafeHeader}>
@@ -404,8 +309,6 @@ function MockOwnerCafe() {
         <span className={styles.ownerCafePinnedLabel}>This week</span>
         <span>Seasonal Yirgacheffe is back — until Sunday.</span>
       </div>
-      {/* Mock chip — pure visual, not interactive. Use a span (not <a>
-          without href) so it doesn't read as a broken link. */}
       <span className={`${styles.ownerCafeChip} ${styles.ownerCafeChipVerified}`}>
         <span aria-hidden>✓</span>
         Owned by @bluebottle
