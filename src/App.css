@@ -153,7 +153,10 @@ body {
     padding: 1.5rem;
     padding-bottom: calc(1.5rem + var(--bottom-nav-safe));
     gap: 1.5rem;
-    max-width: 1400px;
+    /* Matches AppHero/.inner and HomeFeatureShowcase/.wrap so the hero
+     * and the main content share an outer width — no visual jump
+     * between the two sections at desktop sizes. */
+    max-width: 1280px;
     margin: 0 auto;
     width: 100%;
   }
@@ -177,20 +180,22 @@ body {
     border-radius: 12px;
   }
 
-  /* Pre-search inline mode on desktop: collapse the row layout to a single
-     centered column and let the form cards expand to fit. The .sidebar
-     desktop rules (380px width, max-height + overflow scroll) only make
-     sense alongside a map sibling, so override them when inline. */
+  /* Pre-search inline mode on desktop: outer container shares the 1280px
+     cap with hero so the page edges line up; the form itself stays at a
+     readable 720px, centered inside that wider container. This kills the
+     "wide hero / narrow column" jump the user noticed without forcing the
+     form into an awkward 1280px stretch. */
   .main.mainInline {
     flex-direction: column;
-    max-width: 720px;
+    max-width: 1280px;
   }
 
   .sidebar.sidebarInline {
     width: 100%;
+    max-width: 720px;
+    align-self: center;
     max-height: none;
     overflow: visible;
-    align-self: stretch;
   }
 }
 

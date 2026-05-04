@@ -1,15 +1,11 @@
 .hero {
-  /* Soft warm radial behind the showcase — gives the section a "premium
-   * landing" feel without committing to a hard banner. The two stops
-   * are very close in luminance so the gradient is felt, not seen. */
-  background:
-    radial-gradient(
-      ellipse 1100px 480px at 50% 0%,
-      rgba(111, 78, 55, 0.06),
-      transparent 70%
-    ),
-    var(--ac-page-bg);
-  border-bottom: 1px solid var(--ac-border);
+  /* Hero used to carry its own gradient + border-bottom. That created a
+   * hard horizontal seam between the wide hero and the narrower main
+   * content below (especially in the pre-search inline form layout).
+   * We let the hero share --ac-page-bg with the rest of the page now;
+   * the showcase carries its own subtle background-glow inside its
+   * own .wrap so the section still has presence without the seam. */
+  background: var(--ac-page-bg);
   padding: 1.5rem 1rem 1.25rem;
 }
 
