@@ -3,7 +3,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { featuredCafes, user, visitedShops } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/passport';
+import { jsonError } from '../../_lib/jsonError';
 import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 
 /**

@@ -1,5 +1,5 @@
 import type { AuthEnv } from '../../../_lib/auth';
-import { jsonError } from '../../../_lib/passport';
+import { jsonError } from '../../../_lib/jsonError';
 import { rateLimit, rateLimitResponse } from '../../../_lib/rateLimit';
 
 /**
@@ -75,7 +75,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ params, request, en
     }
     if (cached) {
       const url = buildPublicUrl(env, cached);
-      if (url) return Response.redirect(url, 302);
+      if (url) return redirectWithCache(url);
     }
   }
 
@@ -151,5 +151,21 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ params, request, en
 
   const url = buildPublicUrl(env, key);
   if (!url) return jsonError('Place photo public URL missing', 500);
-  return Response.redirect(url, 302);
+  return redirectWithCache(url);
 };
+
+/* Browsers don't cache 302s by default — without an explicit
+ * Cache-Control header every profile-page visit re-pings the Worker
+ * for each cafe thumbnail (5 redirects on a typical profile). The
+ * underlying R2 object is immutable per place_id so a long max-age
+ * is safe; the value mirrors R2_CACHE_CONTROL above so the redirect
+ * lifetime tracks the bucket lifetime. */
+function redirectWithCache(url: string): Response {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: url,
+      'cache-control': 'public, max-age=2592000, immutable',
+    },
+  });
+}

@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { bookings, user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/passport';
+import { jsonError } from '../../_lib/jsonError';
 import { verifyCancelToken } from '../../_lib/cancelToken';
 import {
   formatTimePair,

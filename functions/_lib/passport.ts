@@ -220,22 +220,8 @@ export async function getSessionContext(env: AuthEnv, request: Request) {
   return { user: result.user, sessionId: (result.session as { id?: string } | undefined)?.id ?? null };
 }
 
-export function jsonError(message: string, status: number): Response {
-  return Response.json({ error: message }, { status });
-}
-
-/**
- * Like jsonError but includes a stable `code` field so the client can
- * pick a localized string instead of displaying the server's English
- * `error` verbatim. Use for failure modes the UI wants to render with
- * advice or specific copy (e.g. "addresses too far apart" + suggestion
- * to try closer locations).
- */
-export function jsonErrorCoded(
-  message: string,
-  code: string,
-  status: number,
-  extra?: Record<string, unknown>,
-): Response {
-  return Response.json({ error: message, code, ...extra }, { status });
-}
+/* jsonError + jsonErrorCoded live in ./jsonError now so endpoints that
+ * only need an error helper don't transitively pull in Better Auth +
+ * the Resend SDK via this module. Re-exported here so existing call
+ * sites that import { jsonError } from passport keep working. */
+export { jsonError, jsonErrorCoded } from './jsonError';

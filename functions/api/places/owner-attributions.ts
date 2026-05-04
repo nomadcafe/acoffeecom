@@ -3,7 +3,7 @@ import { and, eq, inArray } from 'drizzle-orm';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { featuredCafes, user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/passport';
+import { jsonError } from '../../_lib/jsonError';
 import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 
 /**
@@ -44,7 +44,12 @@ interface Attribution {
   verified: boolean;
 }
 
-const CACHE_TTL_S = 300;
+/* Owner profiles are extremely sticky — a featured-cafe row rarely
+ * changes once set, and a new owner profile is the kind of change a
+ * 1h propagation delay is fine for. The previous 5-min TTL forced ~12x
+ * more D1 reads than necessary on every owner-attribution lookup
+ * because the cache was constantly missing on the same place IDs. */
+const CACHE_TTL_S = 60 * 60;
 const CACHE_PREFIX = 'owner:';
 const NEGATIVE_MARKER = '__none__';
 
@@ -53,12 +58,12 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, wait
    * KV negative cache absorbs popular cafes but a fresh-id flood would
    * still hammer D1). 60 requests per 10 minutes covers genuine search
    * use; beyond that is scraping / abuse. */
-  const result = await rateLimit(
+  const rl = await rateLimit(
     request,
     { waitUntil },
     { bucket: 'places-owner-attr', limit: 60, windowSec: 600 },
   );
-  if (!result.ok) return rateLimitResponse(result);
+  if (!rl.ok) return rateLimitResponse(rl);
 
   let input: z.infer<typeof InputSchema>;
   try {

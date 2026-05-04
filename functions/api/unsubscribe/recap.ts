@@ -18,7 +18,7 @@ import { eq } from 'drizzle-orm';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/passport';
+import { jsonError } from '../../_lib/jsonError';
 import { verifyUnsubToken } from '../../_lib/unsubToken';
 
 async function unsubscribe(env: AuthEnv, userId: string, token: string): Promise<Response> {

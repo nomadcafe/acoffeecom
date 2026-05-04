@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { AuthEnv } from '../../_lib/auth';
-import { jsonError } from '../../_lib/passport';
+import { jsonError } from '../../_lib/jsonError';
 import { rateLimit, rateLimitResponse } from '../../_lib/rateLimit';
 import {
   GoogleMapsError,

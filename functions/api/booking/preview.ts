@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/passport';
+import { jsonError } from '../../_lib/jsonError';
 import {
   GoogleMapsError,
   geocodeAddress,

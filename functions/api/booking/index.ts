@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { bookingAttempts, bookings, user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/passport';
+import { jsonError } from '../../_lib/jsonError';
 import {
   hasCollision,
   isSlotInAvailability,
