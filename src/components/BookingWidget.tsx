@@ -175,11 +175,22 @@ export function BookingWidget({ username, displayName }: Props) {
   // Also filters out slots that are now within MIN_LEAD_MINUTES — server
   // would 400 those anyway and the message ("Slot must be at least 1 hour
   // in the future") doesn't tell the visitor it was a stale-page issue.
+  //
+  // `nowTick` ticks forward every minute so a tab left open for hours
+  // doesn't keep displaying slots that have since crossed the lead-time
+  // cutoff. Without it, useMemo's [data] dep would freeze the cutoff at
+  // first render and the visitor could click a slot that's now 10
+  // minutes away and get a confusing 400.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const groupedByDay = useMemo(() => {
     const map = new Map<string, { dayKey: string; date: Date; slots: number[] }>();
     if (!data) return map;
-    // eslint-disable-next-line react-hooks/purity
-    const cutoff = Date.now() + MIN_LEAD_MINUTES * 60_000;
+    const cutoff = nowTick + MIN_LEAD_MINUTES * 60_000;
     for (const ms of data.slots) {
       if (ms < cutoff) continue;
       const d = new Date(ms);
@@ -192,7 +203,7 @@ export function BookingWidget({ username, displayName }: Props) {
       }
     }
     return map;
-  }, [data]);
+  }, [data, nowTick]);
 
   const dayList = useMemo(
     () => Array.from(groupedByDay.values()).sort((a, b) => a.date.getTime() - b.date.getTime()),

@@ -348,6 +348,16 @@ function AddressField({
     [query]
   );
 
+  /* Clear any pending debounce timer on unmount. Without this, toggling
+   * the third party off (or unmounting LocationInput entirely) mid-typing
+   * lets a late timer fire query() against a hook whose suggestions
+   * nobody renders — billable Places call for nothing. */
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current != null) window.clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value;
     onChange(next);

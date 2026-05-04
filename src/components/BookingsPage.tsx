@@ -809,12 +809,23 @@ function ApproveRequestModal({
 }: ApproveModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Standard focus-trap pattern (same as ActionConfirmModal). The
-  // search input gets initial focus so the host can start typing the
-  // café name immediately.
+
+  /* Mount-only side effects: focus the search input and trigger the
+   * featured-cafés lazy load. Split from the keydown effect below
+   * because including `busy` in this deps list would re-fire focus
+   * the moment the host clicks Approve — pulling focus out of any
+   * datetime-local input mid-edit. */
   useEffect(() => {
     inputRef.current?.focus();
     onLoadFeaturedCafes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* Standard focus-trap (same as ActionConfirmModal). Re-binding the
+   * keydown handler when `busy` flips is cheap and correct — it only
+   * swaps the listener, no focus side effect — so we keep busy in the
+   * deps so the Escape gate sees the current state. */
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape' && !busy) {
         onClose();
@@ -838,10 +849,6 @@ function ApproveRequestModal({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // onLoadFeaturedCafes is captured in closure but the parent caches
-    // the fetch — re-running this effect on its identity would still
-    // be cheap, but eslint-disable here keeps the deps minimal.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose, busy]);
 
   const acLanguage = locale === 'zh' ? 'zh-CN' : locale;
@@ -1170,8 +1177,14 @@ function RejectRequestModal({
 }: RejectModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Initial-focus on mount only — see ApproveRequestModal for why this
+  // can't share the keydown effect's deps.
   useEffect(() => {
     textareaRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape' && !busy) {
         onClose();

@@ -313,6 +313,13 @@ function SignedInAccountPage({
           `/api/account/username?value=${encodeURIComponent(trimmed)}`,
           { signal: ctrl.signal },
         );
+        // Stale-response guard: a slow response from a superseded request
+        // could otherwise overwrite a fresh "checking" / "available" set
+        // by the next debounce window with stale data — including
+        // letting the user submit a name the new server response would
+        // have called taken. Bail before any setAvailability if the
+        // controller has been aborted by the next cleanup.
+        if (ctrl.signal.aborted) return;
         if (!res.ok) {
           setAvailability({ kind: 'idle' });
           return;
@@ -320,11 +327,22 @@ function SignedInAccountPage({
         const json = (await res.json()) as
           | { available: true }
           | { available: false; reason: 'invalid' | 'reserved' | 'taken' };
+        if (ctrl.signal.aborted) return;
         setAvailability(
           json.available ? { kind: 'available' } : { kind: 'unavailable', reason: json.reason },
         );
-      } catch {
-        // network/abort — leave indicator quiet, server will re-validate on submit
+      } catch (err) {
+        // AbortError is expected when the next debounce supersedes us;
+        // leave the indicator alone so the next effect's "checking" is
+        // not flapped back to idle.
+        if (
+          err instanceof DOMException && err.name === 'AbortError' ||
+          ctrl.signal.aborted
+        ) {
+          return;
+        }
+        // Real network error — server will re-validate on submit, so
+        // a quiet idle is the right UX here.
         setAvailability({ kind: 'idle' });
       }
     }, CHECK_DEBOUNCE_MS);
@@ -1109,6 +1127,18 @@ function ProfileVisibilityCard({ hasUsername, username, initial }: VisibilityPro
   const [enabled, setEnabled] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Re-sync from prop when the parent re-fetches the session (e.g. after a
+   * username save). Without this, a server-side change made elsewhere
+   * — including the user's own edits in another tab — would be invisible
+   * here, and the next save would PATCH stale state back over the new
+   * server value. Skipped while a save is in flight so the optimistic
+   * flip isn't immediately reverted by a stale prop. */
+  useEffect(() => {
+    if (!busy) setEnabled(initial);
+    // We intentionally only react to `initial` changes — not `busy` — so a
+    // mid-flight optimistic flip doesn't trigger an extra re-sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial]);
 
   const canToggle = hasUsername && !busy;
 
@@ -1184,6 +1214,11 @@ function MonthlyRecapCard({ initial }: RecapToggleProps) {
   const [testStatus, setTestStatus] = useState<
     { kind: 'sent' | 'skipped' | 'error'; message: string } | null
   >(null);
+  // Re-sync on parent session refetch — see ProfileVisibilityCard for why.
+  useEffect(() => {
+    if (!busy) setEnabled(initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial]);
   // Auto-fade non-error outcomes; "error" stays so the user can read it.
   useEffect(() => {
     if (!testStatus || testStatus.kind === 'error') return;
@@ -1460,6 +1495,11 @@ function AvatarCard({ initialImage }: { initialImage: string | null }) {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StatusBanner>(null);
   useAutoDismissOk(status, setStatus);
+  // Re-sync on parent session refetch — see ProfileVisibilityCard for why.
+  useEffect(() => {
+    if (!busy) setImage(initialImage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialImage]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // Abort + unmount guard: avatar uploads are slow on cellular, the
   // user can navigate away mid-flight. Without these, fetch resolves
@@ -1634,6 +1674,26 @@ function BasicProfileCard({ initialDisplayName, initialBio }: BasicProfileProps)
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StatusBanner>(null);
   useAutoDismissOk(status, setStatus);
+  /* Re-sync on parent session refetch — same reason as the toggle cards.
+   * For typeable inputs we must NOT clobber an in-progress edit, so we
+   * track the last prop value we saw and only sync if (a) no save is in
+   * flight and (b) the local value still matches what we last synced
+   * from props. If the user has typed since we synced, lastSynced !==
+   * current, so we skip the update and preserve their draft. */
+  const lastSyncedDisplay = useRef(initialDisplayName);
+  const lastSyncedBio = useRef(initialBio);
+  useEffect(() => {
+    if (busy) return;
+    if (initialDisplayName !== lastSyncedDisplay.current && displayName === lastSyncedDisplay.current) {
+      setDisplayName(initialDisplayName);
+    }
+    lastSyncedDisplay.current = initialDisplayName;
+    if (initialBio !== lastSyncedBio.current && bio === lastSyncedBio.current) {
+      setBio(initialBio);
+    }
+    lastSyncedBio.current = initialBio;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDisplayName, initialBio, busy]);
 
   async function handleSave() {
     if (busy) return;
@@ -1727,6 +1787,32 @@ function SocialLinksCard({ initialSocialLinks, initialShowSocialLinks }: SocialL
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StatusBanner>(null);
   useAutoDismissOk(status, setStatus);
+  /* Re-sync on parent session refetch — see BasicProfileCard for the
+   * pattern. Comparing arrays of {label,url} objects with === would
+   * always fail (the parent re-parses on every render), so we serialize
+   * the meaningful fields. _key is internal-only and intentionally
+   * excluded from the comparison. */
+  const linksKey = (arr: SocialLinkDraft[]) =>
+    JSON.stringify(arr.map((l) => [l.label, l.url]));
+  const lastSyncedLinks = useRef(linksKey(initialSocialLinks));
+  const lastSyncedShow = useRef(initialShowSocialLinks);
+  useEffect(() => {
+    if (busy) return;
+    const propLinksKey = linksKey(initialSocialLinks);
+    const localLinksKey = linksKey(links);
+    if (propLinksKey !== lastSyncedLinks.current && localLinksKey === lastSyncedLinks.current) {
+      setLinks(initialSocialLinks);
+    }
+    lastSyncedLinks.current = propLinksKey;
+    if (
+      initialShowSocialLinks !== lastSyncedShow.current &&
+      showLinks === lastSyncedShow.current
+    ) {
+      setShowLinks(initialShowSocialLinks);
+    }
+    lastSyncedShow.current = initialShowSocialLinks;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSocialLinks, initialShowSocialLinks, busy]);
 
   function setLinkField(idx: number, field: 'label' | 'url', value: string) {
     setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
@@ -1898,6 +1984,11 @@ function ThemeCard({ initialPreset }: { initialPreset: ThemePreset }) {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StatusBanner>(null);
   useAutoDismissOk(status, setStatus);
+  // Re-sync on parent session refetch — see ProfileVisibilityCard for why.
+  useEffect(() => {
+    if (!busy) setPreset(initialPreset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPreset]);
 
   async function handlePick(next: ThemePreset) {
     if (busy || next === preset) return;
@@ -1975,6 +2066,18 @@ function FeaturedCafesCard() {
   // resolves — see suggestions onClick below for the failure mode.
   const pickingRef = useRef(false);
   const cafeAutocomplete = useCafeAutocomplete(locale === 'zh' ? 'zh-CN' : locale);
+  /* Mount guard for fetches that don't go through the mount-effect's
+   * cancelled flag — specifically the post-save refresh in handleSave.
+   * If the user navigates away while that refresh is in flight, its
+   * setCafes would otherwise wipe the in-memory list and (in a fast
+   * re-mount) blank out cafes the user just saved. */
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Hydrate the featured-cafes list from /api/account on mount. Lives in
   // its own table, so it can't piggyback on the Better Auth session like
@@ -2111,7 +2214,7 @@ function FeaturedCafesCard() {
               ownerVerified: boolean;
             }>;
           };
-          if (data.featuredCafes) {
+          if (data.featuredCafes && mountedRef.current) {
             setCafes(
               data.featuredCafes.map((c) => ({
                 placeId: c.placeId, name: c.name, address: c.address, lat: c.lat, lng: c.lng,
