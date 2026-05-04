@@ -121,8 +121,10 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
       cafeAddress: row.placeAddress,
     });
     const resend = new Resend(env.RESEND_API_KEY);
-    await Promise.allSettled([
-      resend.emails.send({
+    /* Notification — log on failure but the cancellation already
+     * committed in DB so the host will see it on /bookings either way. */
+    try {
+      await resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: organizer.email,
         // Visitor is the one who cancelled — set Reply-To to them so the
@@ -130,8 +132,14 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
         replyTo: row.visitorEmail,
         subject: `${row.visitorName} cancelled their coffee`,
         html,
-      }),
-    ]);
+      });
+    } catch (e) {
+      console.error('[booking-emails] organizer cancellation send failed', {
+        bookingId: row.id,
+        to: organizer.email,
+        err: e instanceof Error ? e.message : String(e),
+      });
+    }
   }
 
   const resp: CancelResponse = {

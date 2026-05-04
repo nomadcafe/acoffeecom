@@ -107,15 +107,25 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
         </div>
       </body></html>`;
       const resend = new Resend(env.RESEND_API_KEY);
-      await Promise.allSettled([
-        resend.emails.send({
+      /* Rejection notice — log on failure; the rejection already
+       * committed. Visitor will see the rejected status if they sign
+       * in, or will simply not get a reply (and can rebook another
+       * slot). */
+      try {
+        await resend.emails.send({
           from: env.RESEND_FROM_EMAIL,
           to: row.visitorEmail,
           replyTo: organizer.email,
           subject: `${handle} can't make that coffee time`,
           html,
-        }),
-      ]);
+        });
+      } catch (e) {
+        console.error('[booking-emails] reject notification send failed', {
+          bookingId: id,
+          to: row.visitorEmail,
+          err: e instanceof Error ? e.message : String(e),
+        });
+      }
     }
   }
 

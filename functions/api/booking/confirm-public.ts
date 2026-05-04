@@ -148,8 +148,11 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     );
     const reviewUrl = 'https://acoffee.com/bookings';
     const resend = new Resend(env.RESEND_API_KEY);
-    await Promise.allSettled([
-      resend.emails.send({
+    /* Notification email — log on failure but don't fail the API. The
+     * status flip already committed; if Resend blips, the host will
+     * still discover the new request next time they open /bookings. */
+    try {
+      await resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: organizer.email,
         replyTo: row.visitorEmail,
@@ -162,8 +165,14 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
           message: row.visitorMessage ?? null,
           reviewUrl,
         }),
-      }),
-    ]);
+      });
+    } catch (e) {
+      console.error('[booking-emails] host request-received send failed', {
+        bookingId: row.id,
+        to: organizer.email,
+        err: e instanceof Error ? e.message : String(e),
+      });
+    }
   }
 
   const resp: ConfirmResponse = {

@@ -264,8 +264,21 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     }).format(new Date(slotMs));
 
     const resend = new Resend(env.RESEND_API_KEY);
-    await Promise.allSettled([
-      resend.emails.send({
+    /* CRITICAL path. The magic-link email is the visitor's only way
+     * forward — without it the row sits in 'unconfirmed' indefinitely
+     * and the host is never notified. Unlike the notification emails
+     * elsewhere in the booking flow (where the action has already
+     * committed and the recipient can find out from /bookings), this
+     * one MUST surface failure to the client. We also rollback the
+     * row so the visitor can retry without bumping into the duplicate
+     * cooldown on the same (organizer, email) pair, and so we don't
+     * leave dead rows accumulating on Resend outages.
+     *
+     * The booking_attempts row stays — that's a defensive rate-limit
+     * record, not a booking; preserving it keeps the per-IP throttle
+     * meaningful even when sends fail. */
+    try {
+      await resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: input.visitorEmail,
         // Reply-to = host email so a "wait, never mind" reply still
@@ -279,8 +292,20 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
           startStr,
           confirmUrl,
         }),
-      }),
-    ]);
+      });
+    } catch (e) {
+      console.error('[booking-emails] visitor magic-link send failed', {
+        bookingId: id,
+        to: input.visitorEmail,
+        err: e instanceof Error ? e.message : String(e),
+      });
+      // Roll back the row so the visitor can retry cleanly.
+      await db.delete(bookings).where(eq(bookings.id, id));
+      return jsonError(
+        "We couldn't send the confirmation email — please try again in a moment.",
+        502,
+      );
+    }
   }
 
   return Response.json({

@@ -215,8 +215,11 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
       const cancelToken = await makeCancelToken(env.AUTH_SECRET, id, cancelExpiresAt);
       const cancelUrl = `https://acoffee.com/booking/cancel?id=${encodeURIComponent(id)}&t=${encodeURIComponent(cancelToken)}`;
       const resend = new Resend(env.RESEND_API_KEY);
-      await Promise.allSettled([
-        resend.emails.send({
+      /* Approval notice — log on failure but the status flip already
+       * committed. Visitor will see the approved booking next time
+       * they open /bookings (or the host's /yourname page). */
+      try {
+        await resend.emails.send({
           from: env.RESEND_FROM_EMAIL,
           to: row.visitorEmail,
           replyTo: organizer.email,
@@ -234,8 +237,14 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
             visitorMessage: row.visitorMessage ?? null,
             cancelUrl,
           }),
-        }),
-      ]);
+        });
+      } catch (e) {
+        console.error('[booking-emails] approve notification send failed', {
+          bookingId: id,
+          to: row.visitorEmail,
+          err: e instanceof Error ? e.message : String(e),
+        });
+      }
     }
   }
 

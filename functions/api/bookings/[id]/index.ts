@@ -99,8 +99,12 @@ export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env, pa
     }
 
     const resend = new Resend(env.RESEND_API_KEY);
-    await Promise.allSettled([
-      resend.emails.send({
+    /* Host-side cancellation notice — log on failure; the cancel
+     * already committed and the visitor's own /bookings view (when
+     * signed in) will reflect it. Reply-To stays the host so the
+     * visitor can ask about rescheduling. */
+    try {
+      await resend.emails.send({
         from: env.RESEND_FROM_EMAIL,
         to: row.visitorEmail,
         // Host cancelled — Reply-To = host so the visitor can ask
@@ -109,8 +113,14 @@ export const onRequestDelete: PagesFunction<AuthEnv> = async ({ request, env, pa
         replyTo: organizer?.email,
         subject,
         html,
-      }),
-    ]);
+      });
+    } catch (e) {
+      console.error('[booking-emails] host-cancel notice send failed', {
+        bookingId: row.id,
+        to: row.visitorEmail,
+        err: e instanceof Error ? e.message : String(e),
+      });
+    }
   }
 
   return Response.json({ ok: true, intent });
