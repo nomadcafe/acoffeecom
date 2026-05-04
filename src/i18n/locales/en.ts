@@ -18,6 +18,7 @@ export const messages: MessageDict = {
     'AI agent that picks the fairest coffee shop for two or three people meeting up — using real transit time across each party, not just a geographic midpoint. Includes a public profile surface at acoffee.com/yourname for one-tap coffee bookings.',
 
   'app.logoAlt': 'A Coffee',
+  'app.skipToContent': 'Skip to content',
   'app.title': 'ACoffee',
   'heroSignedIn.morning': 'Good morning.',
   'heroSignedIn.afternoon': 'Good afternoon.',
@@ -85,6 +86,7 @@ export const messages: MessageDict = {
   'list.foundOneMeetup': '{{count}} place found',
   'list.foundManyMeetup': '{{count}} places found',
   'list.resultNoteCoffee': 'ACoffee returns up to 20 coffee spots per search.',
+  'list.selectCardAria': 'Select {{name}}, {{rating}} stars',
   'list.resultNoteMeetup': 'ACoffee returns up to 20 places per search for your meetup.',
   'list.fairnessExplain':
     "Sorted so everyone's travel time is as equal as possible. Real transit minutes when available, falling back to straight-line distance.",
@@ -508,6 +510,21 @@ export const messages: MessageDict = {
   'profile.featuredCafeLinkMenu': 'Menu',
   'profile.featuredCafeLinkBooking': 'Reservations',
   'showcase.eyebrow': 'AI-powered · Free · No app to install',
+  /* Mock-data labels for the home showcase (anonymous-visitor hero).
+   * Proper nouns (café names, "Alex", addresses) stay in source so the
+   * preview reads as authentic data; only UI labels translate. */
+  'showcase.mock.profileBio': 'Coffee, midpoints, and the occasional croissant.',
+  'showcase.mock.linkSite': 'Site',
+  'showcase.mock.proposalEyebrow': '📨 Proposal from Alex',
+  'showcase.mock.proposalHeadline': 'Coffee at Blue Bottle',
+  'showcase.mock.proposalMeta': 'Tomorrow · 3:00 PM · Shibuya',
+  'showcase.mock.proposalOk': 'OK',
+  'showcase.mock.proposalDifferent': 'Different café',
+  'showcase.mock.proposalLater': 'Later',
+  'showcase.mock.minWalk': '{{min}} min walk',
+  'showcase.mock.thisWeek': 'This week',
+  'showcase.mock.thisWeekNote': 'Seasonal Yirgacheffe is back — until Sunday.',
+  'showcase.mock.ownedBy': 'Owned by',
   'showcase.featuresGridAria': 'ACoffee features',
   'showcase.title': 'What is ACoffee?',
   'showcase.lead': 'An AI agent that picks where to meet for coffee, plus everything around the table.',

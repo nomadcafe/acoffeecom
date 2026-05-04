@@ -47,8 +47,11 @@ export function SavePassportToast({ onSignIn }: SavePassportToastProps) {
     onSignIn();
   }
 
+  // role=status (a polite live region by default) is the right semantic
+  // for a toast — role=dialog without aria-modal/labelledby is misleading
+  // to AT and would also fight focus management.
   return (
-    <div className={styles.toast} role="dialog" aria-live="polite">
+    <div className={styles.toast} role="status" aria-live="polite">
       <button
         type="button"
         className={styles.close}

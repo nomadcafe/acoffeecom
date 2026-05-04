@@ -181,6 +181,16 @@ export function CoffeeShopList() {
             }}
             role="button"
             tabIndex={0}
+            /* SR users hear the "button" role only with whatever the first
+             * text node happens to be — so without an explicit name they
+             * lose the rating + distance signals that drive the choice.
+             * Pass the shop name and key qualifier so the announcement
+             * is "Select <name>, <rating> stars". */
+            aria-label={t('list.selectCardAria', {
+              name: shop.name,
+              rating: typeof shop.rating === 'number' ? shop.rating.toFixed(1) : '—',
+            })}
+            aria-pressed={selectedCoffeeShopId === shop.id}
             className={`${styles.cardWrap} ${selectedCoffeeShopId === shop.id ? styles.cardWrapSelected : ''}`}
             onClick={() => setSelectedCoffeeShopId(shop.id)}
             onKeyDown={(e) => {

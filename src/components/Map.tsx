@@ -551,7 +551,10 @@ function InfoWindowBody({
   }, []);
   return (
     <div className={styles.infoWindow} role="dialog" aria-labelledby={titleId}>
-      <h4 id={titleId} ref={titleRef} tabIndex={-1}>{titleText}</h4>
+      {/* h2 not h4 — page-level h1 → infowindow header is one step
+          down. Using h4 here jumps two levels and breaks heading
+          navigation for SR users. */}
+      <h2 id={titleId} ref={titleRef} tabIndex={-1} className={styles.infoWindowTitle}>{titleText}</h2>
       {children}
     </div>
   );

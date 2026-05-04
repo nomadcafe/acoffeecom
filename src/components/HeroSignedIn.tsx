@@ -90,9 +90,15 @@ export function HeroSignedIn() {
           )}
         </div>
         <div className={styles.identityText}>
-          <p id="hero-signed-in-title" className={styles.greeting}>
+          {/* h1 so the signed-in home has a real top-of-page heading.
+              Without it, SR users navigating by heading land in the
+              page with no orientation cue (the public-marketing showcase
+              has its own h1 inside HomeFeatureShowcase, but that branch
+              never renders for signed-in users). Visual styling stays
+              identical via the existing .greeting class. */}
+          <h1 id="hero-signed-in-title" className={styles.greeting}>
             {greeting}
-          </p>
+          </h1>
           {profileHref ? (
             <a className={styles.profileLink} href={profileHref}>
               acoffee.com/<span className={styles.profileSlug}>{username}</span>

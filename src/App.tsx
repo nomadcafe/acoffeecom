@@ -4,6 +4,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { LOCATION_SYNC_EVENT } from './i18n/locationSync';
 import { useI18n } from './context/I18nContext';
 import { LocationInput } from './components/LocationInput';
+import { SkipToContent } from './components/SkipToContent';
 import { AgentModeChips } from './components/AgentModeChips';
 import { SearchFilters } from './components/SearchFilters';
 import { CoffeeShopList } from './components/CoffeeShopList';
@@ -141,6 +142,7 @@ function AppShell() {
 
   return (
     <div className="app">
+      <SkipToContent />
       <header className="header">
         <div className="headerInner">
           <a className="logo" href={homeHref} aria-label={t('app.logoAlt')}>
@@ -167,7 +169,11 @@ function AppShell() {
       <CoffeeNudge />
       <StreakReminder />
 
-      <main className={useInlinePreSearch ? 'main mainInline' : 'main'}>
+      <main
+        id="content"
+        tabIndex={-1}
+        className={useInlinePreSearch ? 'main mainInline' : 'main'}
+      >
         {useInlinePreSearch ? (
           <aside className="sidebar sidebarInline">
             <LocationInput />

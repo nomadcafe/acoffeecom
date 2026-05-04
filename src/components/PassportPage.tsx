@@ -15,6 +15,7 @@ import { CoffeeNudge } from './CoffeeNudge';
 import { StreakReminder } from './StreakReminder';
 import { SyncIndicator } from './SyncIndicator';
 import { HeaderNavLinks } from './HeaderNavLinks';
+import { SkipToContent } from './SkipToContent';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { TrajectoryMap } from './TrajectoryMap';
@@ -220,6 +221,7 @@ export function PassportPage() {
 
   return (
     <div className={styles.app}>
+      <SkipToContent />
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
@@ -238,7 +240,7 @@ export function PassportPage() {
         </div>
       </header>
 
-      <main className={styles.main}>
+      <main id="content" tabIndex={-1} className={styles.main}>
         <CoffeeNudge />
         <StreakReminder />
 

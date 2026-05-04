@@ -5,6 +5,7 @@ import { formatAbsoluteDate } from '../utils/relativeTime';
 import { AccountMenu } from './AccountMenu';
 import { BookingWidget } from './BookingWidget';
 import { HeaderNavLinks } from './HeaderNavLinks';
+import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SocialIcon } from './SocialIcon';
 import { SyncIndicator } from './SyncIndicator';
@@ -140,6 +141,7 @@ export function PublicProfilePage({ username }: Props) {
 
   return (
     <div className={styles.app}>
+      <SkipToContent />
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
@@ -159,6 +161,8 @@ export function PublicProfilePage({ username }: Props) {
       </header>
 
       <main
+        id="content"
+        tabIndex={-1}
         className={styles.main}
         data-theme={state.kind === 'ready' ? state.profile.themePreset : undefined}
       >

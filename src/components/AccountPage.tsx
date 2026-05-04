@@ -9,6 +9,7 @@ import { formatAbsoluteDate, formatAbsoluteDateTime } from '../utils/relativeTim
 import { track } from '../utils/analytics';
 import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
+import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SyncIndicator } from './SyncIndicator';
 import { useCafeAutocomplete } from '../hooks/useCafeAutocomplete';
@@ -109,6 +110,7 @@ export function AccountPage() {
   if (isPending) {
     return (
       <div className={styles.app}>
+        <SkipToContent />
         <header className={styles.header}>
           <div className={styles.headerInner}>
             <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
@@ -126,7 +128,7 @@ export function AccountPage() {
             </div>
           </div>
         </header>
-        <main className={styles.main} aria-busy="true">
+        <main id="content" tabIndex={-1} className={styles.main} aria-busy="true">
           <div className={styles.hero}>
             <div className={`${styles.skeletonRow} ${styles.skeletonRowMed}`} />
             <div
@@ -153,6 +155,7 @@ export function AccountPage() {
   if (!sessionUser?.email) {
     return (
       <div className={styles.app}>
+        <SkipToContent />
         <header className={styles.header}>
           <div className={styles.headerInner}>
             <a className={styles.logo} href={homeHref} aria-label={t('app.logoAlt')}>
@@ -170,7 +173,7 @@ export function AccountPage() {
             </div>
           </div>
         </header>
-        <main className={styles.main}>
+        <main id="content" tabIndex={-1} className={styles.main}>
           <div className={styles.signedOut}>
             <p>{t('account.signInRequired')}</p>
             <a className={styles.signedOutCta} href={homeHref}>

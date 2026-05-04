@@ -108,6 +108,48 @@
   box-sizing: border-box;
 }
 
+/* Skip-to-content link. Visually hidden until focused; keyboard users
+ * tab to it as the first focusable element on every page and can jump
+ * straight to <main id="content"> to skip the header. We use a fixed
+ * pseudo-rect with clip-path rather than display:none so screen readers
+ * still announce it. */
+.skip-to-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: var(--ac-accent);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+  z-index: 9999;
+  transform: translateY(-110%);
+  transition: transform var(--ac-motion-fast);
+}
+.skip-to-content:focus,
+.skip-to-content:focus-visible {
+  transform: translateY(0);
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
+/* Global reduced-motion guard. Strip transitions / animations app-wide
+ * when the user has indicated a preference for less motion. Each
+ * component can still opt-in to specific animations via @media within
+ * its own module if needed (e.g. HomeFeatureShowcase keeps the agent
+ * mock's gentle pulse off when this fires, naturally). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 html,
 body {
   /* Stop browser pull-to-refresh / rubber-band from swallowing sheet drags. */

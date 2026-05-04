@@ -92,10 +92,34 @@ export function AuthModal({ open, onClose, callbackURL }: AuthModalProps) {
     queueMicrotask(() => inputRef.current?.focus());
   }, [open]);
 
+  /* Esc + Tab trap. The modal claims aria-modal=true but without a
+   * trap, focus escapes to elements behind the backdrop — keyboard
+   * users can interact with the obscured page through the modal,
+   * which is exactly what aria-modal is supposed to forbid. Mirrors
+   * the trap pattern in DeleteAccountModal / ApproveRequestModal. */
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -180,6 +204,7 @@ export function AuthModal({ open, onClose, callbackURL }: AuthModalProps) {
   // viewport-anchored.
   return createPortal(
     <div
+      ref={dialogRef}
       className={styles.backdrop}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

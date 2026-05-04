@@ -231,18 +231,19 @@ function MockPassport() {
 }
 
 function MockProfile() {
+  const { t } = useI18n();
   return (
     <div className={styles.mockProfile}>
       <div className={styles.profileAvatar}>H</div>
       <div className={styles.profileName}>Hello</div>
       <div className={styles.profileHandle}>@hello · acoffee.com/hello</div>
-      <div className={styles.profileBio}>Coffee, midpoints, and the occasional croissant.</div>
+      <div className={styles.profileBio}>{t('showcase.mock.profileBio')}</div>
       <div className={styles.profileFeatured}>
         <span aria-hidden>📍</span>
         <span><strong>Blue Bottle</strong> · Shibuya, Tokyo</span>
       </div>
       <div className={styles.profileLinks}>
-        <span>🔗 Site</span>
+        <span>🔗 {t('showcase.mock.linkSite')}</span>
         <span>🐦 X</span>
         <span>📷 IG</span>
       </div>
@@ -281,37 +282,39 @@ function MockBooking() {
 }
 
 function MockProposal() {
+  const { t } = useI18n();
   return (
     <div className={styles.mockProposal}>
-      <span className={styles.proposalEyebrow}>📨 Proposal from Alex</span>
+      <span className={styles.proposalEyebrow}>{t('showcase.mock.proposalEyebrow')}</span>
       <div className={styles.proposalHeadline}>
-        ☕ <strong>Coffee at Blue Bottle</strong>
+        ☕ <strong>{t('showcase.mock.proposalHeadline')}</strong>
       </div>
-      <div className={styles.proposalMeta}>Tomorrow · 3:00 PM · Shibuya</div>
+      <div className={styles.proposalMeta}>{t('showcase.mock.proposalMeta')}</div>
       <div className={styles.proposalActions}>
-        <button type="button" disabled className={`${styles.proposalBtn} ${styles.proposalBtnPrimary}`}>OK</button>
-        <button type="button" disabled className={styles.proposalBtn}>Different café</button>
-        <button type="button" disabled className={styles.proposalBtn}>Later</button>
+        <button type="button" disabled className={`${styles.proposalBtn} ${styles.proposalBtnPrimary}`}>{t('showcase.mock.proposalOk')}</button>
+        <button type="button" disabled className={styles.proposalBtn}>{t('showcase.mock.proposalDifferent')}</button>
+        <button type="button" disabled className={styles.proposalBtn}>{t('showcase.mock.proposalLater')}</button>
       </div>
     </div>
   );
 }
 
 function MockOwnerCafe() {
+  const { t } = useI18n();
   return (
     <div className={styles.mockOwnerCafe}>
       <div className={styles.ownerCafeHeader}>
         <strong>Blue Bottle Coffee Kyoto</strong>
         <span className={styles.ownerCafeRating}>★ 4.8</span>
       </div>
-      <div className={styles.ownerCafeAddr}>3-1 Karasuma-dōri · 8 min walk</div>
+      <div className={styles.ownerCafeAddr}>3-1 Karasuma-dōri · {t('showcase.mock.minWalk', { min: 8 })}</div>
       <div className={styles.ownerCafePinned}>
-        <span className={styles.ownerCafePinnedLabel}>This week</span>
-        <span>Seasonal Yirgacheffe is back — until Sunday.</span>
+        <span className={styles.ownerCafePinnedLabel}>{t('showcase.mock.thisWeek')}</span>
+        <span>{t('showcase.mock.thisWeekNote')}</span>
       </div>
       <span className={`${styles.ownerCafeChip} ${styles.ownerCafeChipVerified}`}>
         <span aria-hidden>✓</span>
-        Owned by @bluebottle
+        {t('showcase.mock.ownedBy')} @bluebottle
       </span>
     </div>
   );

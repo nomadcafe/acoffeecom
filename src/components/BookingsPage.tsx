@@ -5,6 +5,7 @@ import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { useCafeAutocomplete, type PickedCafe } from '../hooks/useCafeAutocomplete';
 import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
+import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SyncIndicator } from './SyncIndicator';
 import accountStyles from './AccountPage.module.css';
@@ -182,8 +183,9 @@ export function BookingsPage() {
   if (isPending) {
     return (
       <div className={accountStyles.app}>
+        <SkipToContent />
         <PageHeader homeHref={homeHref} />
-        <main className={accountStyles.main} aria-busy="true">
+        <main id="content" tabIndex={-1} className={accountStyles.main} aria-busy="true">
           <div className={accountStyles.hero}>
             <div className={`${accountStyles.skeletonRow} ${accountStyles.skeletonRowMed}`} />
           </div>
@@ -202,8 +204,9 @@ export function BookingsPage() {
   if (!signedIn) {
     return (
       <div className={accountStyles.app}>
+        <SkipToContent />
         <PageHeader homeHref={homeHref} />
-        <main className={accountStyles.main}>
+        <main id="content" tabIndex={-1} className={accountStyles.main}>
           <div className={accountStyles.signedOut}>
             <p>{t('bookings.signInRequired')}</p>
             <a className={accountStyles.signedOutCta} href={homeHref}>

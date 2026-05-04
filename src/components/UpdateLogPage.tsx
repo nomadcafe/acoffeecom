@@ -3,6 +3,7 @@ import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { changelogByLocale } from '../i18n/changelog';
 import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
+import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SyncIndicator } from './SyncIndicator';
 import styles from './UpdateLogPage.module.css';
@@ -20,6 +21,7 @@ export function UpdateLogPage() {
 
   return (
     <div className={styles.app}>
+      <SkipToContent />
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <div className={styles.brandRow}>
@@ -40,7 +42,7 @@ export function UpdateLogPage() {
         </div>
       </header>
 
-      <main className={styles.main}>
+      <main id="content" tabIndex={-1} className={styles.main}>
         <h1 className={styles.pageTitle}>{t('changelog.pageTitle')}</h1>
         <p className={styles.lead}>{t('changelog.pageLead')}</p>
         <div className={styles.list}>
