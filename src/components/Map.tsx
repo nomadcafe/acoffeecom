@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { GoogleMap, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, InfoWindow, PolylineF } from '@react-google-maps/api';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
@@ -292,6 +292,28 @@ export function Map() {
           </AdvancedMarker>
         )}
 
+        {/* Origin → highlighted-cafe polylines. Visual proof of fairness:
+            when "fair" mode picks a non-obvious cafe (one party has
+            faster transit, another walks closer), the converging lines
+            show the user that the geometric midpoint isn't the optimum.
+            Hidden in nearby (single-party) mode where there's nothing
+            to converge on. Highlighted cafe = selected if any, else
+            top-ranked result. Sage stroke matches our agent identity
+            color (same as fair-mode chip + reasoning sparkle). */}
+        {!isNearby && coffeeShops.length > 0 ? (
+          <FairnessPolylines
+            origins={[locationA, locationB, locationC]
+              .filter((o) => o != null)
+              .map((o) => ({ lat: o.lat, lng: o.lng }))}
+            target={
+              selectedShop
+                ? { lat: selectedShop.lat, lng: selectedShop.lng }
+                : { lat: coffeeShops[0].lat, lng: coffeeShops[0].lng }
+            }
+            highlighted={!!selectedShop}
+          />
+        ) : null}
+
         {savedNotInResults.map((snap) => (
           <AdvancedMarker
             key={`saved-${snap.id}`}
@@ -477,6 +499,74 @@ export function Map() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Dashed origin → cafe lines drawn on the map for the active result.
+ *
+ * Visual proof of fairness: when the agent picks a non-obvious cafe
+ * (because one party has fast transit, another can walk closer), the
+ * converging lines make the geometry visible — the user sees that
+ * the geographic midpoint isn't the optimum, and that the picked
+ * café is closer to whoever needs the shorter trip.
+ *
+ * Pattern: `strokeOpacity: 0` + an icon array with a tiny dot symbol
+ * repeated every 14px is the standard Maps recipe for a dashed
+ * polyline. The fixed-pixel repeat keeps the dash density consistent
+ * across zoom levels, unlike strokeWeight-based dashes which look
+ * sparse when zoomed out.
+ */
+function FairnessPolylines({
+  origins,
+  target,
+  highlighted,
+}: {
+  origins: { lat: number; lng: number }[];
+  target: { lat: number; lng: number };
+  highlighted: boolean;
+}) {
+  // Dashed-line "icon" needs the Google Maps SDK. The component never
+  // renders before the map is loaded (parent gates on coffeeShops length
+  // which only populates after a successful search), so SDK access here
+  // is safe at runtime.
+  const dashIcon = useMemo(
+    () => ({
+      icon: {
+        path: 'M 0,-1 0,1',
+        strokeOpacity: 1,
+        scale: 3,
+      },
+      offset: '0',
+      repeat: '14px',
+    }),
+    [],
+  );
+  const options = useMemo(
+    () => ({
+      strokeColor: '#5e7a52',
+      // Solid stroke off — the icon row IS the visible line.
+      strokeOpacity: 0,
+      strokeWeight: 2,
+      icons: [dashIcon],
+      // Slightly stronger when a cafe is explicitly selected; falls back
+      // to a more subtle treatment when the lines are anchored on the
+      // top result by default.
+      zIndex: highlighted ? 4 : 3,
+      clickable: false,
+    }),
+    [dashIcon, highlighted],
+  );
+  return (
+    <>
+      {origins.map((origin, i) => (
+        <PolylineF
+          key={`fairness-${i}-${origin.lat}-${origin.lng}`}
+          path={[origin, target]}
+          options={options}
+        />
+      ))}
+    </>
   );
 }
 
