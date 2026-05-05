@@ -15,6 +15,7 @@ import {
   renderVisitorConfirmationHtml,
 } from '../../../_lib/bookingEmails';
 import { makeCancelToken } from '../../../_lib/cancelToken';
+import { buildBookingIcs, icsToBase64 } from '../../../_lib/ics';
 
 /**
  * Host approves a `requested` booking. Body contains the café the host
@@ -217,6 +218,24 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
       const cancelExpiresAt = finalMs + 24 * 60 * 60_000;
       const cancelToken = await makeCancelToken(env.AUTH_SECRET, id, cancelExpiresAt);
       const cancelUrl = `https://acoffee.com/booking/cancel?id=${encodeURIComponent(id)}&t=${encodeURIComponent(cancelToken)}`;
+      /* Generate the ICS attachment so the visitor can one-click add
+       * the meetup to Google / Apple / Outlook from their inbox. UID
+       * is stable per booking id, so a future re-send (e.g. host
+       * changes time later) updates the existing event in the
+       * visitor's calendar instead of creating a duplicate. */
+      const ics = buildBookingIcs({
+        bookingId: id,
+        startMs: finalMs,
+        durationMinutes: row.durationMinutes,
+        hostHandle: handle,
+        hostEmail: organizer.email,
+        visitorName: row.visitorName,
+        visitorEmail: row.visitorEmail,
+        cafeName: input.placeName,
+        cafeAddress: input.placeAddress,
+        visitorMessage: row.visitorMessage ?? null,
+        googleMapsUri: input.googleMapsUri ?? null,
+      });
       const resend = new Resend(env.RESEND_API_KEY);
       /* Approval notice — log on failure but the status flip already
        * committed. Visitor will see the approved booking next time
@@ -240,6 +259,16 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
             visitorMessage: row.visitorMessage ?? null,
             cancelUrl,
           }),
+          attachments: [
+            {
+              filename: 'coffee.ics',
+              content: icsToBase64(ics),
+              /* contentType not on Resend's Attachment shape — the
+               * service infers from the .ics filename and serves
+               * text/calendar with method=REQUEST so Gmail / Apple
+               * Mail render the native "Add to calendar" UI. */
+            },
+          ],
         });
       } catch (e) {
         console.error('[booking-emails] approve notification send failed', {
