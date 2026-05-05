@@ -133,6 +133,23 @@ export const messages: MessageDict = {
   'list.resultNoteCoffee': 'ACoffee returns up to 20 coffee spots per search.',
   'list.selectCardAria': 'Select {{name}}, {{rating}} stars',
   'list.resultNoteMeetup': 'ACoffee returns up to 20 places per search for your meetup.',
+  /* Agent reasoning strip rendered above the result list. Each mode
+   * gets one short line that telegraphs what the agent actually did.
+   * {{count}} is the party count (2 or 3); not every line interpolates
+   * it but the shape is consistent so the i18n loader can swap them. */
+  'agentReason.fair':
+    'Balanced for {{count}} people · ranked by fairness of travel time',
+  'agentReason.fast':
+    'Picked the closest spots · shortest total travel time',
+  'agentReason.vibe':
+    'Top-rated cafés first · rating × log(reviews)',
+  'agentReason.quiet':
+    'Hidden gems with fewer reviews · less crowded',
+  'agentReason.cheap':
+    'Inexpensive cafés only · price level ≤ 2',
+  'agentReason.now':
+    'Open right now · fair travel time for everyone',
+
   'list.fairnessExplain':
     "Sorted so everyone's travel time is as equal as possible. Real transit minutes when available, falling back to straight-line distance.",
   'list.fastExplain':

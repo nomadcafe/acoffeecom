@@ -128,6 +128,13 @@ export const messages: MessageDict = {
   'list.resultNoteCoffee': 'ACoffee 每次搜索最多展示 20 个咖啡相关地点。',
   'list.selectCardAria': '选择 {{name}}，{{rating}} 星',
   'list.resultNoteMeetup': 'ACoffee 每次搜索最多展示 20 个会面候选地点。',
+  'agentReason.fair': '为 {{count}} 个人折中 · 按通勤时间公平度排序',
+  'agentReason.fast': '挑离大家都近的店 · 总通勤时间最短',
+  'agentReason.vibe': '高分咖啡店优先 · 评分 × log(评论数)',
+  'agentReason.quiet': '冷门小店优先 · 人少更安静',
+  'agentReason.cheap': '只看实惠的咖啡店 · 价格区间 ≤ 2',
+  'agentReason.now': '现在开门的店 · 通勤时间也公平',
+
   'list.fairnessExplain': '按"每个人通勤时间尽量相等"排序。能拿到实际公共交通时间就用，没有就退回直线距离。',
   'list.fastExplain': '按"所有人通勤时间总和最短"排序——让大家最快聚到一起。',
   'list.quietExplain': '小众好店优先——高评分但评论较少的店浮在前面，避开人多的网红打卡处。',

@@ -40,6 +40,34 @@
   text-align: left;
 }
 
+/* AI reasoning strip. Subtle accent-tinted pill above the result
+ * list — visually distinct enough to read as "the AI did something"
+ * without competing with the cards themselves. ✦ sparkle marks
+ * agent activity (matches the auto-pick caption on the mode chips). */
+.reasoningStrip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0 0 0.85rem 0;
+  padding: 0.4rem 0.8rem;
+  background: linear-gradient(
+    135deg,
+    rgba(94, 122, 82, 0.08),
+    rgba(111, 78, 55, 0.04)
+  );
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-pill);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--ac-text);
+}
+
+.reasoningSparkle {
+  color: var(--ac-accent);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
 .resultNote {
   margin: 0.75rem 0 0 0;
   font-size: 0.72rem;

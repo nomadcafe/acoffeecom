@@ -131,6 +131,13 @@ export const messages: MessageDict = {
   'list.resultNoteCoffee': 'ACoffee は1回の検索で最大20件のカフェを表示します。',
   'list.selectCardAria': '{{name}} を選択（{{rating}} 星）',
   'list.resultNoteMeetup': 'ACoffee は1回の検索で最大20件の場所を表示します（待ち合わせ用）。',
+  'agentReason.fair': '{{count}} 人にとってフェアに · 移動時間の公平さで並べています',
+  'agentReason.fast': '全員に近い店を優先 · 合計移動時間が最短',
+  'agentReason.vibe': '高評価カフェを優先 · 評価 × log(レビュー数)',
+  'agentReason.quiet': '人の少ない穴場優先 · 落ち着けるお店',
+  'agentReason.cheap': '手頃なカフェのみ · 価格帯 ≤ 2',
+  'agentReason.now': '今開いている店 · 移動時間もフェア',
+
   'list.fairnessExplain': '全員の移動時間がなるべく等しくなる順に並べています。可能なら実際の交通機関時間、なければ直線距離で。',
   'list.fastExplain': '全員の移動時間の合計が最短になる順。みんなを最速で集める並び方です。',
   'list.quietExplain': '隠れた名店を上位に — 評価は高いがレビュー数が少ない、観光客で混まないお店を優先します。',

@@ -17,7 +17,7 @@ export function CoffeeShopList() {
     addressA,
     addressB,
     addressC,
-    searchSortMode,
+    agentMode,
     searchPlaceCategory,
     searchMode,
     findMeetupSpot,
@@ -162,14 +162,22 @@ export function CoffeeShopList() {
               : t('share.button')}
         </button>
       </div>
-      {searchSortMode === 'fairness' ? (
-        <p className={styles.sortExplain}>{t('list.fairnessExplain')}</p>
-      ) : searchSortMode === 'fast' ? (
-        <p className={styles.sortExplain}>{t('list.fastExplain')}</p>
-      ) : searchSortMode === 'quiet' ? (
-        <p className={styles.sortExplain}>{t('list.quietExplain')}</p>
-      ) : searchSortMode === 'cheap' ? (
-        <p className={styles.sortExplain}>{t('list.cheapExplain')}</p>
+      {/* AI reasoning strip — surfaces what the agent actually did to
+          rank these results. Without it, the modes (fair/fast/vibe…)
+          felt like hidden machinery; the user picked one and got
+          results, but no signal that the AI had decided anything.
+          Two competitive-research comparisons (CafeMeet, Cafe-Finder)
+          independently flagged this same gap. Driven by agentMode
+          (the user-facing concept) rather than searchSortMode
+          (internal). Hidden for nearby (single-party) search where
+          party-balancing has no meaning. */}
+      {searchMode !== 'nearby' ? (
+        <p className={styles.reasoningStrip} aria-live="polite">
+          <span className={styles.reasoningSparkle} aria-hidden>✦</span>
+          {t(`agentReason.${agentMode}`, {
+            count: addressC ? 3 : 2,
+          })}
+        </p>
       ) : null}
       <div className={styles.list}>
         {coffeeShops.map((shop) => (
