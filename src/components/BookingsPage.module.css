@@ -152,6 +152,29 @@
   margin-left: 0.4em;
 }
 
+/* Inline get-directions link in the cafe row. Sage tone, smaller —
+ * the row already has the place link as the primary affordance;
+ * directions is "next step from here" not "see the place." */
+.directionsInline {
+  display: inline;
+  margin-left: 0.6em;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ac-accent-2-dark);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.directionsInline:hover {
+  text-decoration: underline;
+}
+
+.directionsInline:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-radius: var(--ac-radius-sm);
+}
+
 .actions {
   display: flex;
   flex-direction: column;

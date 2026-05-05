@@ -165,6 +165,7 @@ export const messages: MessageDict = {
   'card.visitedToday': '🔥 Today',
   'card.visitStatsToday': '🔥 Today · {{count}}×',
   'card.openMaps': 'Open in Google Maps',
+  'card.getDirections': 'Get directions',
   'card.ownerChipOwned': 'run by {{handle}}',
   'card.ownerChipFavorite': '{{handle}}\'s favorite',
   'card.ownerChipTitle': 'See {{handle}}\'s coffee profile',
@@ -799,6 +800,7 @@ export const messages: MessageDict = {
   'bookings.weekBlockAria': 'Booking with {{name}} at {{time}} — tap to cancel',
   'bookings.statusCancelled': 'Cancelled',
   'bookings.theirNote': 'Their note',
+  'bookings.getDirections': 'Get directions',
   'bookings.loadFailed': "Couldn't load your bookings. Refresh to try again.",
 
   'changelog.metaTitle': 'Update log · ACoffee',

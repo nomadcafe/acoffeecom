@@ -329,6 +329,13 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
             cafeName: input.placeName,
             cafeAddress: input.placeAddress,
             cafeMaps: input.googleMapsUri ?? null,
+            /* Direct-to-routing URL — separate from cafeMaps (place
+             * page). Prefilled with the place name as fallback query
+             * + place_id for canonical resolution. Visitor's email
+             * gets a Get-directions button next to Open in Maps. */
+            cafeDirections: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+              input.placeName,
+            )}&destination_place_id=${encodeURIComponent(input.placeId)}`,
             visitorName: row.visitorName,
             visitorEmail: row.visitorEmail,
             visitorAddress: row.visitorAddress ?? '',

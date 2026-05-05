@@ -146,6 +146,7 @@ export const messages: MessageDict = {
   'card.visitedToday': '🔥 今天',
   'card.visitStatsToday': '🔥 今天 · 累计 {{count}} 次',
   'card.openMaps': '在 Google 地图中打开',
+  'card.getDirections': '导航到这里',
   'card.ownerChipOwned': '{{handle}} 经营',
   'card.ownerChipFavorite': '{{handle}} 最爱',
   'card.ownerChipTitle': '查看 {{handle}} 的咖啡主页',
@@ -771,6 +772,7 @@ export const messages: MessageDict = {
   'bookings.weekBlockAria': '与 {{name}} 在 {{time}} 的预约 — 点击取消',
   'bookings.statusCancelled': '已取消',
   'bookings.theirNote': '对方留言',
+  'bookings.getDirections': '导航到这里',
   'bookings.loadFailed': '加载预约失败，请刷新重试。',
 
   'changelog.metaTitle': '更新日志 · ACoffee',

@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { CoffeeShop } from '../types';
-import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
+import { getDirectionsUrl, getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { StarButton } from './StarButton';
 import { VisitedButton } from './VisitedButton';
 import { VisitNoteInput } from './VisitNoteInput';
@@ -210,15 +210,36 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
         <div className={styles.info}>
           <h3 className={styles.name}>{shop.name}</h3>
           <p className={styles.address}>{shop.address}</p>
-          <a
-            className={styles.mapsLink}
-            href={getOpenInGoogleMapsUrl(shop)}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {t('card.openMaps')}
-          </a>
+          <span className={styles.mapsLinks}>
+            <a
+              className={styles.mapsLink}
+              href={getOpenInGoogleMapsUrl(shop)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {t('card.openMaps')}
+            </a>
+            {/* Directions = "I picked this place, now how do I get
+                there?" — the obvious next step from a result list.
+                Closes a real conversion gap on the search → meetup
+                path; both adjacent projects we researched ship one. */}
+            <a
+              className={styles.directionsLink}
+              href={getDirectionsUrl({
+                placeId: shop.id,
+                name: shop.name,
+                address: shop.address,
+                lat: shop.lat,
+                lng: shop.lng,
+              })}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {t('card.getDirections')}
+            </a>
+          </span>
           {ownerAttribution ? (
             <a
               className={styles.ownerChip}

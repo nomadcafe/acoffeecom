@@ -52,15 +52,37 @@ const SHELL_CLOSE = `    <p style="margin:24px 0 0;color:#a09080;font-size:12px;
   </div>
 </body></html>`;
 
-function whereCard(name: string, address: string, mapsUri: string | null): string {
-  const link = mapsUri
-    ? `<div style="margin-top:10px;"><a href="${escape(mapsUri)}" style="color:#a36b3e;text-decoration:none;">Open in Maps →</a></div>`
+function whereCard(
+  name: string,
+  address: string,
+  mapsUri: string | null,
+  directionsUri: string | null,
+): string {
+  /* Two affordances on the venue card:
+   *  - "Open in Maps" → place page (existing googleMapsUri)
+   *  - "Get directions" → routing UI with destination pre-filled
+   * Different intents — the first lets you check the cafe out, the
+   * second helps you actually go. Render side-by-side when both are
+   * available; either one alone falls through if the other is null. */
+  const links: string[] = [];
+  if (mapsUri) {
+    links.push(
+      `<a href="${escape(mapsUri)}" style="color:#a36b3e;text-decoration:none;">Open in Maps →</a>`,
+    );
+  }
+  if (directionsUri) {
+    links.push(
+      `<a href="${escape(directionsUri)}" style="color:#5e7a52;text-decoration:none;">Get directions →</a>`,
+    );
+  }
+  const linksRow = links.length
+    ? `<div style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;">${links.join('')}</div>`
     : '';
   return `<div style="margin:24px 0;padding:16px 18px;background:#faf6f1;border-radius:10px;">
       <div style="font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Where</div>
       <div style="font-size:18px;font-weight:600;color:#2c1810;">${escape(name)}</div>
       <div style="font-size:14px;color:#5c4030;margin-top:4px;">${escape(address)}</div>
-      ${link}
+      ${linksRow}
     </div>`;
 }
 
@@ -111,6 +133,12 @@ export interface ConfirmationParams {
   cafeName: string;
   cafeAddress: string;
   cafeMaps: string | null;
+  /** Direct-to-routing Google Maps URL (`/maps/dir/?api=1&...`).
+   *  Distinct from cafeMaps (which opens the place page). When the
+   *  visitor opens this from their inbox, they get a navigation UI
+   *  with the cafe pre-filled — closes the "I picked the cafe but
+   *  how do I get there" gap. Null skips the row in whereCard. */
+  cafeDirections: string | null;
   visitorName: string;
   visitorEmail: string;
   visitorAddress: string;
@@ -132,7 +160,7 @@ export function renderOrganizerConfirmationHtml(p: ConfirmationParams): string {
   return `${SHELL_OPEN}
     <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">${escape(p.visitorName)} booked a coffee with you ☕</h1>
     <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
-    ${whereCard(p.cafeName, p.cafeAddress, p.cafeMaps)}
+    ${whereCard(p.cafeName, p.cafeAddress, p.cafeMaps, p.cafeDirections)}
     <div style="margin:0 0 8px;font-size:11px;color:#8a7b70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Visitor</div>
     <div style="font-size:14px;color:#2c1810;line-height:1.6;margin-bottom:18px;">
       <strong>${escape(p.visitorName)}</strong><br>
@@ -161,7 +189,7 @@ export function renderVisitorConfirmationHtml(p: ConfirmationParams): string {
   return `${SHELL_OPEN}
     <h1 style="margin:0 0 4px;font-size:22px;color:#2c1810;">Coffee with ${escape(p.hostHandle)} ☕</h1>
     <p style="margin:0;color:#7a6a60;font-size:14px;">${escape(p.startStr)}</p>
-    ${whereCard(p.cafeName, p.cafeAddress, p.cafeMaps)}
+    ${whereCard(p.cafeName, p.cafeAddress, p.cafeMaps, p.cafeDirections)}
     <p style="margin:0 0 8px;color:#5c4030;font-size:14px;line-height:1.5;">
       We picked this café automatically based on the midpoint between
       ${escape(p.visitorName)} and ${escape(p.hostHandle)}'s home base.

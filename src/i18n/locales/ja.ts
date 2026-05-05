@@ -149,6 +149,7 @@ export const messages: MessageDict = {
   'card.visitedToday': '🔥 今日',
   'card.visitStatsToday': '🔥 今日 · 累計 {{count}}回',
   'card.openMaps': 'Google マップで開く',
+  'card.getDirections': 'ルートを表示',
   'card.ownerChipOwned': '{{handle}} が経営',
   'card.ownerChipFavorite': '{{handle}} のお気に入り',
   'card.ownerChipTitle': '{{handle}} のコーヒーページを見る',
@@ -778,6 +779,7 @@ export const messages: MessageDict = {
   'bookings.weekBlockAria': '{{name}} との {{time}} の予約 — タップでキャンセル',
   'bookings.statusCancelled': 'キャンセル済み',
   'bookings.theirNote': 'ご本人からのメッセージ',
+  'bookings.getDirections': 'ルートを表示',
   'bookings.loadFailed': '予約の読み込みに失敗しました。再読み込みしてください。',
 
   'changelog.metaTitle': '更新ログ · ACoffee',

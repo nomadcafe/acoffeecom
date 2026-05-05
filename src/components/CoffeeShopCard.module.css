@@ -96,16 +96,48 @@
   white-space: nowrap;
 }
 
-.mapsLink {
-  display: inline-block;
+/* Maps + Directions sit on the same row separated by a thin pipe so
+ * the two affordances read as related external nav actions. Wraps
+ * onto a second line on narrow cards. */
+.mapsLinks {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.35rem;
   font-size: 0.78rem;
+}
+
+.mapsLink {
   font-weight: 600;
   color: #1a73e8;
   text-decoration: none;
 }
 
 .mapsLink:hover {
+  text-decoration: underline;
+}
+
+/* "Get directions" is the next-step action from a picked cafe — visually
+ * distinct from "Open in Maps" (the place page) but in the same row so
+ * the user processes them as a pair. Sage tone matches our agent
+ * accent vocabulary. */
+.directionsLink {
+  font-weight: 600;
+  color: var(--ac-accent-2-dark);
+  text-decoration: none;
+  position: relative;
+}
+
+.directionsLink::before {
+  content: '·';
+  position: absolute;
+  left: -0.6rem;
+  color: var(--ac-text-muted);
+  font-weight: 400;
+}
+
+.directionsLink:hover {
   text-decoration: underline;
 }
 

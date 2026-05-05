@@ -1841,6 +1841,16 @@ function BookingRow({
     row.placeId
       ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(row.placeId)}`
       : null;
+  /* Get-directions link uses placeId + name for accuracy. Only renders
+   * for confirmed/pending rows where there's an actual cafe (request
+   * + cancelled rows have placeId=null). Sage tone matches the same
+   * affordance on CoffeeShopCard so users learn the visual language. */
+  const directionsHref =
+    row.placeId
+      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+          row.placeName ?? row.placeAddress ?? '',
+        )}&destination_place_id=${encodeURIComponent(row.placeId)}`
+      : null;
 
   return (
     <li className={cls}>
@@ -1876,6 +1886,16 @@ function BookingRow({
               <strong>{row.placeName}</strong>
             )}
             <span className={styles.placeAddress}>{row.placeAddress}</span>
+            {directionsHref ? (
+              <a
+                className={styles.directionsInline}
+                href={directionsHref}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t('bookings.getDirections')} →
+              </a>
+            ) : null}
           </span>
           {row.visitorMessage ? (
             <span className={styles.visitorMessage}>
