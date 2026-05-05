@@ -34,19 +34,13 @@ export const examplePairsByLocale: Record<Locale, ExamplePair[]> = {
   en: [
     { emoji: '🤝', a: 'Times Square, New York', b: 'Central Park, New York', mode: 'fair' },
     { emoji: '✨', a: 'Ferry Building, San Francisco', b: 'Golden Gate Park, San Francisco', mode: 'vibe' },
-    { emoji: '📚', a: 'Embarcadero, San Francisco', b: 'Mission District, San Francisco', mode: 'quiet' },
-    { emoji: '⚡', a: 'Penn Station, New York', b: 'Grand Central, New York', mode: 'fast' },
   ],
   ja: [
     { emoji: '🤝', a: '新宿駅', b: '渋谷駅', mode: 'fair' },
     { emoji: '✨', a: '六本木', b: '表参道', mode: 'vibe' },
-    { emoji: '📚', a: '東京駅', b: '神保町', mode: 'quiet' },
-    { emoji: '⚡', a: '品川駅', b: '東京駅', mode: 'fast' },
   ],
   zh: [
     { emoji: '🤝', a: '国贸, 北京', b: '三里屯, 北京', mode: 'fair' },
     { emoji: '✨', a: '武康路, 上海', b: '陆家嘴, 上海', mode: 'vibe' },
-    { emoji: '📚', a: '人民广场, 上海', b: '徐家汇, 上海', mode: 'quiet' },
-    { emoji: '⚡', a: '北京西站', b: '北京站', mode: 'fast' },
   ],
 };
