@@ -3,8 +3,8 @@ import { and, eq, gte, inArray, lte, ne } from 'drizzle-orm';
 import { Resend } from 'resend';
 import type { AuthEnv } from '../../../_lib/auth';
 import { getDb } from '../../../_lib/db';
-import { bookings, user } from '../../../_lib/db/schema';
-import { getSessionContext, jsonError } from '../../../_lib/passport';
+import { bookings, user, visitedShops } from '../../../_lib/db/schema';
+import { getSessionContext, jsonError, mergeVisits } from '../../../_lib/passport';
 import {
   hasCollision,
   isSlotInAvailability,
@@ -185,6 +185,84 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env, para
       approvedAt: now,
     })
     .where(eq(bookings.id, id));
+
+  /* Stamp the host's passport with the cafe they just approved.
+   * Visit timestamp = the meeting's scheduledAt (not approve time) so
+   * the stamp shows up in the right calendar slot. The passport was
+   * previously a manual-entry feature isolated from the booking flow;
+   * tying it to actual coffee meetups makes it grow organically and
+   * gives the AI agent a real signal for "cafes this user already knows".
+   *
+   * Wrapped in try/catch so a stamp failure (rare — duplicate dedup,
+   * etc.) can't roll back the approve. The booking itself is the
+   * source of truth; the passport is decorative + future personalization. */
+  try {
+    const [existing] = await db
+      .select()
+      .from(visitedShops)
+      .where(
+        and(
+          eq(visitedShops.userId, ctx.user.id),
+          eq(visitedShops.placeId, input.placeId),
+        ),
+      );
+    if (existing) {
+      /* Lightweight visits-array parse — the canonical implementation
+       * in passport.ts is private; replicating the 4-line JSON.parse
+       * here is cheaper than exporting it just for this one call site. */
+      let prevVisits: number[] = [];
+      try {
+        const parsed: unknown = JSON.parse(existing.visits);
+        if (Array.isArray(parsed)) {
+          prevVisits = parsed.filter(
+            (n): n is number => typeof n === 'number' && Number.isFinite(n),
+          );
+        }
+      } catch {
+        /* malformed JSON → start fresh */
+      }
+      const merged = mergeVisits(prevVisits, [finalMs]);
+      await db
+        .update(visitedShops)
+        .set({
+          name: input.placeName,
+          address: input.placeAddress,
+          lat: input.placeLat,
+          lng: input.placeLng,
+          visits: JSON.stringify(merged),
+          updatedAt: now,
+          deleted: false,
+        })
+        .where(
+          and(
+            eq(visitedShops.userId, ctx.user.id),
+            eq(visitedShops.placeId, input.placeId),
+          ),
+        );
+    } else {
+      await db.insert(visitedShops).values({
+        userId: ctx.user.id,
+        placeId: input.placeId,
+        name: input.placeName,
+        address: input.placeAddress,
+        lat: input.placeLat,
+        lng: input.placeLng,
+        googleMapsUri: input.googleMapsUri ?? null,
+        city: null,
+        visits: JSON.stringify([finalMs]),
+        visitNotes: '{}',
+        visitRatings: '{}',
+        updatedAt: now,
+        deleted: false,
+      });
+    }
+  } catch (e) {
+    console.error('[passport] stamp on approve failed', {
+      bookingId: id,
+      placeId: input.placeId,
+      err: e instanceof Error ? e.message : String(e),
+    });
+  }
 
   // Email visitor: "X said yes! Meet at Y" with the café details
   // (and the new time, if changed).
