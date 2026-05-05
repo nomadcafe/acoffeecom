@@ -742,6 +742,7 @@ export const messages: MessageDict = {
   'bookings.cafePickerPlaceholder': 'カフェを検索…',
   'bookings.cafePickAnother': '別のカフェを選ぶ',
   'bookings.cafeQuickPicksLabel': 'お気に入りのカフェ',
+  'bookings.cafeFromPassportLabel': 'よく行くカフェ',
   'bookings.proposeNewTime': '別の時間を提案する？',
   'bookings.proposeNewTimeLabel': '新しい時間',
   'bookings.proposeNewTimeHint': '変更後の時間と選んだカフェを訪問者にメールで送信します。都合が合わなければメールからキャンセル可能です。',

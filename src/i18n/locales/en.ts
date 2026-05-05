@@ -753,6 +753,7 @@ export const messages: MessageDict = {
   'bookings.cafePickerPlaceholder': 'Search for a café…',
   'bookings.cafePickAnother': 'Pick a different café',
   'bookings.cafeQuickPicksLabel': 'Your featured cafés',
+  'bookings.cafeFromPassportLabel': 'From your passport',
   'bookings.proposeNewTime': 'Suggest a different time?',
   'bookings.proposeNewTimeLabel': 'New time',
   'bookings.proposeNewTimeHint': "We'll send the visitor an email with the updated time and the café you picked. They can cancel from that email if it doesn't work.",

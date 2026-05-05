@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
@@ -860,6 +861,24 @@ function ApproveRequestModal({
   const [picking, setPicking] = useState(false);
   const [picked, setPicked] = useState<PickedCafe | null>(null);
 
+  /* Passport-derived quick picks. Auto-stamping on approve means the
+   * host's visited_shops list grows organically with every coffee they
+   * actually had — so by their second or third booking, "your usual
+   * spots" is full of real signal instead of empty. We rank by visit
+   * count desc and filter out cafes already in featuredCafes so the
+   * row doesn't duplicate the curated list above. */
+  const { visitedShops } = useApp();
+  const passportTop = useMemo(() => {
+    const featuredIds = new Set((featuredCafes ?? []).map((c) => c.placeId));
+    /* AppContext already strips tombstoned rows before exposing
+     * visitedShops to consumers, so no deleted check is needed here. */
+    return visitedShops
+      .filter((s) => s.visits.length > 0 && !featuredIds.has(s.id))
+      .slice()
+      .sort((a, b) => b.visits.length - a.visits.length || a.name.localeCompare(b.name))
+      .slice(0, 5);
+  }, [visitedShops, featuredCafes]);
+
   // Time-editor state. `editingTime` toggles the section open/closed;
   // `proposedTimeMs` holds the host's edit (null = same as request).
   const [editingTime, setEditingTime] = useState(false);
@@ -1004,6 +1023,35 @@ function ApproveRequestModal({
                         disabled={busy}
                       >
                         {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {passportTop.length > 0 ? (
+                <div className={styles.cafeQuickPicks}>
+                  <p className={styles.cafeQuickPicksLabel}>
+                    {t('bookings.cafeFromPassportLabel')}
+                  </p>
+                  <div className={styles.cafeQuickPicksRow}>
+                    {passportTop.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className={styles.cafeQuickPick}
+                        onClick={() =>
+                          setPicked({
+                            placeId: s.id,
+                            name: s.name,
+                            address: s.address,
+                            lat: s.lat,
+                            lng: s.lng,
+                            websiteUri: null,
+                          })
+                        }
+                        disabled={busy}
+                      >
+                        {s.name}
                       </button>
                     ))}
                   </div>

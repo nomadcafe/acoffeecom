@@ -735,6 +735,7 @@ export const messages: MessageDict = {
   'bookings.cafePickerPlaceholder': '搜咖啡店…',
   'bookings.cafePickAnother': '换一家咖啡店',
   'bookings.cafeQuickPicksLabel': '你的精选咖啡店',
+  'bookings.cafeFromPassportLabel': '你常去的店',
   'bookings.proposeNewTime': '想换一个时间？',
   'bookings.proposeNewTimeLabel': '新的时间',
   'bookings.proposeNewTimeHint': '我们会把改后的时间和你选的咖啡店一起发邮件给访客。如果对方接受不了可以从邮件里直接取消。',
