@@ -41,6 +41,6 @@
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=(), browsing-topics=()
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()
   Cross-Origin-Opener-Policy: same-origin-allow-popups
   Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://accounts.google.com; script-src 'self' 'sha256-q56LdmGcnFh9uZjg4g+1oeEtcpwEVwLMjZZhe2GhaG0=' https://maps.googleapis.com https://maps.gstatic.com https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com https://maps.googleapis.com https://maps.gstatic.com https://*.google.com https://*.googleapis.com https://pub-8047aed0e1084fc3b99f34b3bb637d65.r2.dev https://pub-dd937f8ea2cb40c1b5271c1d62bcd678.r2.dev https://www.google-analytics.com https://www.googletagmanager.com; connect-src 'self' https://maps.googleapis.com https://*.googleapis.com https://www.gstatic.com https://ipapi.co https://www.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; manifest-src 'self'; frame-src 'self' https://*.google.com; upgrade-insecure-requests
