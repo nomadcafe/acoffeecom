@@ -27,6 +27,7 @@ import { buildLocalizedPathname, stripLocalePrefix } from './i18n/detectLocale';
 import { isUpdatesPath } from './i18n/changelog';
 import {
   isAccountPath,
+  isAccountSetupPath,
   isBookingCancelPath,
   isBookingConfirmPath,
   isBookingsPath,
@@ -69,6 +70,11 @@ const PassportPage = lazy(() =>
 const AccountPage = lazy(() =>
   reloadOnChunkError(
     import('./components/AccountPage').then((m) => ({ default: m.AccountPage })),
+  ),
+);
+const AccountSetupPage = lazy(() =>
+  reloadOnChunkError(
+    import('./components/AccountSetupPage').then((m) => ({ default: m.AccountSetupPage })),
   ),
 );
 const BookingsPage = lazy(() =>
@@ -229,6 +235,15 @@ function AppRoute() {
         </Suspense>
         <SiteBottomNav />
       </>
+    );
+  } else if (isAccountSetupPath(logicalPath)) {
+    /* Wizard route — checked BEFORE the generic /account branch so
+     * /account/setup hits the lighter setup chrome (no SiteBottomNav,
+     * no full TOC). */
+    body = (
+      <Suspense fallback={<div className="routeFallback" aria-hidden="true" />}>
+        <AccountSetupPage />
+      </Suspense>
     );
   } else if (isAccountPath(logicalPath)) {
     body = (

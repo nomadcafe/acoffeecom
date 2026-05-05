@@ -1,0 +1,449 @@
+.app {
+  min-height: 100dvh;
+  background: var(--ac-page-bg);
+  color: var(--ac-text);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  border-bottom: 1px solid var(--ac-border);
+  padding: 0.65rem 1rem;
+  background: var(--ac-page-bg);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.logo {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logoWordmark {
+  font-family: var(--ac-font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem 1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.signedOut {
+  margin: 4rem auto;
+  max-width: 28rem;
+  text-align: center;
+  color: var(--ac-text-muted);
+}
+
+.signedOutLink {
+  color: var(--ac-accent);
+  font-weight: 600;
+}
+
+/* ────────── Progress dots ────────── */
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-top: 0.5rem;
+}
+
+.dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--ac-border-strong);
+  transition: background var(--ac-motion-fast), width var(--ac-motion-fast);
+}
+
+.dotDone {
+  background: var(--ac-accent);
+}
+
+.dotActive {
+  background: var(--ac-accent);
+  width: 1.6rem;
+  border-radius: 4px;
+}
+
+/* ────────── Step card ────────── */
+
+.stepCard {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-lg);
+  padding: 2rem 1.5rem 1.6rem;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--ac-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stepTitle {
+  margin: 0;
+  font-family: var(--ac-font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--ac-text);
+}
+
+.stepLead {
+  margin: 0;
+  color: var(--ac-text-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  line-height: 1.45;
+}
+
+.error {
+  margin: 0;
+  color: var(--ac-danger);
+  background: var(--ac-danger-bg);
+  border: 1px solid var(--ac-danger-border);
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--ac-radius-sm);
+  font-size: 0.85rem;
+}
+
+@media (min-width: 768px) {
+  .stepCard {
+    padding: 2.4rem 2.2rem 1.8rem;
+  }
+  .stepTitle {
+    font-size: 2rem;
+  }
+}
+
+/* ────────── Inputs ────────── */
+
+.inputRow {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-md);
+  background: var(--ac-page-bg);
+  overflow: hidden;
+  font-size: 1rem;
+}
+
+.inputRow:focus-within {
+  border-color: var(--ac-accent);
+  box-shadow: var(--ac-focus-ring);
+}
+
+.inputPrefix {
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9rem;
+  color: var(--ac-text-muted);
+  background: var(--ac-surface-tinted);
+  border-right: 1px solid var(--ac-border);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ac-text);
+  min-width: 0;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.inputLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.inputLabelText {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.inputLabel .input {
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-md);
+  background: var(--ac-page-bg);
+  padding: 0.7rem 0.85rem;
+}
+
+.inputLabel .input:focus {
+  border-color: var(--ac-accent);
+  box-shadow: var(--ac-focus-ring);
+}
+
+/* ────────── Preset radio cards ────────── */
+
+.presetGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.preset {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-md);
+  background: var(--ac-surface);
+  cursor: pointer;
+  transition: border-color var(--ac-motion-fast), background var(--ac-motion-fast);
+}
+
+.preset:hover {
+  border-color: var(--ac-accent);
+  background: var(--ac-surface-tinted);
+}
+
+.presetActive {
+  border-color: var(--ac-accent);
+  background: linear-gradient(
+    135deg,
+    rgba(111, 78, 55, 0.08),
+    rgba(111, 78, 55, 0.02)
+  );
+}
+
+.presetRadio {
+  margin-top: 0.18rem;
+  flex-shrink: 0;
+}
+
+.presetCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.presetTitle {
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.presetSubtitle {
+  font-size: 0.84rem;
+  color: var(--ac-text-muted);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}
+
+/* ────────── Footer ────────── */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.footerLeft {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.footerLink {
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--ac-text-muted);
+  background: transparent;
+  border: none;
+  padding: 0.4rem 0.2rem;
+  cursor: pointer;
+}
+
+.footerLink:hover {
+  color: var(--ac-text);
+  text-decoration: underline;
+}
+
+.footerLink:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-radius: var(--ac-radius-sm);
+}
+
+.footerPrimary {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--ac-radius-pill);
+  border: none;
+  background: var(--ac-accent);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--ac-motion-fast), opacity var(--ac-motion-fast);
+}
+
+.footerPrimary:hover:not(:disabled) {
+  background: var(--ac-accent-dark);
+}
+
+.footerPrimary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.footerPrimary:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
+/* ────────── Done step ────────── */
+
+.doneBadge {
+  margin: 0 auto;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(94, 122, 82, 0.18),
+    rgba(94, 122, 82, 0.05)
+  );
+  border: 1px solid rgba(94, 122, 82, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.shareBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--ac-surface-tinted);
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-md);
+  font-size: 0.92rem;
+}
+
+.shareUrl {
+  flex: 1;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ac-text);
+  font-weight: 500;
+}
+
+.shareCopy {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--ac-radius-pill);
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast),
+    color var(--ac-motion-fast);
+}
+
+.shareCopy:hover {
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-accent);
+}
+
+.shareCopy:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
+.shareCopyCopied {
+  background: rgba(94, 122, 82, 0.14);
+  border-color: var(--ac-accent-2);
+  color: var(--ac-accent-2-dark);
+}
+
+.doneActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.4rem;
+}
+
+.donePrimary {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--ac-radius-pill);
+  background: var(--ac-accent);
+  color: #fff;
+  text-decoration: none;
+  transition: background var(--ac-motion-fast);
+}
+
+.donePrimary:hover {
+  background: var(--ac-accent-dark);
+}
+
+.doneSecondary {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--ac-text-muted);
+  text-decoration: none;
+  padding: 0.4rem;
+}
+
+.doneSecondary:hover {
+  color: var(--ac-text);
+  text-decoration: underline;
+}

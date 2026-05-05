@@ -62,6 +62,7 @@ export default defineConfig({
         globIgnores: [
           // All route-page chunks except home/showcase
           '**/AccountPage-*.js',
+          '**/AccountSetupPage-*.js',
           '**/BookingsPage-*.js',
           '**/PassportPage-*.js',
           '**/UpdateLogPage-*.js',
@@ -85,7 +86,7 @@ export default defineConfig({
            * second navigation to the same route is still instant. SW
            * fetches them once, then serves from cache. */
           {
-            urlPattern: /\/assets\/(AccountPage|BookingsPage|PassportPage|UpdateLogPage|ProposalPage|PublicProfilePage|CancelBookingPage|ConfirmBookingPage|en|ja|zh)-[^/]+\.js$/,
+            urlPattern: /\/assets\/(AccountPage|AccountSetupPage|BookingsPage|PassportPage|UpdateLogPage|ProposalPage|PublicProfilePage|CancelBookingPage|ConfirmBookingPage|en|ja|zh)-[^/]+\.js$/,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'route-chunks-v1',

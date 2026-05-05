@@ -12,6 +12,16 @@ export function isAccountPath(logicalPath: string): boolean {
   return logicalPath === ACCOUNT_PATH || logicalPath.startsWith(`${ACCOUNT_PATH}/`);
 }
 
+/** First-run setup wizard for new users. Lives under /account so the
+ *  existing AccountPage Suspense boundary catches it; the AccountPage
+ *  component itself decides whether to render the wizard or the full
+ *  settings UI based on the path. */
+export const ACCOUNT_SETUP_PATH = '/account/setup';
+
+export function isAccountSetupPath(logicalPath: string): boolean {
+  return logicalPath === ACCOUNT_SETUP_PATH;
+}
+
 /** URL path segment (without locale prefix) for the organizer's bookings page. */
 export const BOOKINGS_PATH = '/bookings';
 

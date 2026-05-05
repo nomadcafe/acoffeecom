@@ -6,7 +6,7 @@ import { usePassportStats } from '../hooks/usePassportStats';
 import { streakFireEmoji } from '../utils/streak';
 import { formatRelativeTime } from '../utils/relativeTime';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
-import { ACCOUNT_PATH, BOOKINGS_PATH, PASSPORT_PATH } from '../routes';
+import { ACCOUNT_SETUP_PATH, BOOKINGS_PATH, PASSPORT_PATH } from '../routes';
 import { avatarGradient } from '../utils/avatarGradient';
 import styles from './HeroSignedIn.module.css';
 
@@ -74,7 +74,7 @@ export function HeroSignedIn() {
 
   const passportHref = buildLocalizedPathname(PASSPORT_PATH, locale);
   const bookingsHref = buildLocalizedPathname(BOOKINGS_PATH, locale);
-  const accountHref = buildLocalizedPathname(ACCOUNT_PATH, locale);
+  const setupHref = buildLocalizedPathname(ACCOUNT_SETUP_PATH, locale);
   const profileHref = username ? buildLocalizedPathname(`/${username}`, locale) : null;
 
   // Greeting tracks the user's local hour. Three buckets is plenty.
@@ -187,7 +187,7 @@ export function HeroSignedIn() {
               ) : null}
             </div>
           ) : (
-            <a className={styles.claimHandle} href={`${accountHref}?focus=username`}>
+            <a className={styles.claimHandle} href={setupHref}>
               {t('heroSignedIn.claimHandle')} →
             </a>
           )}
