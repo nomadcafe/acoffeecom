@@ -210,8 +210,9 @@ function Header({ homeHref }: { homeHref: string }) {
 /* ────────── Progress dots ────────── */
 
 function ProgressDots({ current, total }: { current: Step; total: number }) {
+  const { t } = useI18n();
   return (
-    <div className={styles.progress} aria-label={`Step ${current} of ${total}`}>
+    <div className={styles.progress} aria-label={t('setup.progressAria', { current, total })}>
       {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
         <span
           key={n}
@@ -390,21 +391,47 @@ function AvailabilityStep({
   onSkip: () => void;
 }) {
   const { t } = useI18n();
-  /* Detect which preset (if any) the user already has. Defaults to
-   * weekday so a fresh user can hit Continue immediately. */
-  const initialPreset = useMemo<'weekday' | 'anytime'>(() => {
+  /* Three states for the user's existing schedule:
+   *   'weekday'  — exact match against PRESET_WEEKDAY
+   *   'anytime'  — exact match against PRESET_ANYTIME
+   *   'custom'   — has at least one enabled day but doesn't match
+   *                either preset (user hand-tuned via /account →
+   *                Booking earlier). Default-selecting a preset and
+   *                saving would silently overwrite their work, so we
+   *                offer a third "Keep current schedule" option.
+   *   undefined  — empty / fresh user; preset 'weekday' is the
+   *                default-friendly pick. */
+  type Choice = 'weekday' | 'anytime' | 'custom';
+  const initialChoice = useMemo<Choice>(() => {
+    if (initialAvailability === PRESET_WEEKDAY) return 'weekday';
     if (initialAvailability === PRESET_ANYTIME) return 'anytime';
-    return 'weekday';
+    let hasEnabled = false;
+    try {
+      const parsed: unknown = JSON.parse(initialAvailability);
+      if (parsed && typeof parsed === 'object') {
+        hasEnabled = Object.values(parsed as Record<string, unknown>).some(
+          (d) => !!d && typeof d === 'object' && (d as { enabled?: boolean }).enabled === true,
+        );
+      }
+    } catch {
+      /* malformed → treat as fresh */
+    }
+    return hasEnabled ? 'custom' : 'weekday';
   }, [initialAvailability]);
-  const [preset, setPreset] = useState(initialPreset);
+  const [choice, setChoice] = useState<Choice>(initialChoice);
   const [save, setSave] = useState<SaveState>({ kind: 'idle' });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (save.kind === 'saving') return;
+    /* "Keep current schedule" — no server write needed, just advance. */
+    if (choice === 'custom') {
+      onSaved();
+      return;
+    }
     setSave({ kind: 'saving' });
     try {
-      const slotsJson = preset === 'anytime' ? PRESET_ANYTIME : PRESET_WEEKDAY;
+      const slotsJson = choice === 'anytime' ? PRESET_ANYTIME : PRESET_WEEKDAY;
       const res = await fetch('/api/account', {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
@@ -431,17 +458,26 @@ function AvailabilityStep({
       <p className={styles.stepLead}>{t('setup.availabilityLead')}</p>
       <fieldset className={styles.presetGroup}>
         <legend className={styles.srOnly}>{t('setup.availabilityTitle')}</legend>
+        {initialChoice === 'custom' ? (
+          <PresetOption
+            id="preset-custom"
+            checked={choice === 'custom'}
+            onChange={() => setChoice('custom')}
+            title={t('setup.presetCustomTitle')}
+            subtitle={t('setup.presetCustomSub')}
+          />
+        ) : null}
         <PresetOption
           id="preset-weekday"
-          checked={preset === 'weekday'}
-          onChange={() => setPreset('weekday')}
+          checked={choice === 'weekday'}
+          onChange={() => setChoice('weekday')}
           title={t('setup.presetWeekdayTitle')}
           subtitle={t('setup.presetWeekdaySub')}
         />
         <PresetOption
           id="preset-anytime"
-          checked={preset === 'anytime'}
-          onChange={() => setPreset('anytime')}
+          checked={choice === 'anytime'}
+          onChange={() => setChoice('anytime')}
           title={t('setup.presetAnytimeTitle')}
           subtitle={t('setup.presetAnytimeSub')}
         />

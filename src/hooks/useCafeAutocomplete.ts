@@ -8,6 +8,11 @@ import {
 type Suggestion = google.maps.places.AutocompleteSuggestion;
 
 export interface PickedCafe {
+  /** Google Maps deep link from the picker. The booking-approve API
+   *  validates this against an https + Google Maps host whitelist
+   *  before embedding it as the visitor's "Open in Maps" CTA in their
+   *  confirmation email. Null when Places didn't return one. */
+  googleMapsUri?: string | null;
   placeId: string;
   name: string;
   address: string;
@@ -89,7 +94,7 @@ export function useCafeAutocomplete(language: string): UseCafeAutocomplete {
     try {
       const place = prediction.toPlace();
       await place.fetchFields({
-        fields: ['id', 'displayName', 'formattedAddress', 'location', 'websiteURI'],
+        fields: ['id', 'displayName', 'formattedAddress', 'location', 'websiteURI', 'googleMapsURI'],
       });
       const lat = place.location?.lat();
       const lng = place.location?.lng();
@@ -103,6 +108,7 @@ export function useCafeAutocomplete(language: string): UseCafeAutocomplete {
         lat,
         lng,
         websiteUri: place.websiteURI ?? null,
+        googleMapsUri: place.googleMapsURI ?? null,
       };
     } catch (err) {
       console.error('[cafe-autocomplete/pick]', err);

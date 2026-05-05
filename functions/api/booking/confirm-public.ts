@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { bookings, user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/jsonError';
+import { jsonError, jsonErrorCoded } from '../../_lib/jsonError';
 import { verifyConfirmToken } from '../../_lib/cancelToken';
 import { hasCollision } from '../../_lib/booking';
 import {
@@ -79,13 +79,31 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
 
   const handle = organizer?.displayName?.trim() || `@${organizer?.username ?? 'host'}`;
 
-  // Already-confirmed (any non-unconfirmed status) — return what we know
-  // but skip the side effects. Most common reason for a repeat click:
-  // visitor re-opens their inbox after seeing the success page.
-  if (row.status !== 'unconfirmed') {
+  /* State branches. The previous version of this endpoint collapsed
+   * everything-not-unconfirmed into `alreadyConfirmed:false` ok-success,
+   * which meant a visitor whose booking the host had already rejected
+   * (or that the visitor themselves cancelled) saw "Request sent to
+   * your host" — a confidently false claim. Each terminal state now
+   * returns a distinct error so ConfirmBookingPage can render the
+   * right localized copy. */
+  if (row.status === 'cancelled') {
+    return jsonErrorCoded('This booking was cancelled.', 'cancelled', 410, {
+      hostHandle: handle,
+      startedAt: startMs,
+    });
+  }
+  if (row.status === 'rejected') {
+    return jsonErrorCoded('This booking request was declined.', 'rejected', 410, {
+      hostHandle: handle,
+      startedAt: startMs,
+    });
+  }
+  if (row.status === 'requested' || row.status === 'pending') {
+    /* Already-confirmed re-click — visitor re-opened their inbox
+     * after seeing the success page. Idempotent success. */
     const resp: ConfirmResponse = {
       ok: true,
-      alreadyConfirmed: row.status === 'requested' || row.status === 'pending',
+      alreadyConfirmed: true,
       hostHandle: handle,
       startedAt: startMs,
     };

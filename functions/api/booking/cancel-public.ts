@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 import type { AuthEnv } from '../../_lib/auth';
 import { getDb } from '../../_lib/db';
 import { bookings, user } from '../../_lib/db/schema';
-import { jsonError } from '../../_lib/jsonError';
+import { jsonError, jsonErrorCoded } from '../../_lib/jsonError';
 import { verifyCancelToken } from '../../_lib/cancelToken';
 import {
   formatTimePair,
@@ -89,7 +89,18 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   // visitor's side; surface it instead of overwriting.
   const cancellable: ReadonlyArray<typeof row.status> = ['unconfirmed', 'requested', 'pending'];
   if (!cancellable.includes(row.status)) {
-    return jsonError(`This booking can no longer be cancelled (status: ${row.status})`, 409);
+    /* Codes the frontend maps to localized copy. Don't ship the raw
+     * "(status: rejected)" English string to a visitor — they don't
+     * speak our internal vocabulary. */
+    return jsonErrorCoded(
+      `This booking can no longer be cancelled.`,
+      row.status === 'rejected'
+        ? 'cancel-rejected'
+        : row.status === 'cancelled'
+          ? 'cancel-already'
+          : 'cancel-not-allowed',
+      409,
+    );
   }
 
   // Cancelling an unconfirmed (visitor never clicked confirm) doesn't

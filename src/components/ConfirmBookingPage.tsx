@@ -14,6 +14,12 @@ type Phase =
   | { kind: 'submitting' }
   | { kind: 'done'; result: ConfirmResponse }
   | { kind: 'error'; message: string }
+  /* Server reports the host already actioned this booking (rejected or
+   * cancelled). Distinct from a generic error so we can render the
+   * right "the host said no / this was cancelled" copy instead of
+   * "request submitted". `hostHandle` echoed when available so the
+   * message can name the host. */
+  | { kind: 'terminal'; status: 'cancelled' | 'rejected'; hostHandle: string | null }
   | { kind: 'invalid' };
 
 /**
@@ -51,8 +57,21 @@ export function ConfirmBookingPage() {
         if (cancelled) return;
         const json = (await r.json().catch(() => ({}))) as Partial<ConfirmResponse> & {
           error?: string;
+          /* Server now returns code='cancelled' or 'rejected' (with
+           * hostHandle) on terminal-state confirms instead of a fake
+           * success. Distinguishes them from generic errors. */
+          code?: 'cancelled' | 'rejected';
+          hostHandle?: string;
         };
         if (!r.ok || !json.ok) {
+          if (json.code === 'cancelled' || json.code === 'rejected') {
+            setPhase({
+              kind: 'terminal',
+              status: json.code,
+              hostHandle: json.hostHandle ?? null,
+            });
+            return;
+          }
           setPhase({ kind: 'error', message: json.error ?? t('confirmPage.failed') });
           return;
         }
@@ -92,6 +111,25 @@ export function ConfirmBookingPage() {
           <section className={styles.card}>
             <h1 className={styles.title}>{t('confirmPage.errorTitle')}</h1>
             <p className={styles.body}>{phase.message}</p>
+            <a className={styles.back} href={homeHref}>{t('confirmPage.goHome')}</a>
+          </section>
+        ) : phase.kind === 'terminal' ? (
+          <section className={styles.card}>
+            <h1 className={styles.title}>
+              {t(
+                phase.status === 'cancelled'
+                  ? 'confirmPage.terminalCancelledTitle'
+                  : 'confirmPage.terminalRejectedTitle',
+              )}
+            </h1>
+            <p className={styles.body}>
+              {t(
+                phase.status === 'cancelled'
+                  ? 'confirmPage.terminalCancelledBody'
+                  : 'confirmPage.terminalRejectedBody',
+                { handle: phase.hostHandle ?? '' },
+              )}
+            </p>
             <a className={styles.back} href={homeHref}>{t('confirmPage.goHome')}</a>
           </section>
         ) : (

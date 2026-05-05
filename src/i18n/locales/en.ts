@@ -25,6 +25,7 @@ export const messages: MessageDict = {
 
   /* /account/setup wizard — first-run flow walking new users through
    * the 3 fields a working booking profile needs. */
+  'setup.progressAria': 'Step {{current}} of {{total}}',
   'setup.continue': 'Save and continue →',
   'setup.saving': 'Saving…',
   'setup.back': 'Back',
@@ -43,6 +44,8 @@ export const messages: MessageDict = {
   'setup.availabilityLead': "We'll only show your friends slots inside these hours. You can fine-tune later.",
   'setup.availabilityHint': 'Refine per-day in Settings → Booking after setup.',
   'setup.availabilitySaveFailed': "Couldn't save your availability. Try again?",
+  'setup.presetCustomTitle': 'Keep my current schedule',
+  'setup.presetCustomSub': "We'll leave your existing per-day hours as they are.",
   'setup.presetWeekdayTitle': 'Weekdays · 10am – 6pm',
   'setup.presetWeekdaySub': 'Mon–Fri only, weekends off.',
   'setup.presetAnytimeTitle': 'Anytime · 9am – 9pm',
@@ -643,6 +646,9 @@ export const messages: MessageDict = {
   'cancel.alreadyCancelledTitle': 'Already cancelled',
   'cancel.doneBody': 'Coffee with {{handle}} at {{cafe}} on {{when}} is cancelled.',
   'cancel.doneBodyNoCafe': 'Coffee with {{handle}} on {{when}} is cancelled.',
+  'cancel.errorRejected': 'This booking was already declined by the host — there\'s nothing to cancel.',
+  'cancel.errorAlready': 'This booking is already cancelled.',
+  'cancel.errorNotAllowed': 'This booking can no longer be cancelled.',
   'cancel.linkInvalidTitle': 'Link not recognised',
   'cancel.linkInvalidBody': 'This cancellation link is missing or malformed. Open the link from your confirmation email directly.',
   'cancel.goHome': 'Back to ACoffee',
@@ -653,6 +659,12 @@ export const messages: MessageDict = {
   'confirmPage.alreadyTitle': 'Already on its way',
   'confirmPage.doneBody': "Your coffee request to {{handle}} for {{when}} is now in their inbox. They'll reply by email with a yes (and pick the café) or suggest a different time.",
   'confirmPage.errorTitle': 'Couldn\'t confirm',
+  'confirmPage.terminalCancelledTitle': 'This request was cancelled',
+  'confirmPage.terminalCancelledBody':
+    'The booking was cancelled before you confirmed. To meet anyway, send a fresh request from {{handle}}\'s page.',
+  'confirmPage.terminalRejectedTitle': 'The host can\'t make it',
+  'confirmPage.terminalRejectedBody':
+    "{{handle}} can\'t make this slot. You can pick another time on their page.",
   'confirmPage.failed': "Something went wrong. The link may have expired or already been used.",
   'confirmPage.linkInvalidTitle': 'Link not recognised',
   'confirmPage.linkInvalidBody': 'This confirmation link is missing or malformed. Open the link from your email directly.',
@@ -710,6 +722,7 @@ export const messages: MessageDict = {
   'bookings.title': 'My bookings',
   'bookings.lead': 'Coffees other people have booked with you on acoffee.com/<your-name>.',
   'bookings.signInRequired': 'Sign in to see who’s booked a coffee with you.',
+  'bookings.signInCta': 'Sign in',
   'bookings.goHome': 'Go home',
   'bookings.upcomingTitle': 'Upcoming',
   'bookings.pastTitle': 'Past & cancelled',

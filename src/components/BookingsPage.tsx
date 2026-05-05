@@ -1,8 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+
+/* AuthModal is split off the main bundle. The signed-out branch loads
+ * it on-demand when the host clicks "Sign in" — no penalty for the
+ * common path where the user is already signed in. */
+const AuthModal = lazy(() => import('./AuthModal').then((m) => ({ default: m.AuthModal })));
 import { useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
+import { BOOKINGS_PATH } from '../routes';
 import { useCafeAutocomplete, type PickedCafe } from '../hooks/useCafeAutocomplete';
 import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
@@ -204,18 +210,10 @@ export function BookingsPage() {
   // ----- Signed out -----
   if (!signedIn) {
     return (
-      <div className={accountStyles.app}>
-        <SkipToContent />
-        <PageHeader homeHref={homeHref} />
-        <main id="content" tabIndex={-1} className={accountStyles.main}>
-          <div className={accountStyles.signedOut}>
-            <p>{t('bookings.signInRequired')}</p>
-            <a className={accountStyles.signedOutCta} href={homeHref}>
-              {t('bookings.goHome')}
-            </a>
-          </div>
-        </main>
-      </div>
+      <BookingsSignedOut
+        homeHref={homeHref}
+        callbackURL={buildLocalizedPathname(BOOKINGS_PATH, locale)}
+      />
     );
   }
 
@@ -254,6 +252,11 @@ export function BookingsPage() {
     placeAddress: string;
     placeLat: number;
     placeLng: number;
+    /** Google Maps deep link from the cafe pick. Server validates the
+     *  scheme + host against an allowlist (https + Google Maps host).
+     *  When present, lands as the "Open in Maps" CTA in the visitor's
+     *  confirmation email. */
+    googleMapsUri?: string | null;
     /** Only sent when host actually changed the time in the modal. */
     scheduledAt?: number;
   }) => {
@@ -793,6 +796,10 @@ interface ApproveModalProps {
     placeAddress: string;
     placeLat: number;
     placeLng: number;
+    /** Google Maps deep link from the cafe pick — autocomplete or
+     *  passport quick-pick will populate it; featured-cafe quick-picks
+     *  don't yet (the featured_cafes table doesn't store it). */
+    googleMapsUri?: string | null;
     /** Only sent when host changed the time. */
     scheduledAt?: number;
   }) => void;
@@ -1047,6 +1054,10 @@ function ApproveRequestModal({
                             lat: s.lat,
                             lng: s.lng,
                             websiteUri: null,
+                            /* visited_shops stores googleMapsUri so the
+                             * approve email's "Open in Maps" CTA works
+                             * for picks coming from the host's history. */
+                            googleMapsUri: s.googleMapsUri ?? null,
                           })
                         }
                         disabled={busy}
@@ -1192,6 +1203,11 @@ function ApproveRequestModal({
                 placeAddress: picked.address,
                 placeLat: picked.lat,
                 placeLng: picked.lng,
+                /* Pulled from autocomplete (now requests googleMapsURI)
+                 * or the passport quick-pick (visited_shops stores it).
+                 * Featured-cafe quick-picks don't have it; sending null
+                 * is fine — server treats it as "no Maps link". */
+                ...(picked.googleMapsUri ? { googleMapsUri: picked.googleMapsUri } : {}),
                 ...(proposedTimeMs != null ? { scheduledAt: proposedTimeMs } : {}),
               });
             }}
@@ -1329,6 +1345,62 @@ function RejectRequestModal({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Signed-out fallback for /bookings. Hosts arrive here from the email
+ * link "X wants to grab a coffee — open /bookings" — sometimes in a
+ * logged-out browser (different device, fresh window). The previous
+ * version dead-ended them with "Sign in required + Go home"; they had
+ * to navigate home, find the account menu, sign in, then come back.
+ * This inline AuthModal closes that gap. callbackURL points back at
+ * /bookings so a successful sign-in lands them where they were
+ * heading.
+ */
+function BookingsSignedOut({
+  homeHref,
+  callbackURL,
+}: {
+  homeHref: string;
+  callbackURL: string;
+}) {
+  const { t } = useI18n();
+  const [authOpen, setAuthOpen] = useState(false);
+  const authEnabled = import.meta.env.VITE_AUTH_ENABLED === 'true';
+  return (
+    <div className={accountStyles.app}>
+      <SkipToContent />
+      <PageHeader homeHref={homeHref} />
+      <main id="content" tabIndex={-1} className={accountStyles.main}>
+        <div className={accountStyles.signedOut}>
+          <p>{t('bookings.signInRequired')}</p>
+          <div className={accountStyles.signedOutActions}>
+            {authEnabled ? (
+              <button
+                type="button"
+                className={accountStyles.signedOutCta}
+                onClick={() => setAuthOpen(true)}
+              >
+                {t('bookings.signInCta')}
+              </button>
+            ) : null}
+            <a className={accountStyles.signedOutLink} href={homeHref}>
+              {t('bookings.goHome')}
+            </a>
+          </div>
+        </div>
+      </main>
+      {authOpen ? (
+        <Suspense fallback={null}>
+          <AuthModal
+            open={authOpen}
+            onClose={() => setAuthOpen(false)}
+            callbackURL={callbackURL}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

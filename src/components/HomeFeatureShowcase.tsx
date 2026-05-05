@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
-import { ACCOUNT_PATH } from '../routes';
+import { ACCOUNT_SETUP_PATH } from '../routes';
 import styles from './HomeFeatureShowcase.module.css';
 
 // AuthModal pulls in @better-auth/client + magic-link UI; only anonymous
@@ -110,7 +110,11 @@ function ProfileClaimCta() {
 
   if (import.meta.env.VITE_AUTH_ENABLED !== 'true') return null;
 
-  const callbackURL = `${buildLocalizedPathname(ACCOUNT_PATH, locale)}?focus=username`;
+  /* Land fresh sign-ups in the 4-step wizard rather than the 14-section
+   * /account dashboard. This was the original intent for the wizard;
+   * the CTA was pointing at /account?focus=username because the wizard
+   * shipped after the showcase. */
+  const callbackURL = buildLocalizedPathname(ACCOUNT_SETUP_PATH, locale);
 
   return (
     <>
@@ -252,10 +256,21 @@ function MockProfile() {
 }
 
 function MockBooking() {
+  const { locale } = useI18n();
+  /* Render Mon-Fri short weekday names in the active locale. Anchored
+   * to a known Monday so the resulting strings are always Mon→Fri,
+   * not "today + 4 days". 2024-01-01 was a Monday in UTC. */
+  const weekdayLabels = (() => {
+    const fmt = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+    const monday = Date.UTC(2024, 0, 1);
+    return [0, 1, 2, 3, 4].map((i) => fmt.format(new Date(monday + i * 86_400_000)));
+  })();
   return (
     <div className={styles.mockBooking}>
       <div className={styles.bookingHeader}>
-        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span>
+        {weekdayLabels.map((label) => (
+          <span key={label}>{label}</span>
+        ))}
       </div>
       <div className={styles.bookingGrid}>
         {[

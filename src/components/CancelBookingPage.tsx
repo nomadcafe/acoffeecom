@@ -50,9 +50,22 @@ export function CancelBookingPage() {
       });
       const json = (await r.json().catch(() => ({}))) as Partial<CancelResponse> & {
         error?: string;
+        /* Server returns a `code` so the frontend can localize the
+         * message. Without this, the raw English "This booking can no
+         * longer be cancelled (status: rejected)" leaked to visitors
+         * including non-English-locale ones. */
+        code?: string;
       };
       if (!r.ok || !json.ok) {
-        setPhase({ kind: 'error', message: json.error ?? t('cancel.failed') });
+        const message =
+          json.code === 'cancel-rejected'
+            ? t('cancel.errorRejected')
+            : json.code === 'cancel-already'
+              ? t('cancel.errorAlready')
+              : json.code === 'cancel-not-allowed'
+                ? t('cancel.errorNotAllowed')
+                : (json.error ?? t('cancel.failed'));
+        setPhase({ kind: 'error', message });
         return;
       }
       setPhase({ kind: 'done', result: json as CancelResponse });
