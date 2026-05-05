@@ -246,6 +246,185 @@ the surfaces that signal that.
 
 ---
 
+## Sprint H — Competitive research findings (CafeMeet + Cafe-Finder)
+
+> Researched 2026-05 against two adjacent projects on disk:
+> `/Users/tomi/Documents/Program/CafeMeet` (Python + FastAPI + Amap
+> + LLM agent loop, single-user search-only — no auth/booking/profile)
+> and `/Users/tomi/Documents/Program/Cafe-Finder` (Next.js + OpenAI
+> + Mongo, mood-driven cafe browser — also no booking).
+>
+> Neither overlaps with our **booking** surface. The overlap is the
+> anonymous AI search at `/` and result rendering. Cross-cutting
+> signal across both: **our agent decision is invisible** — users
+> see results but don't know why those results. Items below ranked
+> by leverage, not by source.
+
+### H1. AI reasoning strip above results (HIGH leverage, ~30min)
+
+> Both projects do this. CafeMeet renders a 5-step animated timeline;
+> Cafe-Finder returns a free-text reasoning blurb and shows it as
+> `✦ {reasoning}` above results. Two independent comparisons flagged
+> the same gap — strong signal.
+
+- [ ] Server-side: include a 1-line `reasoning` string in the search
+      results payload, derived deterministically from the active
+      agent mode + party count + slot. Example: _"Balanced across 3
+      locations · ranked by rating × log(reviews)"_
+- [ ] Frontend: `CoffeeShopList` shows the strip above the result
+      cards. Hidden when no reasoning available.
+- [ ] No LLM call needed for v1 — generate from mode preset
+      vocabulary. Upgrade to LLM-generated when H6 ships.
+
+### H2. Per-person distance / ETA breakdown on result card
+
+> CafeMeet ships per-participant distance lines under the meeting
+> point ("A 1.2km · B 1.5km · C 1.4km"). Lets users **verify** the
+> fairness claim instead of trusting it. Cheap given Sprint A1
+> already computes the matrix.
+
+- [ ] When ETAs are available (Sprint A1), show per-party lines
+      under the fairness badge: _"A 14 min · B 18 min · C 17 min"_.
+- [ ] Truncate to compact labels (party initials or short address)
+      so it fits the card width.
+
+### H3. "Open in Google Maps directions" button
+
+> Both projects do this. We have the cafe placeId already; the URL
+> is one templated string. Closes the "AI picked the cafe but how do
+> I get there" gap on result cards AND on confirmation pages /
+> emails.
+
+- [ ] `CoffeeShopCard`: small directions button →
+      `https://www.google.com/maps/dir/?api=1&destination=<placeId>`.
+- [ ] `BookingsPage` confirmed-row: same button.
+- [ ] Visitor confirmation email already includes "Open in Maps"
+      via `googleMapsUri`; consider also a direct directions URL.
+
+### H4. Mood-tile UI for agent modes (HIGH leverage UX, ~2h)
+
+> Cafe-Finder's `MoodSelector.tsx:45-115` uses 7 colored, animated
+> tiles (emoji + gradient + searchHint). We use 6 plain chips. Same
+> data shape — just a much better surface. Modes feel like product
+> features instead of developer controls.
+
+- [ ] Per-mode metadata object: `{ label, emoji, color, gradient,
+      hint, searchPreset }` — single source of truth.
+- [ ] Animated tile grid replacing `AgentModeChips` on the home
+      hero. Keep compact chip variant for the result-page sidebar
+      (dense layout).
+- [ ] A11y: preserve `role="radiogroup"` / `role="radio"` semantics
+      from the chips; tile is purely visual upgrade.
+- [ ] Pair with auto-pick badge from the existing
+      `agentModeIsAuto` state — auto-picked tile gets a subtle ✨
+      corner mark.
+
+### H5. Empty-state quick prompts on home search
+
+> Cafe-Finder shows 6 example queries when search input is focused
+> but empty (`SearchBar.tsx:168-188`). Teaches users what AI can
+> handle. Anonymous-only — for visitors who don't know what to type.
+
+- [ ] When the home-page free-text input (or the address input on
+      the meetup search) is focused with empty value, show 6 emoji
+      + label chips below: _"📚 Quiet to work"_ / _"🌃 Date night"_
+      / _"💸 Cheap nearby"_ / _"⚡ Open now"_ / _"🤝 Halfway with a
+      friend"_ / _"☕ My usual cafes"_.
+- [ ] Click → fills input + dispatches search. Hidden when input
+      has any value.
+
+### H6. Two-stage parse → filter → rerank pipeline for Vibe mode
+
+> Cafe-Finder's `app/api/ai/recommend/route.ts:18-47` does:
+> (1) gpt-4o-mini parses free-text query → JSON `{mood, keywords,
+> features}`, (2) keywords drive Places `keyword=` filter, (3) LLM
+> reranks top 20. Our Vibe mode is a hardcoded preset; this is a
+> meaningful upgrade.
+
+- [ ] New `/api/agent/parse-intent` endpoint: free-text → structured
+      `{mood, keywords, features, reasoning}`.
+- [ ] Plug into Vibe mode: keywords narrow Places search, LLM only
+      sees top 20, `reasoning` feeds the H1 strip.
+- [ ] Deterministic preset fallback when LLM unavailable / quota.
+- [ ] Cost: gpt-4o-mini-class call per Vibe search; budget alarm.
+
+### H7. Polyline on result map
+
+> CafeMeet draws connecting lines from each participant to the
+> meeting point on its result page. Visual proof of fairness, almost
+> free since we already render the map.
+
+- [ ] In `Map.tsx`, when results are showing, draw a `Polyline` from
+      each search origin to the highlighted (or top-fairness) cafe.
+      Subtle dashed stroke, theme-color tinted.
+- [ ] Hide on single-party "Near me" mode.
+
+### H8. Geocode + Places-nearby cache
+
+> Both projects cache. We already cache photos in R2; same idea on
+> geocode + nearby responses cuts repeat-search cost without changing
+> behaviour.
+
+- [ ] Workers KV-backed cache: key `lat:lng:radius:mode` rounded to
+      3 decimals, 5-min TTL on nearby, 24-hour TTL on geocode.
+- [ ] Wire into existing Maps SDK proxy in `googleMaps.ts`.
+
+### H9. flyTo map animation on card hover / select
+
+> Cafe-Finder's `MapView.tsx:71-79` smoothly animates instead of
+> jumping. Pairs with our list↔map hover sync.
+
+- [ ] Replace abrupt `setCenter` with `panTo` (smoother) when
+      switching highlighted cafe. Optional `setZoom` step on select.
+
+### H10. Highlights / concerns review summary (deferred)
+
+> Cafe-Finder's `CafeReviews.tsx:42-87` shows structured "Guests
+> love..." / "Some note..." columns instead of free-text summary.
+> Only ladder this if reviews ever land on PublicProfilePage
+> featured cafes — don't build the surface for its own sake.
+
+- [ ] **Trigger:** Pro tier has paying users asking for review
+      surfacing on featured cafes.
+- [ ] When triggered: structure as two columns, not free-text;
+      keep summary length tight (3-5 bullets each side).
+
+### H11. Anti-patterns to AVOID (confirmed independently by both)
+
+- ❌ **"AI Concierge" chatbot** — Both projects ship one (CafeMeet's
+      4-canned-Q&A theatre at `cafe_finder.html:597-798`,
+      Cafe-Finder's CafeBot). Generic LLM chat without action
+      doesn't book, doesn't propose, just talks. Two-source signal
+      that this is a distraction; we resisted, keep resisting.
+- ❌ **"Spin the Wheel" / fate-decider gimmick** — Cafe-Finder ships
+      one (`SpinWheel.tsx`). Our agent modes already pick; don't
+      add an entropy-source decoration.
+- ❌ **Non-Cloudflare DB (MongoDB / Mongoose)** — Cafe-Finder runs
+      on Mongo. Confirms our single-platform D1 + Drizzle is the
+      right call.
+- ❌ **Fake hardcoded stats** ("12,000+ Cafes / 80+ Cities / 500K+
+      Visitors" in Cafe-Finder's `Hero.tsx:8-12`). Embarrassing if
+      real users land there.
+- ❌ **Inferring amenities from venue name substrings** (Cafe-Finder
+      tags wifi from "co-work" in name). Noisy + frequently wrong.
+- ❌ **localStorage-persisted Places results** — Cafe-Finder caches
+      `cafes` + `filters` in localStorage; serves stale data
+      across sessions. Our server-truth model is correct.
+- ❌ **HTML-as-output to disk per query** (CafeMeet writes a fresh
+      HTML file per search). Stateless, uncacheable, unindexable.
+
+### Top 3 to do first
+
+> Already in priority order, but explicitly:
+> 1. **H1** — agent reasoning strip (single highest-leverage win;
+>    closes a gap two independent comparisons flagged)
+> 2. **H4** — mood-tile UI for agent modes (UX upgrade that makes
+>    modes feel like product features)
+> 3. **H3** — "Open in Maps directions" button (small but real gap
+>    on the conversion path from result → actual coffee)
+
+---
+
 ## Hard "not now"
 
 - ❌ **Stranger coffee match.** Cold-start social + safety = a
