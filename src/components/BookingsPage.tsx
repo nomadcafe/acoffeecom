@@ -68,6 +68,10 @@ interface FeaturedCafeQuickPick {
   address: string;
   lat: number;
   lng: number;
+  /** Google Maps deep link, when the host saved one with the cafe.
+   *  Threaded through to the approve payload so the visitor's email
+   *  gets an "Open in Maps" CTA. */
+  googleMapsUri: string | null;
 }
 
 /**
@@ -467,6 +471,7 @@ export function BookingsPage() {
                     address: string;
                     lat: number;
                     lng: number;
+                    googleMapsUri?: string | null;
                   }>;
                 };
                 setFeaturedCafes(
@@ -476,6 +481,7 @@ export function BookingsPage() {
                     address: c.address,
                     lat: c.lat,
                     lng: c.lng,
+                    googleMapsUri: c.googleMapsUri ?? null,
                   })),
                 );
               } catch {
@@ -1025,6 +1031,7 @@ function ApproveRequestModal({
                             lat: c.lat,
                             lng: c.lng,
                             websiteUri: null,
+                            googleMapsUri: c.googleMapsUri,
                           })
                         }
                         disabled={busy}
@@ -1154,9 +1161,19 @@ function ApproveRequestModal({
                   onChange={(e) => {
                     const ms = new Date(e.target.value).getTime();
                     if (Number.isFinite(ms)) {
-                      // null when matching the original — server
-                      // skips the time-change branch.
-                      setProposedTimeMs(ms === target.scheduledAt ? null : ms);
+                      /* datetime-local input rounds to the nearest
+                       * minute, but target.scheduledAt is millisecond.
+                       * Strict equality almost never holds even when
+                       * the host re-picks the original slot — and a
+                       * non-null proposedTimeMs makes the host send a
+                       * "new time" notice for an unchanged time.
+                       * Round both to minute precision for the
+                       * compare. */
+                      const minute = (n: number) =>
+                        Math.floor(n / 60_000) * 60_000;
+                      setProposedTimeMs(
+                        minute(ms) === minute(target.scheduledAt) ? null : ms,
+                      );
                     }
                   }}
                   disabled={busy}
@@ -1692,12 +1709,20 @@ function BookingsList({
   // "Upcoming" until the next data refresh, which is fine for our purposes.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
-  // Upcoming = anything not cancelled and still in the future. Treats
-  // 'pending' and 'confirmed' identically — if and when the visitor
-  // double-opt-in lands, both stay on this page until the slot passes.
-  const upcoming = rows.filter((r) => r.status !== 'cancelled' && r.scheduledAt > now);
+  /* Upcoming = anything not cancelled and where the meeting hasn't
+   * ended yet. We measure the END of the slot (scheduledAt + duration),
+   * not the start, so a meeting that's *currently happening* stays in
+   * Upcoming until the host actually finishes — instead of dropping
+   * to Past the moment the clock crosses the start time. Without this,
+   * a host reading their phone at the cafe sees their own meeting in
+   * the Past list while still sitting at the table. */
+  const endOfMeeting = (r: { scheduledAt: number; durationMinutes: number }) =>
+    r.scheduledAt + r.durationMinutes * 60_000;
+  const upcoming = rows.filter(
+    (r) => r.status !== 'cancelled' && endOfMeeting(r) > now,
+  );
   const archived = rows
-    .filter((r) => r.status === 'cancelled' || r.scheduledAt <= now)
+    .filter((r) => r.status === 'cancelled' || endOfMeeting(r) <= now)
     // Past + cancelled: most recent first.
     .sort((a, b) => b.scheduledAt - a.scheduledAt);
 

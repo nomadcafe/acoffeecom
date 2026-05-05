@@ -39,6 +39,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
       linkWebsite: r.linkWebsite ?? null,
       linkMenu: r.linkMenu ?? null,
       linkBookingExternal: r.linkBookingExternal ?? null,
+      googleMapsUri: r.googleMapsUri ?? null,
       ownerPinnedNote: r.ownerPinnedNote ?? null,
       ownerVerified: r.ownerVerified === true,
     })),
@@ -179,6 +180,11 @@ const FeaturedCafeSchema = z
      * Places returns websiteUri; absent for cafes Google doesn't list a
      * site for. */
     websiteUri: z.string().trim().max(300).nullable().optional(),
+    /* Google Maps deep link from the picker (Place.googleMapsURI).
+     *  Persisted so the booking-approve flow can surface "Open in Maps"
+     *  in the visitor's confirmation email when the host picks this cafe
+     *  from their featured list. */
+    googleMapsUri: z.string().trim().max(500).nullable().optional(),
   })
   .strict()
   .refine(
@@ -364,6 +370,7 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
           linkWebsite: norm(c.linkWebsite),
           linkMenu: norm(c.linkMenu),
           linkBookingExternal: norm(c.linkBookingExternal),
+          googleMapsUri: norm(c.googleMapsUri),
           // Owner-only field — stored on favorite rows too so a relation
           // flip later doesn't lose the text, but the renderer only shows
           // it on owned cards.

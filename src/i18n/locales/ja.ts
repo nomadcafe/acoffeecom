@@ -78,6 +78,7 @@ export const messages: MessageDict = {
   'heroSignedIn.pendingRequestOne': '新しい予約リクエストが 1 件',
   'heroSignedIn.pendingRequestMany': '新しい予約リクエストが {{count}} 件',
   'heroSignedIn.nextCoffee': '{{when}} · {{name}} さんと {{cafe}} でコーヒー',
+  'heroSignedIn.viewBookings': '予約を確認',
 
   'lang.selectAria': '言語',
   'lang.en': 'English',

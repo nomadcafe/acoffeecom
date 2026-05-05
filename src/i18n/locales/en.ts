@@ -80,6 +80,7 @@ export const messages: MessageDict = {
   'heroSignedIn.pendingRequestOne': '1 new booking request',
   'heroSignedIn.pendingRequestMany': '{{count}} new booking requests',
   'heroSignedIn.nextCoffee': '{{when}} · Coffee with {{name}} at {{cafe}}',
+  'heroSignedIn.viewBookings': 'View your bookings',
 
   'lang.selectAria': 'Language',
   'lang.en': 'English',

@@ -1,0 +1,1 @@
+ALTER TABLE `featured_cafes` ADD `google_maps_uri` text;

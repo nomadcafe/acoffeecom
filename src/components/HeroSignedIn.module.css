@@ -251,6 +251,32 @@
   border-color: rgba(94, 122, 82, 0.5);
 }
 
+/* Fallback affordance shown only when the /api/bookings fetch failed.
+ * Subtle small text-link style — we don't want it to compete with the
+ * action cards on the happy path; this is a "we couldn't check, but
+ * here's how to" escape hatch. */
+.bookingsFallback {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ac-accent);
+  text-decoration: none;
+  padding: 0.25rem 0;
+}
+
+.bookingsFallback:hover {
+  color: var(--ac-accent-dark);
+  text-decoration: underline;
+}
+
+.bookingsFallback:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-radius: var(--ac-radius-sm);
+}
+
 /* ---------- stats row (streak focal + supporting list) ---------- */
 
 .statsRow {

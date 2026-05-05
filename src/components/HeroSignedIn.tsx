@@ -91,13 +91,24 @@ export function HeroSignedIn() {
    * /api/bookings endpoint — small payload, already auth-gated. */
   const [pendingRequests, setPendingRequests] = useState<number | null>(null);
   const [nextCoffee, setNextCoffee] = useState<BookingRow | null>(null);
+  /* Track fetch outcome explicitly. The previous version left state at
+   * null on failure, indistinguishable from a still-loading or
+   * empty-but-successful state — so a host with active pending
+   * requests but a flaky network saw zero affordance for /bookings.
+   * On `failed` we now show a "View bookings" fallback link below. */
+  const [inboxStatus, setInboxStatus] = useState<'loading' | 'ok' | 'failed'>(
+    'loading',
+  );
   useEffect(() => {
     if (!sessionUser) return;
     let cancelled = false;
     void (async () => {
       try {
         const r = await fetch('/api/bookings');
-        if (!r.ok) return;
+        if (!r.ok) {
+          if (!cancelled) setInboxStatus('failed');
+          return;
+        }
         const json = (await r.json()) as { bookings: BookingRow[] };
         if (cancelled) return;
         const now = Date.now();
@@ -108,9 +119,9 @@ export function HeroSignedIn() {
         );
         setPendingRequests(requestedCount);
         setNextCoffee(upcoming ?? null);
+        setInboxStatus('ok');
       } catch {
-        /* network blip — leave inbox state null, hero falls back to
-         * stats-only without the action cards. */
+        if (!cancelled) setInboxStatus('failed');
       }
     })();
     return () => {
@@ -213,6 +224,18 @@ export function HeroSignedIn() {
       ) : null}
 
       {nextCoffee ? <NextCoffeeCard booking={nextCoffee} bookingsHref={bookingsHref} /> : null}
+
+      {/* Fallback "View bookings" link — only renders when the inbox
+          fetch failed (so the user has no idea whether they have
+          requests waiting). The prominent action cards above replace
+          it on the success path. Never shown when the fetch succeeded
+          and reported zero items, so a quiet inbox doesn't add visual
+          noise. */}
+      {inboxStatus === 'failed' ? (
+        <a className={styles.bookingsFallback} href={bookingsHref}>
+          {t('heroSignedIn.viewBookings')} →
+        </a>
+      ) : null}
 
       {showStats ? (
         <>

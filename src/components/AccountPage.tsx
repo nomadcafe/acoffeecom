@@ -1382,6 +1382,11 @@ interface FeaturedCafeDraft {
   linkBookingExternal: string;
   ownerPinnedNote: string;
   websiteUri: string | null;
+  /** Google Maps deep link captured from the picker. Persisted server-
+   *  side so the booking-approve flow can surface "Open in Maps" on
+   *  the visitor's confirmation email when this cafe is the host's
+   *  pick. Not user-editable in the AccountPage UI. */
+  googleMapsUri: string | null;
   ownerVerified: boolean;
 }
 
@@ -1391,7 +1396,15 @@ const FEATURED_PINNED_NOTE_MAX = 80;
 const FEATURED_LINK_MAX = 200;
 
 function emptyCafeFromPicked(
-  picked: { placeId: string; name: string; address: string; lat: number; lng: number; websiteUri?: string | null },
+  picked: {
+    placeId: string;
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+    websiteUri?: string | null;
+    googleMapsUri?: string | null;
+  },
   relation: FeaturedCafeRelation,
 ): FeaturedCafeDraft {
   return {
@@ -1408,6 +1421,7 @@ function emptyCafeFromPicked(
     linkBookingExternal: '',
     ownerPinnedNote: '',
     websiteUri: picked.websiteUri ?? null,
+    googleMapsUri: picked.googleMapsUri ?? null,
     ownerVerified: false,
   };
 }
@@ -2096,13 +2110,14 @@ function FeaturedCafesCard() {
         const res = await fetch('/api/account');
         if (!res.ok) return;
         const data = (await res.json()) as {
-          featuredCafes?: Array<Omit<FeaturedCafeDraft, 'note' | 'linkInstagram' | 'linkWebsite' | 'linkMenu' | 'linkBookingExternal' | 'ownerPinnedNote' | 'websiteUri'> & {
+          featuredCafes?: Array<Omit<FeaturedCafeDraft, 'note' | 'linkInstagram' | 'linkWebsite' | 'linkMenu' | 'linkBookingExternal' | 'ownerPinnedNote' | 'websiteUri' | 'googleMapsUri'> & {
             note: string | null;
             linkInstagram: string | null;
             linkWebsite: string | null;
             linkMenu: string | null;
             linkBookingExternal: string | null;
             ownerPinnedNote: string | null;
+            googleMapsUri: string | null;
           }>;
         };
         if (cancelled || !data.featuredCafes) return;
@@ -2124,6 +2139,7 @@ function FeaturedCafesCard() {
             // until the user re-picks via autocomplete; verification flag
             // we already have stays sticky.
             websiteUri: null,
+            googleMapsUri: c.googleMapsUri,
             ownerVerified: c.ownerVerified,
           })),
         );
@@ -2195,6 +2211,7 @@ function FeaturedCafesCard() {
       linkBookingExternal: c.linkBookingExternal.trim() || null,
       ownerPinnedNote: c.ownerPinnedNote.trim() || null,
       websiteUri: c.websiteUri,
+      googleMapsUri: c.googleMapsUri,
     }));
     try {
       const res = await fetch('/api/account', {
@@ -2218,6 +2235,7 @@ function FeaturedCafesCard() {
               note: string | null;
               linkInstagram: string | null; linkWebsite: string | null; linkMenu: string | null; linkBookingExternal: string | null;
               ownerPinnedNote: string | null;
+              googleMapsUri: string | null;
               ownerVerified: boolean;
             }>;
           };
@@ -2233,6 +2251,7 @@ function FeaturedCafesCard() {
                 linkBookingExternal: c.linkBookingExternal ?? '',
                 ownerPinnedNote: c.ownerPinnedNote ?? '',
                 websiteUri: null,
+                googleMapsUri: c.googleMapsUri,
                 ownerVerified: c.ownerVerified,
               })),
             );

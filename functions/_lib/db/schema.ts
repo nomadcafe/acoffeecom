@@ -316,6 +316,12 @@ export const featuredCafes = sqliteTable(
     linkWebsite: text('link_website'),
     linkMenu: text('link_menu'),
     linkBookingExternal: text('link_booking_external'),
+    /** Google Maps deep link from the Places picker, when available.
+     *  Used by the booking-approve flow to surface an "Open in Maps"
+     *  CTA in the visitor's confirmation email. Stored separately from
+     *  linkWebsite because they're semantically different — the cafe's
+     *  own site vs. its position on Google Maps. */
+    googleMapsUri: text('google_maps_uri'),
     /** Owned-only "本周特别 / what's brewing" pinned note, ~80 chars.
      *  Owner is expected to refresh — we don't expire automatically in
      *  v1, but a stale-after-N-days hint surfaces on AccountPage. */
