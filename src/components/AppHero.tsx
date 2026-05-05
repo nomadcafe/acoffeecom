@@ -14,7 +14,7 @@ import styles from './AppHero.module.css';
  */
 export function AppHero() {
   const { t, locale } = useI18n();
-  const { midpoint, searchWithAddresses, isLoading, recentSearches } = useApp();
+  const { midpoint, searchWithAddresses, setAgentMode, isLoading, recentSearches } = useApp();
   const { data: session, isPending: sessionPending } = useSession();
 
   // Hide the hero as soon as any search is in flight, not just on
@@ -52,9 +52,22 @@ export function AppHero() {
                   key={`${pair.a}|${pair.b}`}
                   type="button"
                   className={styles.sampleChip}
-                  onClick={() => void searchWithAddresses(pair.a, pair.b)}
+                  onClick={() => {
+                    /* Apply the suggested agent mode BEFORE firing the
+                     * search so the first results the user sees are
+                     * already mode-flavored. Without this, the prompt
+                     * would teach addresses but leave the user
+                     * thinking modes are unrelated machinery. */
+                    if (pair.mode) setAgentMode(pair.mode);
+                    void searchWithAddresses(pair.a, pair.b);
+                  }}
                   disabled={isLoading}
                 >
+                  {pair.emoji ? (
+                    <span className={styles.sampleEmoji} aria-hidden>
+                      {pair.emoji}
+                    </span>
+                  ) : null}
                   <span className={styles.sampleA}>{pair.a}</span>
                   <span className={styles.sampleArrow} aria-hidden>
                     ↔

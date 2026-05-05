@@ -78,6 +78,16 @@
   font-weight: 700;
 }
 
+/* Per-sample emoji prefix. Pairs with the agent mode tagged on the
+ * sample so the chip telegraphs both "address pair" + "what mode"
+ * without an extra label. Slightly bumped size so the glyph reads
+ * at chip scale. */
+.sampleEmoji {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 @media (hover: hover) {
   .sampleChip:hover:not(:disabled) {
     background: var(--ac-surface-tinted);
