@@ -105,6 +105,152 @@
   font-weight: 600;
 }
 
+/* ---------- share row (profile link + copy button) ---------- */
+
+.shareRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.copyButton {
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--ac-radius-pill);
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  color: var(--ac-text);
+  cursor: pointer;
+  transition: background var(--ac-motion-fast), border-color var(--ac-motion-fast),
+    color var(--ac-motion-fast);
+}
+
+.copyButton:hover {
+  background: var(--ac-surface-tinted);
+  border-color: var(--ac-accent);
+}
+
+.copyButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
+/* Briefly-shown post-copy confirmation. Sage-green so the visual cue
+ * is unmistakably "success" rather than "another idle button". */
+.copyButtonCopied {
+  background: rgba(94, 122, 82, 0.14);
+  border-color: var(--ac-accent-2);
+  color: var(--ac-accent-2-dark);
+}
+
+.claimHandle {
+  align-self: flex-start;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ac-accent);
+  text-decoration: none;
+  padding: 0.15rem 0;
+  transition: color var(--ac-motion-fast);
+}
+
+.claimHandle:hover {
+  color: var(--ac-accent-dark);
+  text-decoration: underline;
+}
+
+.claimHandle:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+  border-radius: var(--ac-radius-sm);
+}
+
+/* ---------- action cards (pending requests, next coffee) ---------- */
+
+.actionCard {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.85rem 0.65rem 0.95rem;
+  border-radius: var(--ac-radius-md);
+  border: 1px solid var(--ac-border);
+  background: var(--ac-surface);
+  text-decoration: none;
+  color: var(--ac-text);
+  font-size: 0.92rem;
+  line-height: 1.35;
+  transition: transform var(--ac-motion-fast), box-shadow var(--ac-motion-fast),
+    border-color var(--ac-motion-fast), background var(--ac-motion-fast);
+}
+
+.actionCard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ac-shadow-card);
+  border-color: var(--ac-accent);
+}
+
+.actionCard:focus-visible {
+  outline: none;
+  box-shadow: var(--ac-focus-ring);
+}
+
+.actionIcon {
+  font-size: 1.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.actionText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 500;
+  white-space: normal;
+}
+
+.actionArrow {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--ac-accent);
+  font-weight: 700;
+  transition: transform var(--ac-motion-fast);
+}
+
+.actionCard:hover .actionArrow {
+  transform: translateX(2px);
+}
+
+/* Pending — saffron-tinted to telegraph "needs attention" without
+ * shouting. Stronger than the next-coffee card because the action
+ * (approve/reject) is the host's most important pending decision. */
+.actionCardPending {
+  background: linear-gradient(
+    135deg,
+    rgba(244, 166, 35, 0.12),
+    rgba(244, 166, 35, 0.04)
+  );
+  border-color: rgba(244, 166, 35, 0.32);
+}
+
+.actionCardPending:hover {
+  border-color: rgba(244, 166, 35, 0.55);
+}
+
+/* Next coffee — sage-green, the "go" / "everything's set" tone. */
+.actionCardNext {
+  background: linear-gradient(
+    135deg,
+    rgba(94, 122, 82, 0.1),
+    rgba(94, 122, 82, 0.03)
+  );
+  border-color: rgba(94, 122, 82, 0.25);
+}
+
+.actionCardNext:hover {
+  border-color: rgba(94, 122, 82, 0.5);
+}
+
 /* ---------- stats row (streak focal + supporting list) ---------- */
 
 .statsRow {

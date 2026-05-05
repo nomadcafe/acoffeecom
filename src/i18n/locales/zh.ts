@@ -36,6 +36,13 @@ export const messages: MessageDict = {
   'heroSignedIn.shopsMany': '{{count}} 家店',
   'heroSignedIn.lastVisitLabel': '最近一杯：',
   'heroSignedIn.viewPassport': '看护照',
+  'heroSignedIn.copyLink': '复制链接',
+  'heroSignedIn.copyLinkAria': '复制你的主页链接',
+  'heroSignedIn.copied': '已复制！',
+  'heroSignedIn.claimHandle': '认领你的 acoffee.com 主页',
+  'heroSignedIn.pendingRequestOne': '1 个新预约请求',
+  'heroSignedIn.pendingRequestMany': '{{count}} 个新预约请求',
+  'heroSignedIn.nextCoffee': '{{when}} · 与 {{name}} 在 {{cafe}} 喝咖啡',
 
   'lang.selectAria': '语言',
   'lang.en': 'English',

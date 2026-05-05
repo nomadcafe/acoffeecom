@@ -39,6 +39,13 @@ export const messages: MessageDict = {
   'heroSignedIn.shopsMany': '{{count}} cafés',
   'heroSignedIn.lastVisitLabel': 'Last visit:',
   'heroSignedIn.viewPassport': 'View passport',
+  'heroSignedIn.copyLink': 'Copy link',
+  'heroSignedIn.copyLinkAria': 'Copy your profile link',
+  'heroSignedIn.copied': 'Copied!',
+  'heroSignedIn.claimHandle': 'Claim your acoffee.com handle',
+  'heroSignedIn.pendingRequestOne': '1 new booking request',
+  'heroSignedIn.pendingRequestMany': '{{count}} new booking requests',
+  'heroSignedIn.nextCoffee': '{{when}} · Coffee with {{name}} at {{cafe}}',
 
   'lang.selectAria': 'Language',
   'lang.en': 'English',

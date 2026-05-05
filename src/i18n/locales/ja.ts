@@ -39,6 +39,13 @@ export const messages: MessageDict = {
   'heroSignedIn.shopsMany': '{{count}} 店舗',
   'heroSignedIn.lastVisitLabel': '前回：',
   'heroSignedIn.viewPassport': 'パスポートを見る',
+  'heroSignedIn.copyLink': 'リンクをコピー',
+  'heroSignedIn.copyLinkAria': 'プロフィールリンクをコピー',
+  'heroSignedIn.copied': 'コピーしました！',
+  'heroSignedIn.claimHandle': 'acoffee.com ハンドルを取得',
+  'heroSignedIn.pendingRequestOne': '新しい予約リクエストが 1 件',
+  'heroSignedIn.pendingRequestMany': '新しい予約リクエストが {{count}} 件',
+  'heroSignedIn.nextCoffee': '{{when}} · {{name}} さんと {{cafe}} でコーヒー',
 
   'lang.selectAria': '言語',
   'lang.en': 'English',
