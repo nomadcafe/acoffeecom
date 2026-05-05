@@ -179,7 +179,8 @@ export const messages: MessageDict = {
   'proposal.actionFailed': '操作失败，请重试。',
   'proposal.goHome': '返回 ACoffee',
 
-  'agentMode.aria': '选择 agent 决策方式',
+  'agentMode.aria': '咖啡风格',
+  'agentMode.autoCaption': 'AI 暂选了 {{mode}} —— 点任意一个换风格。',
   'agentMode.fair.label': '公平',
   'agentMode.fair.hint': '大家通勤时间最均衡',
   'agentMode.fast.label': '最快',

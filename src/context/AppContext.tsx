@@ -16,6 +16,7 @@ import { useStarredShops } from '../hooks/useStarredShops';
 import { useVisitedShops } from '../hooks/useVisitedShops';
 import { geocodeAddress } from '../utils/geocoding';
 import { calculateMidpoint, centroid } from '../utils/midpoint';
+import { pickAgentModeByTime } from '../utils/pickAgentModeByTime';
 import { track } from '../utils/analytics';
 import { useSession } from '../utils/authClient';
 import { GOOGLE_MAPS_LIBRARIES } from '../utils/googleMapsLoader';
@@ -91,6 +92,11 @@ interface AppContextType extends AppState {
   setSearchPlaceCategory: (value: PlaceSearchCategory) => void;
   setSearchSortMode: (value: SearchSortMode) => void;
   agentMode: AgentMode;
+  /** True when the current `agentMode` was auto-picked by the agent
+   *  (time-of-day default), false once the user has tapped a chip
+   *  manually. Drives the small "auto-picked" caption in
+   *  AgentModeChips so the AI work is visible to the user. */
+  agentModeIsAuto: boolean;
   /** Tap a chip → applies the mode preset (sort + filters). The user can
    *  still override individual filters in the advanced panel afterwards. */
   setAgentMode: (mode: AgentMode) => void;
@@ -400,21 +406,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchOpenNow, setSearchOpenNow] = useState<boolean>(() => {
     return new URLSearchParams(window.location.search).get('open') === '1';
   });
+  /* Agent default. URL `?m=` is treated as a manual override (sticky
+   * across reloads); absent / invalid → auto-pick by local time of day
+   * so the AI agent has actually decided something at boot. The
+   * `IsAuto` flag tracks which path we took so AgentModeChips can show
+   * a tiny "auto-picked" caption (delivers on the agent pitch without
+   * hiding the override path). */
   const [agentMode, setAgentModeState] = useState<AgentMode>(() => {
     const v = new URLSearchParams(window.location.search).get('m');
-    return v === 'fair' ||
+    if (
+      v === 'fair' ||
       v === 'fast' ||
       v === 'vibe' ||
       v === 'quiet' ||
       v === 'cheap' ||
       v === 'now'
-      ? v
-      : 'fair';
+    ) {
+      return v;
+    }
+    return pickAgentModeByTime(new Date().getHours());
   });
-  /** Apply a six-mode preset: switches sort + a couple of filters. */
+  const [agentModeIsAuto, setAgentModeIsAuto] = useState<boolean>(() => {
+    const v = new URLSearchParams(window.location.search).get('m');
+    return !(
+      v === 'fair' ||
+      v === 'fast' ||
+      v === 'vibe' ||
+      v === 'quiet' ||
+      v === 'cheap' ||
+      v === 'now'
+    );
+  });
+  /** Apply a six-mode preset: switches sort + a couple of filters.
+   *  Always treated as a manual override — flips agentModeIsAuto false
+   *  so the auto-picked caption disappears. */
   const setAgentMode = useCallback((mode: AgentMode) => {
     const preset = AGENT_MODE_PRESETS[mode];
     setAgentModeState(mode);
+    setAgentModeIsAuto(false);
     setSearchSortMode(preset.sortMode);
     if (preset.openNow !== undefined) setSearchOpenNow(preset.openNow);
     if (preset.minRating !== undefined) setSearchMinRating(preset.minRating);
@@ -1247,6 +1276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchPlaceCategory,
       searchSortMode,
       agentMode,
+      agentModeIsAuto,
       setAgentMode,
       searchMode,
       searchOpenNow,
@@ -1312,6 +1342,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchPlaceCategory,
       searchSortMode,
       agentMode,
+      agentModeIsAuto,
       setAgentMode,
       searchMode,
       searchOpenNow,

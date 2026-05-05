@@ -188,7 +188,8 @@ export const messages: MessageDict = {
   'proposal.actionFailed': "That didn't work. Try again?",
   'proposal.goHome': 'Back to ACoffee',
 
-  'agentMode.aria': 'Pick how the agent decides',
+  'agentMode.aria': 'Coffee style',
+  'agentMode.autoCaption': 'Agent picked {{mode}} for now — tap any to change.',
   'agentMode.fair.label': 'Fair',
   'agentMode.fair.hint': 'Most equal travel time for everyone',
   'agentMode.fast.label': 'Fast',

@@ -26,7 +26,7 @@ const ICONS: Record<AgentMode, string> = {
  */
 export function AgentModeChips() {
   const { t } = useI18n();
-  const { agentMode, setAgentMode, isLoading, searchMode, midpoint } = useApp();
+  const { agentMode, agentModeIsAuto, setAgentMode, isLoading, searchMode, midpoint } = useApp();
   // Hide in nearby (single-party) mode — Fair / Fast / Now have no
   // meaning when there's only one origin to balance against.
   if (searchMode === 'nearby') return null;
@@ -37,27 +37,40 @@ export function AgentModeChips() {
   // results in place.
   if (!midpoint && !isLoading) return null;
   return (
-    <div className={styles.row} role="radiogroup" aria-label={t('agentMode.aria')}>
-      {MODES.map((mode) => {
-        const selected = mode === agentMode;
-        return (
-          <button
-            key={mode}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            className={`${styles.chip} ${selected ? styles.chipSelected : ''}`}
-            onClick={() => setAgentMode(mode)}
-            disabled={isLoading && !selected}
-            title={t(`agentMode.${mode}.hint`)}
-          >
-            <span className={styles.chipIcon} aria-hidden>
-              {ICONS[mode]}
-            </span>
-            <span className={styles.chipLabel}>{t(`agentMode.${mode}.label`)}</span>
-          </button>
-        );
-      })}
+    <div className={styles.wrap}>
+      {/* "Auto-picked" caption — visible only when the agent set the
+          mode (vs the user tapping a chip). Delivers the "AI agent
+          decides" pitch without taking control away: any chip click
+          flips this off. Once the user manually picks once, the
+          caption goes away and stays away until next session. */}
+      {agentModeIsAuto ? (
+        <p className={styles.autoCaption} aria-live="polite">
+          <span className={styles.autoBadge} aria-hidden>✨</span>
+          {t('agentMode.autoCaption', { mode: t(`agentMode.${agentMode}.label`) })}
+        </p>
+      ) : null}
+      <div className={styles.row} role="radiogroup" aria-label={t('agentMode.aria')}>
+        {MODES.map((mode) => {
+          const selected = mode === agentMode;
+          return (
+            <button
+              key={mode}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              className={`${styles.chip} ${selected ? styles.chipSelected : ''}`}
+              onClick={() => setAgentMode(mode)}
+              disabled={isLoading && !selected}
+              title={t(`agentMode.${mode}.hint`)}
+            >
+              <span className={styles.chipIcon} aria-hidden>
+                {ICONS[mode]}
+              </span>
+              <span className={styles.chipLabel}>{t(`agentMode.${mode}.label`)}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

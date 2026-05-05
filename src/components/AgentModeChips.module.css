@@ -1,8 +1,31 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 0.85rem;
+}
+
+.autoCaption {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ac-text-muted);
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.autoBadge {
+  color: var(--ac-accent);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
 .row {
   display: flex;
   flex-wrap: nowrap;
   gap: 0.4rem;
-  margin: 0 0 0.85rem;
+  margin: 0;
   overflow-x: auto;
   padding: 0.1rem 0.05rem 0.4rem;
   scroll-snap-type: x proximity;

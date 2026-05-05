@@ -182,7 +182,8 @@ export const messages: MessageDict = {
   'proposal.actionFailed': '操作に失敗しました。もう一度お試しください。',
   'proposal.goHome': 'ACoffee に戻る',
 
-  'agentMode.aria': 'エージェントの選び方',
+  'agentMode.aria': 'コーヒーのスタイル',
+  'agentMode.autoCaption': 'AI が一旦 {{mode}} を選びました — どれでも押せば変更できます。',
   'agentMode.fair.label': '公平',
   'agentMode.fair.hint': '全員の移動時間が一番均等',
   'agentMode.fast.label': '速い',
