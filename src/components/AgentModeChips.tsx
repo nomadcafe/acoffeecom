@@ -5,13 +5,19 @@ import styles from './AgentModeChips.module.css';
 
 const MODES: AgentMode[] = ['fair', 'fast', 'vibe', 'quiet', 'cheap', 'now'];
 
-const ICONS: Record<AgentMode, string> = {
-  fair: '🤝',
-  fast: '⚡',
-  vibe: '✨',
-  quiet: '🌙',
-  cheap: '💸',
-  now: '🕐',
+/* Per-mode visual identity. The previous version had emoji + label
+ * but every chip looked identical (sage-on-cream); the strip read as
+ * "filter buttons" rather than "agent personalities." Each mode now
+ * carries its own warm-palette accent that tints the idle gradient
+ * and fully fills the selected state. Colors picked to sit in similar
+ * luminance so they read as a family, not a rainbow. */
+const MODE_META: Record<AgentMode, { color: string; emoji: string }> = {
+  fair: { color: '#5e7a52', emoji: '🤝' }, // sage
+  fast: { color: '#c97c2b', emoji: '⚡' }, // amber
+  vibe: { color: '#b35a7a', emoji: '✨' }, // rose
+  quiet: { color: '#4a5b8c', emoji: '🌙' }, // slate
+  cheap: { color: '#b08c2c', emoji: '💸' }, // gold
+  now: { color: '#c44a3a', emoji: '🕐' }, // coral
 };
 
 /**
@@ -52,6 +58,19 @@ export function AgentModeChips() {
       <div className={styles.row} role="radiogroup" aria-label={t('agentMode.aria')}>
         {MODES.map((mode) => {
           const selected = mode === agentMode;
+          const meta = MODE_META[mode];
+          /* CSS custom property carries the per-mode color into the
+           * stylesheet's color-mix() expressions. Each chip's idle
+           * background / hover border / selected fill / focus ring
+           * all derive from this one value — keeps the visual
+           * personality consistent without listing every state in
+           * inline styles. */
+          const chipStyle = { ['--chip-color' as string]: meta.color };
+          /* Sparkle corner badge when the agent picked this mode itself
+           * (vs the user clicking it). Pairs with the existing
+           * autoCaption above so the "AI decided" signal is visible
+           * both at the strip level and per-chip. */
+          const showAutoBadge = selected && agentModeIsAuto;
           return (
             <button
               key={mode}
@@ -59,14 +78,18 @@ export function AgentModeChips() {
               role="radio"
               aria-checked={selected}
               className={`${styles.chip} ${selected ? styles.chipSelected : ''}`}
+              style={chipStyle}
               onClick={() => setAgentMode(mode)}
               disabled={isLoading && !selected}
               title={t(`agentMode.${mode}.hint`)}
             >
               <span className={styles.chipIcon} aria-hidden>
-                {ICONS[mode]}
+                {meta.emoji}
               </span>
               <span className={styles.chipLabel}>{t(`agentMode.${mode}.label`)}</span>
+              {showAutoBadge ? (
+                <span className={styles.chipAutoBadge} aria-hidden>✦</span>
+              ) : null}
             </button>
           );
         })}

@@ -32,15 +32,30 @@
   scrollbar-width: thin;
 }
 
+/* Per-mode colour comes in via the inline `--chip-color` custom
+ * property the component sets. All chip states (idle / hover /
+ * selected / glow) derive from that one value so each mode reads
+ * as its own personality without duplicating state styles per
+ * mode. `color-mix()` requires Safari 16.4+ / Chrome 111+ /
+ * Firefox 113+ — well past adoption in 2026. */
 .chip {
+  --chip-color: var(--ac-accent-2);
   appearance: none;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   flex-shrink: 0;
-  padding: 0.5rem 0.85rem;
-  border: 1px solid var(--ac-border);
-  background: var(--ac-surface);
+  padding: 0.55rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--chip-color) 28%, var(--ac-border));
+  /* Idle: faint mode-tinted gradient over surface. ~10% of the mode
+   * color blends with the cream background — strong enough to read
+   * as "this chip is its own thing" without screaming. */
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--chip-color) 12%, var(--ac-surface)),
+      var(--ac-surface)
+    );
   color: var(--ac-text);
   font-family: inherit;
   font-size: 0.88rem;
@@ -48,9 +63,7 @@
   border-radius: var(--ac-radius-pill);
   cursor: pointer;
   scroll-snap-align: start;
-  /* Soft shadow gives the row a "designed pill bar" feel rather than
-   * a flat outlined button strip — matches the modeChip styling in
-   * the hero showcase. */
+  position: relative;
   box-shadow: 0 1px 3px rgba(111, 78, 55, 0.06);
   transition: background var(--ac-motion-fast),
     border-color var(--ac-motion-fast),
@@ -61,14 +74,19 @@
 }
 
 .chip:hover:not(:disabled) {
-  border-color: var(--ac-border-strong);
-  box-shadow: 0 4px 12px rgba(111, 78, 55, 0.12);
+  border-color: color-mix(in srgb, var(--chip-color) 55%, var(--ac-border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--chip-color) 20%, var(--ac-surface)),
+    var(--ac-surface)
+  );
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--chip-color) 22%, transparent);
   transform: translateY(-1px);
 }
 
 .chip:focus-visible {
   outline: none;
-  box-shadow: var(--ac-focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip-color) 28%, transparent);
 }
 
 .chip:disabled {
@@ -77,27 +95,50 @@
 }
 
 .chipSelected {
-  /* Sage = the "this is the live agent decision" colour, same accent
-   * used on submit + Fairness Score badges throughout. Confident
-   * sage shadow signals "this is the live mode." */
-  background: var(--ac-accent-2);
-  border-color: var(--ac-accent-2);
+  /* Selected chip wears its mode color at full strength — strong
+   * enough that the user can scan the strip and find their pick
+   * without reading labels. Glow uses the mode color too so the
+   * "live agent decision" signal stays visually coherent. */
+  background: var(--chip-color);
+  border-color: var(--chip-color);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(94, 122, 82, 0.28);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--chip-color) 36%, transparent);
 }
 
 .chipSelected:hover {
-  background: var(--ac-accent-2-dark);
-  border-color: var(--ac-accent-2-dark);
+  background: color-mix(in srgb, var(--chip-color) 88%, #000);
+  border-color: color-mix(in srgb, var(--chip-color) 88%, #000);
   color: #fff;
-  box-shadow: 0 6px 16px rgba(94, 122, 82, 0.34);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--chip-color) 40%, transparent);
 }
 
 .chipIcon {
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1;
 }
 
 .chipLabel {
   font-variant-numeric: tabular-nums;
+}
+
+/* ✦ corner badge on the chip the AGENT picked. Different signal from
+ * the user-clicked selected state — the chip is selected AND the
+ * agent decided it. Subtle: small white dot in the upper-right of
+ * the selected pill, only visible while agentModeIsAuto. */
+.chipAutoBadge {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--chip-color);
+  font-size: 0.62rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
 }
