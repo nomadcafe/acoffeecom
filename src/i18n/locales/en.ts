@@ -97,6 +97,7 @@ export const messages: MessageDict = {
   'location.thirdLocation': 'Third Location',
   'location.placeholderC': "e.g., friend's place in Queens",
   'location.addThird': 'Add another person',
+  'location.addThirdHint': 'Three-way meetup? The agent balances all three of you.',
   'location.removeThird': 'Remove third person',
   'location.findButton': 'Find Meetup Spot',
   'location.searching': 'Searching...',
@@ -298,6 +299,8 @@ export const messages: MessageDict = {
 
   'visited.add': 'Stamp as visited',
   'visited.stampAgain': 'Stamp again (visited {{count}}×)',
+  'visitHint.body': 'Tap ☕ to log this café — your passport is yours, public only if you choose.',
+  'visitHint.dismissAria': 'Dismiss tip',
   'visited.remove': 'Remove from passport',
   'visited.removeAria': 'Remove {{name}} from passport',
   'visited.removeConfirm': "Remove {{name}} from your passport? This drops every visit you've stamped there.",

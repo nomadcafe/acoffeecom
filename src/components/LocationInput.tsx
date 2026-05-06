@@ -43,7 +43,15 @@ export function LocationInput() {
   // taps "+ Add another" or arrives via a URL containing ?c=. Once shown,
   // it stays — clearing addressC by typing nothing is fine, but the user
   // can also remove the row entirely with the × button.
-  const [showC, setShowC] = useState(() => addressC.trim().length > 0);
+  //
+  // F3 — once the user opts in, persist to sessionStorage so a mid-session
+  // refresh (or remount) doesn't snap back to two-party mode and lose the
+  // user's intent to plan a 3-way meetup.
+  const SHOW_C_KEY = 'acoffee_show_c_v1';
+  const [showC, setShowC] = useState(() => {
+    if (addressC.trim().length > 0) return true;
+    try { return sessionStorage.getItem(SHOW_C_KEY) === '1'; } catch { return false; }
+  });
   // If addressC becomes non-empty externally (URL load, recent search), reveal C.
   if (addressC.trim().length > 0 && !showC) setShowC(true);
 
@@ -58,6 +66,7 @@ export function LocationInput() {
 
   const handleAddThird = () => {
     setShowC(true);
+    try { sessionStorage.setItem(SHOW_C_KEY, '1'); } catch { /* sessionStorage may be disabled — fall back to in-memory state for this tab */ }
     // Focus the input once it renders.
     requestAnimationFrame(() => inputCRef.current?.focus());
   };
@@ -65,6 +74,7 @@ export function LocationInput() {
   const handleRemoveThird = () => {
     setAddressC('');
     setShowC(false);
+    try { sessionStorage.removeItem(SHOW_C_KEY); } catch { /* see above */ }
   };
 
   const handleSwap = () => {
@@ -165,14 +175,19 @@ export function LocationInput() {
       </div>
 
       {!showC ? (
-        <button
-          type="button"
-          className={styles.addThirdButton}
-          onClick={handleAddThird}
-          disabled={isLoading}
-        >
-          + {t('location.addThird')}
-        </button>
+        <div className={styles.addThirdGroup}>
+          <button
+            type="button"
+            className={styles.addThirdButton}
+            onClick={handleAddThird}
+            disabled={isLoading}
+          >
+            + {t('location.addThird')}
+          </button>
+          {addressA.trim() && addressB.trim() ? (
+            <p className={styles.addThirdHint}>{t('location.addThirdHint')}</p>
+          ) : null}
+        </div>
       ) : null}
 
       <div className={styles.templateActions}>

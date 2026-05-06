@@ -95,6 +95,7 @@ export const messages: MessageDict = {
   'location.thirdLocation': '3 人目の出発地',
   'location.placeholderC': '例：友達の家、渋谷区…',
   'location.addThird': 'もう一人追加',
+  'location.addThirdHint': '3 人で会う？AI が 3 人全員にとって公平なカフェを選びます。',
   'location.removeThird': '3 人目を削除',
   'location.findButton': '待ち合わせ地点を検索',
   'location.searching': '検索中…',
@@ -281,6 +282,8 @@ export const messages: MessageDict = {
   'star.remove': 'お気に入りから外す',
 
   'visited.add': 'スタンプを押す',
+  'visitHint.body': '☕ をタップしてこのカフェを記録 — パスポートは公開・非公開を選べます。',
+  'visitHint.dismissAria': 'ヒントを閉じる',
   'visited.stampAgain': 'もう一押し（{{count}}回来店）',
   'visited.remove': 'パスポートから外す',
   'visited.removeAria': '{{name}} をパスポートから外す',

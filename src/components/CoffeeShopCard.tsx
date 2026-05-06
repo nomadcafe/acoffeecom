@@ -15,6 +15,12 @@ import styles from './CoffeeShopCard.module.css';
 
 interface CoffeeShopCardProps {
   shop: CoffeeShop;
+  /** When true, render a one-shot tooltip pointing at the ☕ visit button.
+   *  Parent (CoffeeShopList) only sets this on the first card and only when
+   *  the user has zero passport visits. Calls `onDismissVisitHint` when the
+   *  user explicitly closes the hint. */
+  showVisitHint?: boolean;
+  onDismissVisitHint?: () => void;
 }
 
 function formatDistance(meters: number): string {
@@ -49,7 +55,11 @@ type SummaryState =
   | { kind: 'error' }
   | { kind: 'rateLimited'; retryAfterSec: number };
 
-export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopCardProps) {
+export const CoffeeShopCard = memo(function CoffeeShopCard({
+  shop,
+  showVisitHint = false,
+  onDismissVisitHint,
+}: CoffeeShopCardProps) {
   const { t, locale } = useI18n();
   const {
     isStarred,
@@ -264,6 +274,22 @@ export const CoffeeShopCard = memo(function CoffeeShopCard({ shop }: CoffeeShopC
             </a>
           ) : null}
         </div>
+        {showVisitHint ? (
+          <div className={styles.visitHint} role="status">
+            <span className={styles.visitHintBody}>{t('visitHint.body')}</span>
+            <button
+              type="button"
+              className={styles.visitHintDismiss}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDismissVisitHint?.();
+              }}
+              aria-label={t('visitHint.dismissAria')}
+            >
+              ✕
+            </button>
+          </div>
+        ) : null}
         <div className={styles.actions}>
           <VisitedButton shop={shop} />
           <StarButton shop={shop} />

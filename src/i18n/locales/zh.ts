@@ -92,6 +92,7 @@ export const messages: MessageDict = {
   'location.thirdLocation': '第三人出发地',
   'location.placeholderC': '例如：朋友家，渋谷区',
   'location.addThird': '加一个人',
+  'location.addThirdHint': '三个人一起约？AI 会让三个人的行程都尽量公平。',
   'location.removeThird': '移除第三人',
   'location.findButton': '查找会面点',
   'location.searching': '搜索中…',
@@ -277,6 +278,8 @@ export const messages: MessageDict = {
   'star.remove': '取消收藏',
 
   'visited.add': '盖一个章',
+  'visitHint.body': '点 ☕ 记下这家咖啡馆——你的护照可选择公开或不公开。',
+  'visitHint.dismissAria': '关闭提示',
   'visited.stampAgain': '再盖一章（已去过 {{count}} 次）',
   'visited.remove': '从护照中移除',
   'visited.removeAria': '将 {{name}} 从护照中移除',

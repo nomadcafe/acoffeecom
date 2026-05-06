@@ -25,7 +25,28 @@ export function CoffeeShopList() {
     widenAndResearch,
     canWidenSearch,
     clearError,
+    visitedShops,
   } = useApp();
+
+  /* F5 — one-shot onboarding tooltip pointing at the ☕ visit button on
+   * the first result card. Trigger condition: zero passport visits AND
+   * not previously dismissed. Once dismissed (✕ click) or once the user
+   * logs any visit, the localStorage flag persists so it never re-shows. */
+  const VISIT_HINT_KEY = 'acoffee_visit_hint_dismissed_v1';
+  const [visitHintDismissed, setVisitHintDismissed] = useState(() => {
+    try { return localStorage.getItem(VISIT_HINT_KEY) === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    if (visitedShops.length > 0 && !visitHintDismissed) {
+      setVisitHintDismissed(true);
+      try { localStorage.setItem(VISIT_HINT_KEY, '1'); } catch { /* localStorage may be disabled — fine, hint just re-shows next session */ }
+    }
+  }, [visitedShops.length, visitHintDismissed]);
+  const showVisitHintForFirst = !visitHintDismissed && visitedShops.length === 0;
+  const dismissVisitHint = () => {
+    setVisitHintDismissed(true);
+    try { localStorage.setItem(VISIT_HINT_KEY, '1'); } catch { /* see above */ }
+  };
   const [shareFeedback, setShareFeedback] = useState<'idle' | 'copied' | 'shared'>('idle');
   const feedbackTimerRef = useRef<number | null>(null);
 
@@ -180,7 +201,7 @@ export function CoffeeShopList() {
         </p>
       ) : null}
       <div className={styles.list}>
-        {coffeeShops.map((shop) => (
+        {coffeeShops.map((shop, index) => (
           <div
             key={shop.id}
             ref={(el) => {
@@ -208,7 +229,11 @@ export function CoffeeShopList() {
               }
             }}
           >
-            <CoffeeShopCard shop={shop} />
+            <CoffeeShopCard
+              shop={shop}
+              showVisitHint={index === 0 && showVisitHintForFirst}
+              onDismissVisitHint={dismissVisitHint}
+            />
           </div>
         ))}
       </div>
