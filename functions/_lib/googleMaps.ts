@@ -40,15 +40,42 @@ function requireKey(env: AuthEnv): string {
   return key;
 }
 
+/** 24h — addresses don't move. Long enough that the same homeBaseAddress
+ *  re-saved a few times only pays once, and shared addresses
+ *  ("Shibuya Station") hit on every booking. */
+const GEOCODE_CACHE_TTL_S = 86400;
+
+/** Normalize an address for cache-key purposes: trim, collapse internal
+ *  whitespace, lowercase. "  Shibuya  Station" and "shibuya station"
+ *  geocode to the same point but otherwise miss the cache. */
+function normalizeAddressKey(address: string): string {
+  return address.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
 /**
  * Geocode a free-form address string. Returns the top result's lat/lng.
  * Throws on no-results or non-OK responses so callers can map the error
  * to a user-facing "couldn't find that address" message.
+ *
+ * Cached in KV (24h) keyed on the normalized address. The same address
+ * geocoded twice — typical when the organizer's homeBaseAddress is also
+ * a popular visitor address — pays nothing on the second hit.
  */
 export async function geocodeAddress(env: AuthEnv, address: string): Promise<LatLng> {
   const key = requireKey(env);
   const trimmed = address.trim();
   if (!trimmed) throw new GoogleMapsError('Empty address', 400, 'geocode');
+
+  const cacheKey = `geo:${normalizeAddressKey(trimmed)}`;
+  if (env.ROUTES_CACHE) {
+    const cached = await env.ROUTES_CACHE.get(cacheKey);
+    if (cached) {
+      const [lat, lng] = cached.split(',').map(Number);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return { lat, lng };
+      }
+    }
+  }
 
   const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
   url.searchParams.set('address', trimmed);
@@ -86,6 +113,12 @@ export async function geocodeAddress(env: AuthEnv, address: string): Promise<Lat
   const loc = json.results[0]?.geometry?.location;
   if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') {
     throw new GoogleMapsError('Geocoding returned no coordinates', 502, 'geocode');
+  }
+
+  if (env.ROUTES_CACHE) {
+    void env.ROUTES_CACHE.put(cacheKey, `${loc.lat},${loc.lng}`, {
+      expirationTtl: GEOCODE_CACHE_TTL_S,
+    });
   }
   return { lat: loc.lat, lng: loc.lng };
 }
@@ -127,10 +160,31 @@ export interface NearbyCafe {
   googleMapsUri: string | null;
 }
 
+/** 5min — short on purpose. Cafe ratings + userRatingCount drift over
+ *  the day; we want within-session repeat searches to be free, but we
+ *  don't want yesterday's stale ranking served today. */
+const NEARBY_CACHE_TTL_S = 300;
+
+/** Round to 3 decimals (~111m) — same midpoint typed by two visitors
+ *  geocodes to slightly different coordinates; this collapses them into
+ *  one cache entry. Coarser than the Routes 4-decimal rounding because
+ *  the nearby radius is ≥1500m so 100m of imprecision is negligible. */
+function roundForNearbyCache(p: LatLng): { lat: number; lng: number } {
+  return { lat: Math.round(p.lat * 1000) / 1000, lng: Math.round(p.lng * 1000) / 1000 };
+}
+
+function nearbyCacheKey(center: LatLng, radius: number, limit: number): string {
+  const c = roundForNearbyCache(center);
+  return `near:${c.lat},${c.lng}:${radius}:${limit}`;
+}
+
 /**
  * Search the Places (New) API for highly-rated cafés near `center`. Returns
  * up to `limit` candidates sorted by Google's relevance — caller can apply
  * its own ranking (rating threshold etc). 404 / empty result returns [].
+ *
+ * Cached in KV (5min) keyed on rounded center + radius + limit. Repeated
+ * searches around the same midpoint within the TTL pay nothing.
  */
 export async function searchNearbyCafes(
   env: AuthEnv,
@@ -139,6 +193,19 @@ export async function searchNearbyCafes(
   limit: number = 10,
 ): Promise<NearbyCafe[]> {
   const key = requireKey(env);
+
+  const cacheKey = nearbyCacheKey(center, radiusMeters, limit);
+  if (env.ROUTES_CACHE) {
+    const cached = await env.ROUTES_CACHE.get(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as NearbyCafe[];
+        if (Array.isArray(parsed)) return parsed;
+      } catch {
+        // Malformed cache entry — fall through to fresh fetch.
+      }
+    }
+  }
 
   const body = {
     locationRestriction: {
@@ -186,7 +253,7 @@ export async function searchNearbyCafes(
       googleMapsUri?: string;
     }>;
   };
-  return (json.places ?? [])
+  const cafes = (json.places ?? [])
     .map((p) => {
       const id = p.id;
       const name = p.displayName?.text;
@@ -205,6 +272,15 @@ export async function searchNearbyCafes(
       } as NearbyCafe;
     })
     .filter((c): c is NearbyCafe => c != null);
+
+  // Cache empty arrays too — the "no cafés in 1.5km" case is real for
+  // suburban midpoints, and we'd rather not re-pay Places to learn that.
+  if (env.ROUTES_CACHE) {
+    void env.ROUTES_CACHE.put(cacheKey, JSON.stringify(cafes), {
+      expirationTtl: NEARBY_CACHE_TTL_S,
+    });
+  }
+  return cafes;
 }
 
 /**

@@ -362,9 +362,12 @@ the surfaces that signal that.
 > geocode + nearby responses cuts repeat-search cost without changing
 > behaviour.
 
-- [ ] Workers KV-backed cache: key `lat:lng:radius:mode` rounded to
-      3 decimals, 5-min TTL on nearby, 24-hour TTL on geocode.
-- [ ] Wire into existing Maps SDK proxy in `googleMaps.ts`.
+- [x] Workers KV-backed cache: 3-decimal-rounded center for nearby
+      (`near:lat,lng:radius:limit`, 5-min TTL), normalized address
+      for geocode (`geo:<addr>`, 24h TTL).
+- [x] Wired into the server-side `geocodeAddress` and
+      `searchNearbyCafes` in `functions/_lib/googleMaps.ts`. Reuses
+      the existing `ROUTES_CACHE` KV binding.
 
 ### H9. flyTo map animation on card hover / select
 

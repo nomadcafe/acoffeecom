@@ -17,9 +17,12 @@ database_name = "acoffee-dev"
 database_id = "237b2a39-340b-4d34-a9b6-947358a17ef9"
 migrations_dir = "functions/_lib/db/migrations"
 
-# KV cache for Google Routes API responses. Per-pair (origin, destination, mode)
-# caching with a 1h TTL — cuts repeat-search cost to zero. Cheap (~free at our
-# scale) and Workers KV reads are sub-ms, so the wrap is essentially free.
+# KV cache for Google Maps API responses. Multi-purpose:
+#   eta:*   Routes pair durations (1h TTL) — ETA matrix per (origin,dest,mode)
+#   geo:*   Geocode lookups (24h TTL) — address → lat/lng
+#   near:*  Nearby cafe searches (5min TTL) — center+radius → cafes[]
+#   place-photo:* and owner-attributions reuse the same binding.
+# Workers KV reads are sub-ms, so the wrap is essentially free.
 [[kv_namespaces]]
 binding = "ROUTES_CACHE"
 id = "11461dbc572d492a9f101e65b19f32f1"
