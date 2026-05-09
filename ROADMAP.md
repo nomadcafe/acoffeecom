@@ -57,7 +57,6 @@ casual users; the panel stays as "advanced" for power users.
 - [ ] ⚡ **Fast** — minimise total travel time across all parties
 - [ ] ✨ **Vibe** — `rating × log(reviews + 1)` sort
 - [ ] 🌙 **Quiet** — `userRatingCount` reverse + keyword "quiet|library"
-- [ ] 💸 **Cheap** — `priceLevel ≤ 2`
 - [ ] 🕐 **Now** — `openNow=true` AND time-fair
 
 ### A4. Copy + microcopy
@@ -103,7 +102,6 @@ new proposal URL.
 - [ ] "离我近一点" / Closer to me → re-fairness with +weight on this
       visitor's commute
 - [ ] "更安静" / Quieter → switch to Quiet mode
-- [ ] "更便宜" / Cheaper → switch to Cheap mode
 
 ### B4. Garbage collection
 
@@ -204,10 +202,9 @@ the surfaces that signal that.
 
 - [ ] Hover/tap tooltips already exist (i18n `agentMode.*.hint`); audit
       that they're actually showing on mobile (tap-to-reveal).
-- [ ] Optional: collapse "Vibe / Quiet / Cheap / Now" behind a
-      `more ▾` toggle and keep `Fair / Fast` always visible — A/B
-      test this; first-paint clutter vs feature discovery is a real
-      tradeoff.
+- [ ] Optional: collapse "Vibe / Quiet / Now" behind a `more ▾` toggle
+      and keep `Fair / Fast` always visible — A/B test this; first-paint
+      clutter vs feature discovery is a real tradeoff.
 
 ### F3. Multi-party affordance
 
@@ -326,10 +323,10 @@ the surfaces that signal that.
 > handle. Anonymous-only — for visitors who don't know what to type.
 
 - [ ] When the home-page free-text input (or the address input on
-      the meetup search) is focused with empty value, show 6 emoji
+      the meetup search) is focused with empty value, show 5 emoji
       + label chips below: _"📚 Quiet to work"_ / _"🌃 Date night"_
-      / _"💸 Cheap nearby"_ / _"⚡ Open now"_ / _"🤝 Halfway with a
-      friend"_ / _"☕ My usual cafes"_.
+      / _"⚡ Open now"_ / _"🤝 Halfway with a friend"_ /
+      _"☕ My usual cafes"_.
 - [ ] Click → fills input + dispatches search. Hidden when input
       has any value.
 

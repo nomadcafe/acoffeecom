@@ -26,7 +26,6 @@ const MODE_CHIPS = [
   { emoji: '⚡', labelKey: 'agentMode.fast.label' },
   { emoji: '✨', labelKey: 'agentMode.vibe.label' },
   { emoji: '🌙', labelKey: 'agentMode.quiet.label' },
-  { emoji: '💸', labelKey: 'agentMode.cheap.label' },
   { emoji: '🕐', labelKey: 'agentMode.now.label' },
 ];
 

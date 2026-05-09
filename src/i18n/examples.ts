@@ -20,8 +20,8 @@ export interface ExamplePair {
  * search so new users see the flow end-to-end without thinking up two
  * addresses or knowing that modes exist.
  *
- * Why include `mode`: anonymous visitors don't know the agent has six
- * personalities (fair/fast/vibe/quiet/cheap/now). The mode chips only
+ * Why include `mode`: anonymous visitors don't know the agent has five
+ * personalities (fair/fast/vibe/quiet/now). The mode chips only
  * appear after a search runs. Tagging some sample prompts with a mode
  * means the first click can simultaneously demo "addresses → agent
  * picks" AND "agent picks differently per mode" — exactly the H5

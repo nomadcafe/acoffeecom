@@ -146,8 +146,6 @@ export const messages: MessageDict = {
     'Top-rated cafés first · rating × log(reviews)',
   'agentReason.quiet':
     'Hidden gems with fewer reviews · less crowded',
-  'agentReason.cheap':
-    'Inexpensive cafés only · price level ≤ 2',
   'agentReason.now':
     'Open right now · fair travel time for everyone',
 
@@ -157,8 +155,6 @@ export const messages: MessageDict = {
     'Sorted by shortest total travel time — gets everyone there as quickly as possible.',
   'list.quietExplain':
     'Hidden gems first — high ratings with fewer reviews bubble up over the well-trodden tourist spots.',
-  'list.cheapExplain':
-    'Inexpensive cafés first; falls back to top-rated when Google doesn\'t list a price for the venue.',
 
   'card.favorite': 'Your Favorite!',
   'card.visitedOnce': 'Visited {{last}}',
@@ -221,8 +217,6 @@ export const messages: MessageDict = {
   'agentMode.vibe.hint': 'Top-rated cafés first',
   'agentMode.quiet.label': 'Quiet',
   'agentMode.quiet.hint': 'Hidden gems with fewer reviews',
-  'agentMode.cheap.label': 'Cheap',
-  'agentMode.cheap.hint': 'Inexpensive and moderate venues only',
   'agentMode.now.label': 'Now',
   'agentMode.now.hint': 'Open right now, fair travel for everyone',
   'card.distanceM': 'Distance from the meetup midpoint (search radius is measured from here)',
@@ -600,7 +594,7 @@ export const messages: MessageDict = {
   'showcase.passportMockTitle': 'Your passport',
   'showcase.featuredEyebrow': 'AI agent',
   'showcase.row1Title': 'A fair café for every party',
-  'showcase.row1Body': 'Drop two or three addresses. ACoffee weighs travel time across everyone and picks a café that\'s fair — not just the geographic midpoint. Pick a mode for fastest, quietest, cheapest, or open-now if "fair" isn\'t the goal.',
+  'showcase.row1Body': 'Drop two or three addresses. ACoffee weighs travel time across everyone and picks a café that\'s fair — not just the geographic midpoint. Pick a mode for fastest, quietest, or open-now if "fair" isn\'t the goal.',
   'showcase.passportEyebrow': 'Coffee passport',
   'showcase.row2Title': 'Stamp every café you visit',
   'showcase.row2Body': 'Every cafe you log becomes a stamp. Build a streak, jot a one-line note, share a public version — or keep it just for you.',

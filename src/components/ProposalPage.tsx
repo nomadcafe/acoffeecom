@@ -8,7 +8,7 @@ interface ProposalView {
   status: 'pending' | 'accepted' | 'cancelled' | 'expired';
   scheduledAt: number;
   expiresAt: number;
-  mode: 'fair' | 'fast' | 'vibe' | 'quiet' | 'cheap' | 'now';
+  mode: 'fair' | 'fast' | 'vibe' | 'quiet' | 'now';
   addresses: string[];
   cafe: {
     placeId: string;
@@ -35,7 +35,6 @@ const MODE_ICONS: Record<ProposalView['mode'], string> = {
   fast: '⚡',
   vibe: '✨',
   quiet: '🌙',
-  cheap: '💸',
   now: '🕐',
 };
 

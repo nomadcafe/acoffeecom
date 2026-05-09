@@ -219,14 +219,6 @@ function stdDev(xs: number[]): number {
   return Math.sqrt(variance);
 }
 
-/** Cheap-mode tier: 0 = known inexpensive, 1 = unknown, 2 = known
- *  expensive. Drives the sort comparator and is also stable across
- *  re-renders so React doesn't reshuffle within a tier. */
-function cheapTier(s: CoffeeShop): number {
-  if (s.priceLevel === undefined) return 1;
-  return s.priceLevel <= 2 ? 0 : 2;
-}
-
 function shopDistances(s: CoffeeShop): number[] {
   const out: number[] = [];
   if (s.distanceFromA != null) out.push(s.distanceFromA);
@@ -308,27 +300,13 @@ function sortShops(
       const aScore = a.rating - 0.05 * Math.log(a.userRatingsTotal + 1);
       const bScore = b.rating - 0.05 * Math.log(b.userRatingsTotal + 1);
       if (aScore !== bScore) return bScore - aScore;
-    } else if (mode === 'cheap') {
-      // Three-tier sort: known cheap (priceLevel <= 2) wins, then
-      // unknown priceLevel (Places didn't populate the field —
-      // common for cafés), then known expensive last. Within each
-      // tier, rank by rating quality. This makes Cheap meaningfully
-      // different from Vibe even when ~half the results have no
-      // priceLevel data, instead of the previous strict filter that
-      // could empty the list or look identical to rating sort.
-      const aTier = cheapTier(a);
-      const bTier = cheapTier(b);
-      if (aTier !== bTier) return aTier - bTier;
-      const aScore = (a.rating ?? 0) * Math.log(a.userRatingsTotal + 1);
-      const bScore = (b.rating ?? 0) * Math.log(b.userRatingsTotal + 1);
-      if (aScore !== bScore) return bScore - aScore;
     }
     return b.rating - a.rating;
   });
 }
 
 /**
- * Six-mode preset table. setAgentMode dispatches to these so the user's
+ * Five-mode preset table. setAgentMode dispatches to these so the user's
  * one-tap switch updates the underlying sortMode + filter combo.
  * Keeping presets data-driven (vs procedural) makes them easier to
  * eyeball and tweak.
@@ -341,7 +319,6 @@ const AGENT_MODE_PRESETS: Record<
   fast: { sortMode: 'fast', openNow: false },
   vibe: { sortMode: 'rating', minRating: 4.5, openNow: false },
   quiet: { sortMode: 'quiet', openNow: false },
-  cheap: { sortMode: 'cheap', openNow: false },
   now: { sortMode: 'fairness', openNow: true },
 };
 
@@ -398,8 +375,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return v === 'fairness' ||
       v === 'rating' ||
       v === 'fast' ||
-      v === 'quiet' ||
-      v === 'cheap'
+      v === 'quiet'
       ? v
       : DEFAULT_SORT_MODE;
   });
@@ -419,7 +395,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       v === 'fast' ||
       v === 'vibe' ||
       v === 'quiet' ||
-      v === 'cheap' ||
       v === 'now'
     ) {
       return v;
@@ -433,7 +408,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       v === 'fast' ||
       v === 'vibe' ||
       v === 'quiet' ||
-      v === 'cheap' ||
       v === 'now'
     );
   });
@@ -849,11 +823,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Re-sort reactively whenever shops, stars, or sort mode change — no re-search needed.
   const partyCount = (locationA ? 1 : 0) + (locationB ? 1 : 0) + (locationC ? 1 : 0);
-  // Re-sort reactively whenever shops, stars, or sort mode change.
-  // Cheap mode used to filter out priceLevel > 2; now it's a soft
-  // tier inside sortShops so unknown-price cafés still surface (~50%
-  // of cafés don't get a priceLevel from Places), with known-cheap
-  // pinned to the top and known-expensive deprioritised.
   const coffeeShops = useMemo(
     () => sortShops(rawShops, starredShopIds, searchSortMode, partyCount),
     [rawShops, starredShopIds, searchSortMode, partyCount],

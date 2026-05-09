@@ -3,7 +3,7 @@ import { useI18n } from '../context/I18nContext';
 import type { AgentMode } from '../types';
 import styles from './AgentModeChips.module.css';
 
-const MODES: AgentMode[] = ['fair', 'fast', 'vibe', 'quiet', 'cheap', 'now'];
+const MODES: AgentMode[] = ['fair', 'fast', 'vibe', 'quiet', 'now'];
 
 /* Per-mode visual identity. The previous version had emoji + label
  * but every chip looked identical (sage-on-cream); the strip read as
@@ -16,12 +16,11 @@ const MODE_META: Record<AgentMode, { color: string; emoji: string }> = {
   fast: { color: '#c97c2b', emoji: '⚡' }, // amber
   vibe: { color: '#b35a7a', emoji: '✨' }, // rose
   quiet: { color: '#4a5b8c', emoji: '🌙' }, // slate
-  cheap: { color: '#b08c2c', emoji: '💸' }, // gold
   now: { color: '#c44a3a', emoji: '🕐' }, // coral
 };
 
 /**
- * Six-chip preset row that's the new top-level decision UI: instead of
+ * Five-chip preset row that's the new top-level decision UI: instead of
  * fiddling with sort + filter dropdowns, the user taps one mode and
  * the agent applies a sensible bundle. Available in both the
  * pre-search hero and the sidebar post-search, sharing one piece of

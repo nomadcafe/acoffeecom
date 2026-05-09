@@ -190,7 +190,7 @@ export function SearchFilters() {
 
         {/* Sort dropdown removed — the AgentModeChips above the panel
             covers the same control with a more visual UX (Fair / Fast /
-            Vibe / Quiet / Cheap / Now). */}
+            Vibe / Quiet / Now). */}
 
         <div className={styles.field}>
           <label className={styles.toggleRow}>

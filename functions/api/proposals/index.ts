@@ -34,7 +34,7 @@ const InputSchema = z.object({
   // someone planning an "in two weeks" coffee.
   scheduledAt: z.number().int().positive(),
   addresses: z.array(z.string().trim().max(400)).max(3),
-  mode: z.enum(['fair', 'fast', 'vibe', 'quiet', 'cheap', 'now']).default('fair'),
+  mode: z.enum(['fair', 'fast', 'vibe', 'quiet', 'now']).default('fair'),
 });
 
 const PROPOSAL_TTL_MS = 72 * 60 * 60_000; // 3 days; matches "let me think on it"

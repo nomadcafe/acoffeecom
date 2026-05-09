@@ -14,10 +14,6 @@ import type { AgentMode } from '../types';
  *   13-17  quiet   — afternoon work hours, want focus
  *   17-21  vibe    — evening / date / social time
  *   21-05  now     — late, opening hours dominate everything else
- *
- * `cheap` is intentionally never auto-picked: budget is a user
- * preference, not a time-of-day signal. Users who want cheap will
- * tap the chip themselves.
  */
 export function pickAgentModeByTime(hour: number): AgentMode {
   if (hour >= 5 && hour < 9) return 'fast';

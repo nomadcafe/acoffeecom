@@ -23,8 +23,8 @@ import {
  *   - shift-time: nudges `scheduled_at` ± 30 min in the body's
  *     direction.
  *
- * "Closer to me / quieter / cheaper" deferred until v2 — those need
- * a server-side re-search which is a bigger code change. The current
+ * "Closer to me / quieter" deferred until v2 — those need a
+ * server-side re-search which is a bigger code change. The current
  * shape lets the receiver express "this isn't the right cafe / time"
  * with the alternates we pre-stored at creation time.
  */
@@ -42,11 +42,19 @@ interface ProposalView {
   status: 'pending' | 'accepted' | 'cancelled' | 'expired';
   scheduledAt: number;
   expiresAt: number;
-  mode: 'fair' | 'fast' | 'vibe' | 'quiet' | 'cheap' | 'now';
+  mode: 'fair' | 'fast' | 'vibe' | 'quiet' | 'now';
   addresses: string[];
   cafe: CafeAlt;
   altCount: number;
   cafeIndex: number;
+}
+
+// Legacy proposals (pre-cheap-removal) may still have mode='cheap' in
+// the DB. Coerce on read so the chip + icon don't break — we don't
+// migrate the rows since they're TTL'd anyway.
+function normalizeMode(raw: string): ProposalView['mode'] {
+  if (raw === 'fast' || raw === 'vibe' || raw === 'quiet' || raw === 'now') return raw;
+  return 'fair';
 }
 
 function rowToView(row: typeof proposals.$inferSelect): ProposalView {
@@ -73,7 +81,7 @@ function rowToView(row: typeof proposals.$inferSelect): ProposalView {
     scheduledAt:
       row.scheduledAt instanceof Date ? row.scheduledAt.getTime() : Number(row.scheduledAt),
     expiresAt: expiresMs,
-    mode: row.mode as ProposalView['mode'],
+    mode: normalizeMode(row.mode),
     addresses: parseJsonArray<string>(row.addressesJson),
     cafe: all[idx],
     altCount: all.length,
