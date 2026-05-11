@@ -1,21 +1,13 @@
-import { lazy, Suspense, useState } from 'react';
 import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
-import { buildLocalizedPathname } from '../i18n/detectLocale';
-import { ACCOUNT_SETUP_PATH } from '../routes';
 import styles from './HomeFeatureShowcase.module.css';
 
-// AuthModal pulls in @better-auth/client + magic-link UI; only anonymous
-// visitors who tap the hero CTA pay the chunk cost.
-const AuthModal = lazy(() => import('./AuthModal').then((m) => ({ default: m.AuthModal })));
-
 /**
- * Anonymous home hero. Single block: eyebrow + H1 + lead + ProfileClaimCta
- * + MockAgent visual. The 5-card secondary feature grid (passport,
- * profile, booking, proposal, owner cafe) and the pre-search agent-mode
- * tile grid were both removed as part of the 2026-05 utility pivot —
- * acoffee.com leans small-and-precise; the home page no longer markets
- * adjacent product surfaces.
+ * Anonymous home hero. Single block: eyebrow + H1 + lead + MockAgent
+ * SVG. Under the 2026-05 utility pivot the page no longer markets
+ * adjacent product surfaces (the 5-card secondary grid was removed
+ * first) and no longer recruits visitors into the paused Pro tier
+ * (the "claim acoffee.com/yourname" CTA was the most recent removal).
  *
  * Hidden for signed-in users (their return visit is tool-first), and
  * naturally hidden during search since AppHero self-hides then.
@@ -36,63 +28,12 @@ export function HomeFeatureShowcase() {
             {t('showcase.title')}
           </h1>
           <p className={styles.lead}>{t('showcase.lead')}</p>
-          <ProfileClaimCta />
         </div>
         <div className={styles.heroVisual}>
           <MockAgent />
         </div>
       </div>
     </section>
-  );
-}
-
-/* ────────── Hero CTA ────────── */
-
-/**
- * Page-level "Claim acoffee.com/yourname" CTA. Opens AuthModal; after
- * sign-in lands on the 4-step account-setup wizard. Auth-flag gated
- * so the modal isn't a dead-end when auth is disabled.
- */
-function ProfileClaimCta() {
-  const { t, locale } = useI18n();
-  const [modalOpen, setModalOpen] = useState(false);
-
-  if (import.meta.env.VITE_AUTH_ENABLED !== 'true') return null;
-
-  const callbackURL = buildLocalizedPathname(ACCOUNT_SETUP_PATH, locale);
-
-  return (
-    <>
-      <button
-        type="button"
-        className={styles.heroCta}
-        onClick={() => setModalOpen(true)}
-        aria-label={t('homeCta.aria')}
-      >
-        <span className={styles.heroCtaIcon} aria-hidden>
-          ☕
-        </span>
-        <span className={styles.heroCtaCopy}>
-          <span className={styles.heroCtaLead}>{t('homeCta.lead')}</span>
-          <span className={styles.heroCtaUrl}>
-            acoffee.com/
-            <span className={styles.heroCtaSlug}>{t('homeCta.slugPlaceholder')}</span>
-          </span>
-        </span>
-        <span className={styles.heroCtaArrow} aria-hidden>
-          →
-        </span>
-      </button>
-      {modalOpen ? (
-        <Suspense fallback={null}>
-          <AuthModal
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            callbackURL={callbackURL}
-          />
-        </Suspense>
-      ) : null}
-    </>
   );
 }
 
