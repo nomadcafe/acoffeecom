@@ -1,9 +1,8 @@
 /* ──────────────────────────────────────────────────────────────────
- * Home feature showcase — single hero block + static feature grid.
- * Used to be a 6-slide auto-advancing carousel; the carousel was the
- * dominant "looks dated" signal so we swapped it for one bold marquee
- * (the AI agent picking a café) plus a static grid of secondary
- * features below.
+ * Home feature showcase — eyebrow + H1 + lead + ProfileClaimCta +
+ * MockAgent SVG. The 5-card secondary feature grid and the agent-mode
+ * tile grid were both removed as part of the 2026-05 utility pivot;
+ * styles for those mocks/tiles were deleted with the components.
  * ──────────────────────────────────────────────────────────────── */
 
 .wrap {
@@ -80,8 +79,8 @@
 
 .hero {
   /* Mobile: stacked. Desktop: text on the left, marquee visual on the
-   * right. The text column carries the page H1 + primary CTA + mode
-   * chips; the visual column hosts the AI-agent mock. */
+   * right. The text column carries the H1 + lead + CTA; the visual
+   * column hosts the AI-agent mock. */
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
@@ -203,110 +202,12 @@
   transform: translateX(2px);
 }
 
-/* Mode tile grid lives in `AgentModeTiles.module.css`. The old static
- * `.modeStrip` / `.modeChip` rules were removed when tiles replaced the
- * decorative pill row. */
+/* ────── MockAgent SVG (hero visual) ────── */
 
-/* ────── Feature grid (secondary features) ────── */
-
-.featureGrid {
-  list-style: none;
-  margin: 3rem 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 640px) {
-  .featureGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (min-width: 1024px) {
-  .featureGrid {
-    grid-template-columns: 1fr 1fr 1fr;
-    margin-top: 4rem;
-    gap: 1.5rem;
-  }
-}
-
-.featureCard {
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  border-radius: var(--ac-radius-lg);
-  padding: 1.4rem 1.4rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  box-shadow: 0 4px 16px rgba(111, 78, 55, 0.05);
-  transition: transform var(--ac-motion-base), box-shadow var(--ac-motion-base);
-}
-
-.featureCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(111, 78, 55, 0.09);
-}
-
-.featureMock {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 0 0.4rem;
-  /* Cards constrain mock width — no need for the per-mock max-widths
-   * that the carousel needed. */
-}
-
-.featureMock > * {
-  width: 100%;
-  max-width: none;
-}
-
-.featureEyebrow {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ac-accent);
-}
-
-.featureTitle {
-  margin: 0;
-  font-family: var(--ac-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--ac-text);
-  line-height: 1.2;
-}
-
-.featureBody {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--ac-text-muted);
-  line-height: 1.5;
-}
-
-/* ──────────────────────────────────────────────────────────────────
- * Mock visuals — these stay close to their original size targets but
- * width:100% lets them fill whichever container (hero visual column
- * for MockAgent, feature card for the rest) hosts them.
- * ──────────────────────────────────────────────────────────────── */
-
-.mockAgent,
-.mockPassport,
-.mockProfile,
-.mockBooking,
-.mockProposal,
-.mockOwnerCafe {
-  width: 100%;
-  border-radius: 18px;
-}
-
-/* MockAgent is the hero marquee — let it grow with the visual column. */
 .mockAgent {
+  width: 100%;
   max-width: 600px;
+  border-radius: 18px;
 }
 
 @media (min-width: 1024px) {
@@ -326,88 +227,3 @@
 @media (prefers-reduced-motion: reduce) {
   .mockAgent circle[fill='url(#ac-cafe-glow)'] { animation: none; }
 }
-
-/* Passport */
-.mockPassport {
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  padding: 1rem 1.1rem 1.1rem;
-  box-shadow: 0 6px 18px rgba(111, 78, 55, 0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-.passportHeader { display: flex; justify-content: space-between; align-items: baseline; }
-.passportTitle { font-family: var(--ac-font-display); font-size: 1.05rem; font-weight: 700; color: var(--ac-text); }
-.passportStreak { font-size: 0.74rem; font-weight: 700; color: var(--ac-accent); background: rgba(111, 78, 55, 0.1); padding: 0.25rem 0.6rem; border-radius: 999px; }
-.passportGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
-.passportStamp { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.6rem; background: var(--ac-surface-tinted); border-radius: 10px; }
-.passportStampIcon { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--ac-surface); font-size: 0.9rem; box-shadow: 0 1px 3px rgba(111, 78, 55, 0.08); }
-.passportStampMeta { display: flex; flex-direction: column; min-width: 0; }
-.passportStampMeta strong { font-size: 0.8rem; font-weight: 700; color: var(--ac-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.passportStampMeta span { font-size: 0.7rem; color: var(--ac-text-muted); }
-
-/* Profile */
-.mockProfile {
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  padding: 1.1rem 1.1rem 1.2rem;
-  box-shadow: 0 6px 18px rgba(111, 78, 55, 0.06);
-  text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
-}
-.profileAvatar { width: 2.7rem; height: 2.7rem; border-radius: 50%; background: linear-gradient(135deg, #6f4e37, #a36b3e); color: #fff; font-family: var(--ac-font-display); font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 0.15rem; box-shadow: 0 6px 16px rgba(111, 78, 55, 0.25); }
-.profileName { font-family: var(--ac-font-display); font-size: 1.1rem; font-weight: 800; color: var(--ac-text); letter-spacing: -0.015em; }
-.profileHandle { font-size: 0.74rem; color: var(--ac-text-muted); font-variant-numeric: tabular-nums; }
-.profileBio { display: none; }
-.profileFeatured { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.7rem; background: var(--ac-surface-tinted); border-radius: 999px; font-size: 0.75rem; color: var(--ac-text); margin-top: 0.2rem; }
-.profileFeatured strong { font-weight: 700; }
-.profileLinks { margin-top: 0.3rem; display: flex; gap: 0.6rem; font-size: 0.72rem; color: var(--ac-text-muted); }
-
-/* Booking */
-.mockBooking {
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  padding: 0.95rem 1.1rem 1rem;
-  box-shadow: 0 6px 18px rgba(111, 78, 55, 0.06);
-  display: flex; flex-direction: column; gap: 0.5rem;
-}
-.bookingHeader, .bookingRow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.3rem; }
-.bookingHeader { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em; color: var(--ac-text-muted); text-align: center; text-transform: uppercase; }
-.bookingGrid { display: flex; flex-direction: column; gap: 0.3rem; }
-.bookingCell { height: 1.4rem; border-radius: 6px; background: var(--ac-page-bg); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; color: transparent; }
-.bookingCellOpen { background: rgba(94, 122, 82, 0.2); color: var(--ac-accent-2-dark); }
-.bookingPills { margin-top: 0.15rem; display: flex; gap: 0.3rem; flex-wrap: wrap; }
-.bookingPills span { padding: 0.25rem 0.6rem; border-radius: 999px; background: var(--ac-accent); color: #fff; font-size: 0.7rem; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 2px 6px rgba(111, 78, 55, 0.18); }
-
-/* Proposal */
-.mockProposal {
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  padding: 1.15rem 1.2rem;
-  box-shadow: 0 6px 18px rgba(111, 78, 55, 0.06);
-  display: flex; flex-direction: column; gap: 0.5rem;
-}
-.proposalEyebrow { font-size: 0.74rem; font-weight: 700; color: var(--ac-accent); }
-.proposalHeadline { font-family: var(--ac-font-display); font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; color: var(--ac-text); line-height: 1.25; }
-.proposalMeta { font-size: 0.84rem; color: var(--ac-text-muted); }
-.proposalActions { margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.proposalBtn { padding: 0.4rem 0.75rem; border: 1px solid var(--ac-border); background: var(--ac-surface); color: var(--ac-text); font-size: 0.78rem; font-weight: 600; border-radius: 9px; font-family: inherit; cursor: default; }
-.proposalBtnPrimary { background: var(--ac-accent); color: #fff; border-color: var(--ac-accent); box-shadow: 0 2px 6px rgba(111, 78, 55, 0.2); }
-
-/* Owner cafe */
-.mockOwnerCafe {
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  padding: 1.1rem 1.2rem 1.2rem;
-  box-shadow: 0 6px 18px rgba(111, 78, 55, 0.06);
-  display: flex; flex-direction: column; gap: 0.4rem;
-}
-.ownerCafeHeader { display: flex; justify-content: space-between; align-items: baseline; }
-.ownerCafeHeader strong { font-family: var(--ac-font-display); font-size: 1.1rem; font-weight: 800; color: var(--ac-text); letter-spacing: -0.01em; }
-.ownerCafeRating { font-size: 0.8rem; font-weight: 700; color: #f4a623; }
-.ownerCafeAddr { font-size: 0.8rem; color: var(--ac-text-muted); }
-.ownerCafeChip { margin-top: 0.4rem; align-self: flex-start; font-size: 0.78rem; font-weight: 600; color: var(--ac-accent); border-bottom: 1px dashed currentColor; padding-bottom: 1px; display: inline-flex; align-items: center; gap: 0.3rem; }
-.ownerCafeChipVerified { color: #2e8b57; }
-.ownerCafePinned { margin-top: 0.4rem; background: #fff4d8; border-radius: 8px; padding: 0.35rem 0.55rem; font-size: 0.78rem; color: var(--ac-text); display: flex; flex-direction: column; gap: 0.1rem; }
-.ownerCafePinnedLabel { font-size: 0.62rem; color: #b07a1f; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
