@@ -1,23 +1,7 @@
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import type { AgentMode } from '../types';
+import { AGENT_MODES, AGENT_MODE_META } from '../utils/agentModeMeta';
 import styles from './AgentModeChips.module.css';
-
-const MODES: AgentMode[] = ['fair', 'fast', 'vibe', 'quiet', 'now'];
-
-/* Per-mode visual identity. The previous version had emoji + label
- * but every chip looked identical (sage-on-cream); the strip read as
- * "filter buttons" rather than "agent personalities." Each mode now
- * carries its own warm-palette accent that tints the idle gradient
- * and fully fills the selected state. Colors picked to sit in similar
- * luminance so they read as a family, not a rainbow. */
-const MODE_META: Record<AgentMode, { color: string; emoji: string }> = {
-  fair: { color: '#5e7a52', emoji: '🤝' }, // sage
-  fast: { color: '#c97c2b', emoji: '⚡' }, // amber
-  vibe: { color: '#b35a7a', emoji: '✨' }, // rose
-  quiet: { color: '#4a5b8c', emoji: '🌙' }, // slate
-  now: { color: '#c44a3a', emoji: '🕐' }, // coral
-};
 
 /**
  * Five-chip preset row that's the new top-level decision UI: instead of
@@ -55,9 +39,9 @@ export function AgentModeChips() {
         </p>
       ) : null}
       <div className={styles.row} role="radiogroup" aria-label={t('agentMode.aria')}>
-        {MODES.map((mode) => {
+        {AGENT_MODES.map((mode) => {
           const selected = mode === agentMode;
-          const meta = MODE_META[mode];
+          const meta = AGENT_MODE_META[mode];
           /* CSS custom property carries the per-mode color into the
            * stylesheet's color-mix() expressions. Each chip's idle
            * background / hover border / selected fill / focus ring

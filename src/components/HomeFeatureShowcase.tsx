@@ -4,6 +4,7 @@ import { useI18n } from '../context/I18nContext';
 import { useSession } from '../utils/authClient';
 import { buildLocalizedPathname } from '../i18n/detectLocale';
 import { ACCOUNT_SETUP_PATH } from '../routes';
+import { AgentModeTiles } from './AgentModeTiles';
 import styles from './HomeFeatureShowcase.module.css';
 
 // AuthModal pulls in @better-auth/client + magic-link UI; only anonymous
@@ -20,14 +21,6 @@ const AuthModal = lazy(() => import('./AuthModal').then((m) => ({ default: m.Aut
  * Hidden for signed-in users (their return visit is tool-first), and
  * naturally hidden during search since AppHero self-hides then.
  */
-
-const MODE_CHIPS = [
-  { emoji: '🤝', labelKey: 'agentMode.fair.label' },
-  { emoji: '⚡', labelKey: 'agentMode.fast.label' },
-  { emoji: '✨', labelKey: 'agentMode.vibe.label' },
-  { emoji: '🌙', labelKey: 'agentMode.quiet.label' },
-  { emoji: '🕐', labelKey: 'agentMode.now.label' },
-];
 
 interface SecondaryFeature {
   id: string;
@@ -62,14 +55,11 @@ export function HomeFeatureShowcase() {
           </h1>
           <p className={styles.lead}>{t('showcase.lead')}</p>
           <ProfileClaimCta />
-          <div className={styles.modeStrip} aria-label={t('agentMode.aria')}>
-            {MODE_CHIPS.map((m) => (
-              <span key={m.labelKey} className={styles.modeChip}>
-                <span aria-hidden>{m.emoji}</span>
-                <span>{t(m.labelKey)}</span>
-              </span>
-            ))}
-          </div>
+          {/* Tile grid replaces the old static MODE_CHIPS strip. Tapping
+              a tile sets `agentMode` so the next search the user runs
+              inherits the picked preset — modes feel like a product
+              feature instead of a decorative label row. */}
+          <AgentModeTiles />
         </div>
         <div className={styles.heroVisual}>
           <MockAgent />

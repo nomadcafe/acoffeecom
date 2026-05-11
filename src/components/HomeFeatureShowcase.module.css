@@ -203,39 +203,9 @@
   transform: translateX(2px);
 }
 
-/* ────── Mode chips strip (lives inside the hero text column) ────── */
-
-.modeStrip {
-  margin: 1.5rem 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
-
-.modeChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.9rem;
-  background: var(--ac-surface);
-  border: 1px solid var(--ac-border);
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ac-text);
-  box-shadow: 0 1px 3px rgba(111, 78, 55, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.modeChip:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(111, 78, 55, 0.12);
-}
-
-@media (min-width: 768px) {
-  .modeStrip { margin-top: 1.8rem; gap: 0.6rem; }
-  .modeChip { font-size: 0.9rem; padding: 0.55rem 1rem; }
-}
+/* Mode tile grid lives in `AgentModeTiles.module.css`. The old static
+ * `.modeStrip` / `.modeChip` rules were removed when tiles replaced the
+ * decorative pill row. */
 
 /* ────── Feature grid (secondary features) ────── */
 
