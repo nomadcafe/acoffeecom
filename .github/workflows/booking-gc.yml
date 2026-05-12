@@ -2,7 +2,7 @@
 # up holding slots forever, and booking_attempts (rate-limit ledger)
 # doesn't grow without bound.
 #
-# Reuses the CRON_SECRET repo secret already set up for monthly-recap.
+# Auth is via the CRON_SECRET repo secret (Bearer token).
 
 name: Booking GC
 
