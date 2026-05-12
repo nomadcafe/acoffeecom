@@ -1019,3 +1019,76 @@
 .timeEditClear:hover:not(:disabled) {
   color: var(--ac-text);
 }
+
+/* ────────── Signed-out landing (intro for /bookings) ────────── */
+
+.landing {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2rem 1rem 2.5rem;
+  text-align: center;
+}
+
+.landingTitle {
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  margin: 0 0 0.6rem;
+  color: var(--ac-text);
+}
+
+.landingLead {
+  margin: 0 auto 1.75rem;
+  max-width: 560px;
+  color: var(--ac-text-muted);
+  line-height: 1.55;
+}
+
+.stepsGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  text-align: left;
+}
+
+.stepCard {
+  background: var(--ac-surface);
+  border: 1px solid var(--ac-border);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 1.2rem;
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: var(--ac-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.stepTitle {
+  margin: 0.75rem 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ac-text);
+}
+
+.stepBody {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ac-text-muted);
+}
+
+@media (max-width: 720px) {
+  .stepsGrid {
+    grid-template-columns: 1fr;
+  }
+}

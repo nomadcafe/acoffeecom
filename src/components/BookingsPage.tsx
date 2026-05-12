@@ -1391,8 +1391,24 @@ function BookingsSignedOut({
       <SkipToContent />
       <PageHeader homeHref={homeHref} />
       <main id="content" tabIndex={-1} className={accountStyles.main}>
-        <div className={accountStyles.signedOut}>
-          <p>{t('bookings.signInRequired')}</p>
+        <section className={styles.landing} aria-labelledby="bookings-landing-title">
+          <h1 id="bookings-landing-title" className={styles.landingTitle}>
+            {t('bookings.signedOutTitle')}
+          </h1>
+          <p className={styles.landingLead}>{t('bookings.signedOutLead')}</p>
+          <ol className={styles.stepsGrid}>
+            {[1, 2, 3].map((n) => (
+              <li key={n} className={styles.stepCard}>
+                <span className={styles.stepNumber} aria-hidden>{n}</span>
+                <h2 className={styles.stepTitle}>
+                  {t(`bookings.signedOutStep${n}Title`)}
+                </h2>
+                <p className={styles.stepBody}>
+                  {t(`bookings.signedOutStep${n}Body`)}
+                </p>
+              </li>
+            ))}
+          </ol>
           <div className={accountStyles.signedOutActions}>
             {authEnabled ? (
               <button
@@ -1407,7 +1423,7 @@ function BookingsSignedOut({
               {t('bookings.goHome')}
             </a>
           </div>
-        </div>
+        </section>
       </main>
       {authOpen ? (
         <Suspense fallback={null}>
