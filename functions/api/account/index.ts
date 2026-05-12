@@ -197,7 +197,6 @@ const FeaturedCafeSchema = z
 
 const PatchSchema = z.object({
   profilePublic: z.boolean().optional(),
-  monthlyRecapEmail: z.boolean().optional(),
   displayName: z.string().trim().max(50).nullable().optional(),
   bio: z.string().trim().max(160).nullable().optional(),
   socialLinks: z.array(SocialLinkSchema).max(5).optional(),
@@ -232,11 +231,11 @@ const PatchSchema = z.object({
     ),
 });
 
-/** Patch toggles + bio fields for the user account. profilePublic /
- *  monthlyRecapEmail are booleans; displayName / bio are short strings
- *  (null clears them); socialLinks is a small array of {label, url}.
- *  Profile publish requires a username to exist already — there'd be no
- *  URL to host the page at otherwise. */
+/** Patch toggles + bio fields for the user account. profilePublic is a
+ *  boolean; displayName / bio are short strings (null clears them);
+ *  socialLinks is a small array of {label, url}. Profile publish requires
+ *  a username to exist already — there'd be no URL to host the page at
+ *  otherwise. */
 export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) => {
   const sessionUser = await getSessionUser(env, request);
   if (!sessionUser) return jsonError('Unauthorized', 401);
@@ -259,7 +258,6 @@ export const onRequestPatch: PagesFunction<AuthEnv> = async ({ request, env }) =
 
   const patch: Record<string, unknown> = { updatedAt: new Date() };
   if (input.profilePublic !== undefined) patch.profilePublic = input.profilePublic;
-  if (input.monthlyRecapEmail !== undefined) patch.monthlyRecapEmail = input.monthlyRecapEmail;
   if (input.displayName !== undefined) {
     patch.displayName = input.displayName ? input.displayName : null;
   }

@@ -1,8 +1,8 @@
 /**
  * Shared HMAC-SHA256 primitives. Used by cancelToken (booking-flow magic
- * links) and unsubToken (recap one-click unsubscribe). Anything signing
- * a payload with AUTH_SECRET should funnel through here so we have one
- * audited implementation, not three near-copies.
+ * links). Anything signing a payload with AUTH_SECRET should funnel
+ * through here so we have one audited implementation, not three
+ * near-copies.
  */
 
 const ENC = new TextEncoder();

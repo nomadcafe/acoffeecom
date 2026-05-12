@@ -225,7 +225,6 @@ interface SignedInProps {
     createdAt?: string | Date;
     username?: string | null;
     profilePublic?: boolean;
-    monthlyRecapEmail?: boolean;
     displayName?: string | null;
     bio?: string | null;
     socialLinks?: string;
@@ -720,12 +719,6 @@ function SignedInAccountPage({
           initialLastErrorAt={msFromMaybe(sessionUser.busyCalendarLastErrorAt)}
         />
 
-        <MonthlyRecapCard
-          initial={
-            (sessionUser as { monthlyRecapEmail?: boolean }).monthlyRecapEmail !== false
-          }
-        />
-
         <section id="account-stats" className={styles.card} aria-label={t('account.statsTitle')}>
           <h2 className={styles.cardTitle}>{t('account.statsTitle')}</h2>
           <div className={styles.statsRow}>
@@ -1052,7 +1045,6 @@ const TOC_SECTIONS: ReadonlyArray<{ id: string; labelKey: string }> = [
   { id: 'account-cafes', labelKey: 'account.featuredCafeLabel' },
   { id: 'account-booking', labelKey: 'account.bookingTitle' },
   { id: 'account-calendar', labelKey: 'account.calendarTitle' },
-  { id: 'account-recap', labelKey: 'account.recapTitle' },
   { id: 'account-stats', labelKey: 'account.statsTitle' },
   { id: 'account-export', labelKey: 'account.exportTitle' },
   { id: 'account-sessions', labelKey: 'account.sessionsTitle' },
@@ -1197,132 +1189,6 @@ function ProfileVisibilityCard({ hasUsername, username, initial }: VisibilityPro
         />
       </div>
       {error ? <p className={styles.errorMsg} role="alert">{error}</p> : null}
-    </section>
-  );
-}
-
-interface RecapToggleProps {
-  initial: boolean;
-}
-
-/** Toggle for the monthly recap email. Optimistic flip; reverts on PATCH
- *  failure. Uses the same toggle styles + PATCH /api/account endpoint as
- *  the profile-visibility card. */
-function MonthlyRecapCard({ initial }: RecapToggleProps) {
-  const { t } = useI18n();
-  const [enabled, setEnabled] = useState(initial);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [testing, setTesting] = useState(false);
-  const [testStatus, setTestStatus] = useState<
-    { kind: 'sent' | 'skipped' | 'error'; message: string } | null
-  >(null);
-  // Re-sync on parent session refetch — see ProfileVisibilityCard for why.
-  useEffect(() => {
-    if (!busy) setEnabled(initial);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initial]);
-  // Auto-fade non-error outcomes; "error" stays so the user can read it.
-  useEffect(() => {
-    if (!testStatus || testStatus.kind === 'error') return;
-    const id = window.setTimeout(() => setTestStatus(null), STATUS_OK_AUTO_DISMISS_MS);
-    return () => window.clearTimeout(id);
-  }, [testStatus]);
-
-  async function handleToggle() {
-    if (busy) return;
-    const next = !enabled;
-    setEnabled(next);
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/account', {
-        method: 'PATCH',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ monthlyRecapEmail: next }),
-      });
-      if (!res.ok) {
-        setEnabled(!next);
-        setError(t('account.recapSaveFailed'));
-      } else {
-        track('monthly_recap_set', { enabled: next });
-      }
-    } catch {
-      setEnabled(!next);
-      setError(t('account.recapSaveFailed'));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleSendTest() {
-    if (testing) return;
-    setTesting(true);
-    setTestStatus(null);
-    try {
-      const res = await fetch('/api/account/recap-test', { method: 'POST' });
-      if (!res.ok) {
-        setTestStatus({ kind: 'error', message: t('account.recapTestFailed') });
-        return;
-      }
-      const j = (await res.json()) as { outcome: 'sent' | 'skipped' | 'failed' };
-      track('recap_test_sent', { outcome: j.outcome });
-      if (j.outcome === 'sent') {
-        setTestStatus({ kind: 'sent', message: t('account.recapTestSent') });
-      } else if (j.outcome === 'skipped') {
-        setTestStatus({ kind: 'skipped', message: t('account.recapTestSkipped') });
-      } else {
-        setTestStatus({ kind: 'error', message: t('account.recapTestFailed') });
-      }
-    } catch {
-      setTestStatus({ kind: 'error', message: t('account.recapTestFailed') });
-    } finally {
-      setTesting(false);
-    }
-  }
-
-  return (
-    <section id="account-recap" className={styles.card} aria-label={t('account.recapTitle')}>
-      <h2 className={styles.cardTitle}>{t('account.recapTitle')}</h2>
-      <div className={styles.toggleRow}>
-        <label className={styles.toggleLabel} htmlFor="monthly-recap-toggle">
-          {t('account.recapToggleLabel')}
-          <span className={styles.toggleSubLabel}>
-            {enabled ? t('account.recapOnHint') : t('account.recapOffHint')}
-          </span>
-        </label>
-        <button
-          type="button"
-          id="monthly-recap-toggle"
-          className={`${styles.toggle}${enabled ? ' ' + styles.toggleOn : ''}`}
-          role="switch"
-          aria-checked={enabled}
-          aria-label={t('account.recapToggleAria')}
-          disabled={busy}
-          onClick={() => void handleToggle()}
-        />
-      </div>
-      {error ? <p className={styles.errorMsg} role="alert">{error}</p> : null}
-      <div className={styles.formRow}>
-        <button
-          type="button"
-          className={styles.saveButton}
-          onClick={() => void handleSendTest()}
-          disabled={testing}
-        >
-          {testing ? t('account.recapTesting') : t('account.recapTestButton')}
-        </button>
-        {testStatus ? (
-          <p
-            className={
-              testStatus.kind === 'error' ? styles.errorMsg : styles.successMsg
-            }
-            role="status"
-          >
-            {testStatus.message}
-          </p>
-        ) : null}
-      </div>
     </section>
   );
 }

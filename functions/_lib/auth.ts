@@ -118,7 +118,6 @@ export function createAuth(env: AuthEnv) {
          * for client convenience. */
         username: { type: 'string', required: false, input: false },
         profilePublic: { type: 'boolean', required: false, defaultValue: false, input: false },
-        monthlyRecapEmail: { type: 'boolean', required: false, defaultValue: true, input: false },
         displayName: { type: 'string', required: false, input: false },
         bio: { type: 'string', required: false, input: false },
         socialLinks: { type: 'string', required: false, defaultValue: '[]', input: false },

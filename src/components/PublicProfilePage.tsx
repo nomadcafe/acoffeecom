@@ -79,10 +79,10 @@ interface Props {
 }
 
 /**
- * Future Pro entry point — `acoffee.com/yourname`. Public, unauth, served
- * straight from the profile API. Today this just renders aggregate stats and
- * a top-cafés list; the booking surface ("Book a coffee with me") is the
- * next phase and lives behind a "coming soon" CTA for now.
+ * Public profile at `acoffee.com/yourname`. Unauth, served straight from
+ * the profile API. Renders hero (avatar + bio + socials), stats, the
+ * BookingWidget (when the owner has booking enabled), featured cafés,
+ * and a top-cafés list.
  *
  * Returns the same 404-styled state for both "user doesn't exist" and "user
  * exists but profile is private", because the API answers them identically.

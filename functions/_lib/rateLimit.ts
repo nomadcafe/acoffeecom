@@ -23,8 +23,8 @@ export async function rateLimit(
     limit: number;
     windowSec: number;
     /** Override the default IP-based key. Used for per-user / per-email
-     *  rate limits (magic-link sign-in, recap-test) where IP-only would
-     *  let the same email be mailbombed from rotating IPs. */
+     *  rate limits (e.g. magic-link sign-in) where IP-only would let the
+     *  same email be mailbombed from rotating IPs. */
     keyOverride?: string;
   },
 ): Promise<Result> {

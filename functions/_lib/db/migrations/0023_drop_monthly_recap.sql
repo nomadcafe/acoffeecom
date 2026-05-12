@@ -1,0 +1,1 @@
+ALTER TABLE `user` DROP COLUMN `monthly_recap_email`;

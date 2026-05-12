@@ -14,10 +14,6 @@ export const user = sqliteTable('user', {
   /* Opt-in: profile pages stay private until the owner publishes. Pairs with
    * username — a profile needs both a slug to live at and an explicit toggle. */
   profilePublic: integer('profile_public', { mode: 'boolean' }).notNull().default(false),
-  /* Defaults true so signed-up users get the monthly recap immediately —
-   * one email a month is the kind of low-frequency contact people actually
-   * tolerate, and they can flip it off from /account anytime. */
-  monthlyRecapEmail: integer('monthly_recap_email', { mode: 'boolean' }).notNull().default(true),
   /* Bio-link surface for the public profile (acoffee.com/<username>).
    * `display_name` is the human-friendly name shown above @username;
    * `bio` is one short line under it; `social_links` is a JSON array of
