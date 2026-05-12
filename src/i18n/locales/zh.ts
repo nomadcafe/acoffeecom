@@ -540,7 +540,9 @@ export const messages: MessageDict = {
   'profile.featuredCafeLinkBooking': '预订',
   /* 2026-05 utility 精简后保留的 showcase keys；mock / row* / *Eyebrow /
    * featuresGridAria 已随 5 张次要功能卡 + tile 网格一起移除。 */
-  'showcase.eyebrow': 'AI 驱动 · 免费 · 无需安装',
+  'showcase.eyebrowAi': 'AI 驱动',
+  'showcase.eyebrowFree': '免费',
+  'showcase.eyebrowOpenSource': '开源',
   'showcase.title': 'ACoffee 是什么',
   'showcase.lead': '一个帮你们挑见面咖啡店的 AI 代理，以及围绕这杯咖啡的所有功能。',
   'showcase.demoBadge': '公平之选',

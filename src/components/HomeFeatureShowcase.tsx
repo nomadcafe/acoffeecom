@@ -23,7 +23,17 @@ export function HomeFeatureShowcase() {
     <section className={styles.wrap} aria-labelledby="showcase-title">
       <div className={styles.hero}>
         <div className={styles.heroText}>
-          <span className={styles.eyebrow}>{t('showcase.eyebrow')}</span>
+          <span className={styles.eyebrow}>
+            {t('showcase.eyebrowAi')} · {t('showcase.eyebrowFree')} ·{' '}
+            <a
+              className={styles.eyebrowLink}
+              href="https://github.com/nomadcafe/acoffeecom"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t('showcase.eyebrowOpenSource')}
+            </a>
+          </span>
           <h1 id="showcase-title" className={styles.title}>
             {t('showcase.title')}
           </h1>
