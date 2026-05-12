@@ -119,9 +119,11 @@ export const messages: MessageDict = {
   'list.emptyMeetup': '附近没有找到符合条件的高评分地点。',
   'list.emptyHint': '可尝试让两地更近、扩大搜索半径或降低最低评分。',
   'list.emptyWidenAction': '扩大搜索范围',
-  'list.nearMe': '显示附近的咖啡店 ☕',
+  'list.nearMe': '显示附近高评价的咖啡店 ☕',
   'list.nearMeLoading': '正在获取你的位置…',
   'list.nearMeUnavailable': '无法获取你的位置，请在上方输入起点。',
+  'list.nearMePermissionDenied': '位置访问已被禁用。请从浏览器地址栏的锁形图标重新授权，或在上方输入起点。',
+  'list.nearMeApproxBanner': '使用网络估算的近似位置，可能偏差数公里。在上方输入起点可获得精确结果。',
   'list.foundOneCoffee': '找到 {{count}} 个咖啡地点',
   'list.foundManyCoffee': '找到 {{count}} 个咖啡地点',
   'list.foundOneMeetup': '找到 {{count}} 个地点',
@@ -214,7 +216,7 @@ export const messages: MessageDict = {
   'filters.lead':
     '默认面向<strong>咖啡会面</strong>。这些设置会在你<strong>下一次</strong>点击<strong>查找会面点</strong>时生效；仅修改设置不会自动搜索。',
   'filters.leadNearby':
-    '这些设置会在你<strong>下一次</strong>点击<strong>显示附近的咖啡店</strong>时生效；仅修改设置不会自动搜索。',
+    '这些设置会在你<strong>下一次</strong>点击<strong>显示附近高评价的咖啡店</strong>时生效；仅修改设置不会自动搜索。',
   'filters.minRating': '最低评分',
   'filters.ratingDisplay': '{{value}} 星',
   'filters.radius': '以中点为中心的搜索半径',
@@ -250,7 +252,7 @@ export const messages: MessageDict = {
   'filters.widenHint':
     '搜索半径 +1 km，最低评分 -0.5（不低于 {{min}} 星）。之后请再次点击<strong>查找会面点</strong>；此按钮本身不会触发搜索。',
   'filters.widenHintNearby':
-    '搜索半径 +1 km，最低评分 -0.5（不低于 {{min}} 星）。之后请再次点击<strong>显示附近的咖啡店</strong>；此按钮本身不会触发搜索。',
+    '搜索半径 +1 km，最低评分 -0.5（不低于 {{min}} 星）。之后请再次点击<strong>显示附近高评价的咖啡店</strong>；此按钮本身不会触发搜索。',
 
   'map.loadError': 'Google 地图加载失败，请检查 API Key。',
   'map.loading': '地图加载中…',

@@ -124,9 +124,11 @@ export const messages: MessageDict = {
   'list.emptyMeetup': 'No highly-rated places found nearby.',
   'list.emptyHint': 'Try locations that are closer together, widen the radius, or lower the minimum rating.',
   'list.emptyWidenAction': 'Widen the search',
-  'list.nearMe': 'Show coffee near me ☕',
+  'list.nearMe': 'Show top-rated coffee near me ☕',
   'list.nearMeLoading': 'Getting your location…',
   'list.nearMeUnavailable': "Couldn't determine your location. Enter a starting point above.",
+  'list.nearMePermissionDenied': 'Location access is blocked. Allow it from the lock icon in your browser address bar, or type your starting point above.',
+  'list.nearMeApproxBanner': 'Approximate location from your network — may be off by kilometres. Type your starting point above for precise results.',
   'list.foundOneCoffee': '{{count}} coffee spot found',
   'list.foundManyCoffee': '{{count}} coffee spots found',
   'list.foundOneMeetup': '{{count}} place found',
@@ -232,7 +234,7 @@ export const messages: MessageDict = {
   'filters.lead':
     'Built for <strong>coffee meetups</strong> by default. These settings apply the <strong>next</strong> time you tap <strong>Find Meetup Spot</strong> above — nothing here runs a search by itself.',
   'filters.leadNearby':
-    'These settings apply the <strong>next</strong> time you tap <strong>Show coffee near me</strong> above — nothing here runs a search by itself.',
+    'These settings apply the <strong>next</strong> time you tap <strong>Show top-rated coffee near me</strong> above — nothing here runs a search by itself.',
   'filters.minRating': 'Minimum rating',
   'filters.ratingDisplay': '{{value}} stars',
   'filters.radius': 'Search radius from midpoint',
@@ -268,7 +270,7 @@ export const messages: MessageDict = {
   'filters.widenHint':
     'Moves radius +1 km and minimum rating -0.5 (not below {{min}} stars). Then tap <strong>Find Meetup Spot</strong> again — this button does not search.',
   'filters.widenHintNearby':
-    'Moves radius +1 km and minimum rating -0.5 (not below {{min}} stars). Then tap <strong>Show coffee near me</strong> again — this button does not search.',
+    'Moves radius +1 km and minimum rating -0.5 (not below {{min}} stars). Then tap <strong>Show top-rated coffee near me</strong> again — this button does not search.',
 
   'map.loadError': 'Failed to load Google Maps. Please check your API key.',
   'map.loading': 'Loading map...',

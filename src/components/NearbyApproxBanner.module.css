@@ -1,0 +1,19 @@
+.banner {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.8rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: var(--ac-surface-tinted);
+  border: 1px solid var(--ac-border);
+  color: var(--ac-text);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.icon {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1.2;
+}

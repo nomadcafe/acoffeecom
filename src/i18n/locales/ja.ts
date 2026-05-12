@@ -122,9 +122,11 @@ export const messages: MessageDict = {
   'list.emptyMeetup': '条件に合う高評価の場所が見つかりませんでした。',
   'list.emptyHint': '近い場所にする、検索半径を広げる、最低評価を下げる、などを試してください。',
   'list.emptyWidenAction': '検索条件を広げる',
-  'list.nearMe': '近くのカフェを表示 ☕',
+  'list.nearMe': '近くの高評価カフェを表示 ☕',
   'list.nearMeLoading': '現在地を取得中…',
   'list.nearMeUnavailable': '現在地を取得できませんでした。上で出発地を入力してください。',
+  'list.nearMePermissionDenied': '位置情報がブロックされています。ブラウザのアドレスバーの鍵アイコンから許可するか、上で出発地を入力してください。',
+  'list.nearMeApproxBanner': 'ネットワークから推定した概算位置のため、数キロずれる可能性があります。正確には上で出発地を入力してください。',
   'list.foundOneCoffee': '{{count}}件のカフェが見つかりました',
   'list.foundManyCoffee': '{{count}}件のカフェが見つかりました',
   'list.foundOneMeetup': '{{count}}件の場所が見つかりました',
@@ -218,7 +220,7 @@ export const messages: MessageDict = {
   'filters.lead':
     'デフォルトは<strong>カフェ待ち合わせ</strong>向けです。ここでの設定は、次に<strong>待ち合わせ地点を検索</strong>を押したときに使われます。入力だけでは検索は走りません。',
   'filters.leadNearby':
-    'ここでの設定は、次に<strong>近くのカフェを表示</strong>を押したときに使われます。入力だけでは検索は走りません。',
+    'ここでの設定は、次に<strong>近くの高評価カフェを表示</strong>を押したときに使われます。入力だけでは検索は走りません。',
   'filters.minRating': '最低評価',
   'filters.ratingDisplay': '{{value}} つ星',
   'filters.radius': '中間地点からの検索半径',
@@ -254,7 +256,7 @@ export const messages: MessageDict = {
   'filters.widenHint':
     '半径を +1 km、最低評価を -0.5（{{min}} 未満にはしません）。その後、もう一度<strong>待ち合わせ地点を検索</strong>を押してください。このボタン自体は検索しません。',
   'filters.widenHintNearby':
-    '半径を +1 km、最低評価を -0.5（{{min}} 未満にはしません）。その後、もう一度<strong>近くのカフェを表示</strong>を押してください。このボタン自体は検索しません。',
+    '半径を +1 km、最低評価を -0.5（{{min}} 未満にはしません）。その後、もう一度<strong>近くの高評価カフェを表示</strong>を押してください。このボタン自体は検索しません。',
 
   'map.loadError': 'Google マップを読み込めませんでした。APIキーを確認してください。',
   'map.loading': '地図を読み込み中…',

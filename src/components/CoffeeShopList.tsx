@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { getOpenInGoogleMapsUrl } from '../utils/googleMapsLinks';
 import { CoffeeShopCard } from './CoffeeShopCard';
+import { NearbyApproxBanner } from './NearbyApproxBanner';
 import styles from './CoffeeShopList.module.css';
 
 export function CoffeeShopList() {
@@ -183,6 +184,7 @@ export function CoffeeShopList() {
               : t('share.button')}
         </button>
       </div>
+      <NearbyApproxBanner />
       {/* AI reasoning strip — surfaces what the agent actually did to
           rank these results. Without it, the modes (fair/fast/vibe…)
           felt like hidden machinery; the user picked one and got
