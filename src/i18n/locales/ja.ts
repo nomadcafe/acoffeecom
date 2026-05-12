@@ -758,6 +758,7 @@ export const messages: MessageDict = {
   'bottomNav.aria': 'サイト内メニュー',
   'bottomNav.home': '検索',
   'bottomNav.passport': 'パスポート',
+  'bottomNav.bookings': '予約',
 
   'sheet.label': '検索と候補',
   'sheet.dragHandle': 'ドラッグで高さを変更。上下キーまたは Enter でスナップします。',

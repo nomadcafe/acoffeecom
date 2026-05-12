@@ -777,6 +777,7 @@ export const messages: MessageDict = {
   'bottomNav.aria': 'Site',
   'bottomNav.home': 'Finder',
   'bottomNav.passport': 'Passport',
+  'bottomNav.bookings': 'Bookings',
   'bottomNav.bmacDisclaimer': 'ACoffee.com is not affiliated with buymeacoffee.com.',
 
   'sheet.label': 'Search and results',
