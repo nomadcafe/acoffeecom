@@ -18,6 +18,7 @@ import { HeaderNavLinks } from './HeaderNavLinks';
 import { SkipToContent } from './SkipToContent';
 import { HeatmapGrid } from './HeatmapGrid';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { GithubLink } from './GithubLink';
 import { TrajectoryMap } from './TrajectoryMap';
 import { VisitNoteInput } from './VisitNoteInput';
 import { VisitRating } from './VisitRating';
@@ -230,6 +231,7 @@ export function PassportPage() {
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            <GithubLink />
             {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
               <>
                 <SyncIndicator />

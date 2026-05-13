@@ -18,6 +18,7 @@ export const messages: MessageDict = {
     '2〜3 人で待ち合わせる際、各人の実際の交通時間に基づいていちばん公平なカフェを選ぶ AI エージェント。acoffee.com/yourname の公開プロフィールでワンタップのコーヒー予約も受けられます。',
 
   'app.logoAlt': 'A Coffee',
+  'header.githubAria': 'GitHub でソースを見る',
   'app.skipToContent': 'メインコンテンツへスキップ',
   'updateToast.message': '新しいバージョンが利用可能です',
   'updateToast.refresh': '再読み込み',

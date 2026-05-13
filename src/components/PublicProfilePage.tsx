@@ -7,6 +7,7 @@ import { BookingWidget } from './BookingWidget';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { GithubLink } from './GithubLink';
 import { SocialIcon } from './SocialIcon';
 import { SyncIndicator } from './SyncIndicator';
 import { avatarGradient } from '../utils/avatarGradient';
@@ -150,6 +151,7 @@ export function PublicProfilePage({ username }: Props) {
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            <GithubLink />
             {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
               <>
                 <SyncIndicator />

@@ -10,6 +10,7 @@ import { AgentModeChips } from './components/AgentModeChips';
 import { SearchFilters } from './components/SearchFilters';
 import { CoffeeShopList } from './components/CoffeeShopList';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
+import { GithubLink } from './components/GithubLink';
 import { AccountMenu } from './components/AccountMenu';
 import { SyncIndicator } from './components/SyncIndicator';
 import { SavedPlacesMenu } from './components/SavedPlacesMenu';
@@ -160,6 +161,7 @@ function AppShell() {
             <VisitedPlacesMenu />
             <SavedPlacesMenu />
             <LanguageSwitcher />
+            <GithubLink />
             {import.meta.env.VITE_AUTH_ENABLED === 'true' && (
               <>
                 <SyncIndicator />

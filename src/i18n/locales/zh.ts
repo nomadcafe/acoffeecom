@@ -15,6 +15,7 @@ export const messages: MessageDict = {
   'seo.schemaDescription': '帮二到三个人约咖啡的 AI agent — 按每个人的实际公共交通时间挑最公平的咖啡店，不是单看地理中点。还有 acoffee.com/yourname 公开主页支持朋友或客户一键预约。',
 
   'app.logoAlt': 'A Coffee',
+  'header.githubAria': '在 GitHub 查看源码',
   'app.skipToContent': '跳到主要内容',
   'updateToast.message': '新版本已就绪',
   'updateToast.refresh': '刷新',

@@ -14,6 +14,7 @@ import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { GithubLink } from './GithubLink';
 import { SyncIndicator } from './SyncIndicator';
 import accountStyles from './AccountPage.module.css';
 import styles from './BookingsPage.module.css';
@@ -1449,6 +1450,7 @@ function PageHeader({ homeHref }: { homeHref: string }) {
         <HeaderNavLinks />
         <div className={accountStyles.headerAside}>
           <LanguageSwitcher />
+          <GithubLink />
           {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
             <>
               <SyncIndicator />

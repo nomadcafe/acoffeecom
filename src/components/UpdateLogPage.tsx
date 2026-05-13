@@ -5,6 +5,7 @@ import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { GithubLink } from './GithubLink';
 import { SyncIndicator } from './SyncIndicator';
 import styles from './UpdateLogPage.module.css';
 
@@ -32,6 +33,7 @@ export function UpdateLogPage() {
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            <GithubLink />
             {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
               <>
                 <SyncIndicator />

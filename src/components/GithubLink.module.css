@@ -1,0 +1,25 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ac-text-muted);
+  border-radius: 8px;
+  transition: color var(--ac-motion-fast), background var(--ac-motion-fast);
+}
+
+.link:hover {
+  color: var(--ac-text);
+  background: var(--ac-surface-tinted);
+}
+
+.link:focus-visible {
+  outline: none;
+  color: var(--ac-text);
+  box-shadow: var(--ac-focus-ring);
+}
+
+.icon {
+  display: block;
+}

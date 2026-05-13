@@ -11,6 +11,7 @@ import { AccountMenu } from './AccountMenu';
 import { HeaderNavLinks } from './HeaderNavLinks';
 import { SkipToContent } from './SkipToContent';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { GithubLink } from './GithubLink';
 import { SyncIndicator } from './SyncIndicator';
 import { useCafeAutocomplete } from '../hooks/useCafeAutocomplete';
 import styles from './AccountPage.module.css';
@@ -119,6 +120,7 @@ export function AccountPage() {
             <HeaderNavLinks />
             <div className={styles.headerAside}>
               <LanguageSwitcher />
+              <GithubLink />
               {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
                 <>
                   <SyncIndicator />
@@ -164,6 +166,7 @@ export function AccountPage() {
             <HeaderNavLinks />
             <div className={styles.headerAside}>
               <LanguageSwitcher />
+              <GithubLink />
               {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
                 <>
                   <SyncIndicator />
@@ -537,6 +540,7 @@ function SignedInAccountPage({
           <HeaderNavLinks />
           <div className={styles.headerAside}>
             <LanguageSwitcher />
+            <GithubLink />
             {import.meta.env.VITE_AUTH_ENABLED === 'true' ? (
               <>
                 <SyncIndicator />

@@ -18,6 +18,7 @@ export const messages: MessageDict = {
     'AI agent that picks the fairest coffee shop for two or three people meeting up — using real transit time across each party, not just a geographic midpoint. Includes a public profile surface at acoffee.com/yourname for one-tap coffee bookings.',
 
   'app.logoAlt': 'A Coffee',
+  'header.githubAria': 'Source on GitHub',
   'app.skipToContent': 'Skip to content',
   'updateToast.message': 'New version available',
   'updateToast.refresh': 'Refresh',
